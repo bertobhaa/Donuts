@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Donuts | Penyesuaian Stok</title>
+    <title>Donuts | Log Penyesuaian Stok</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -23,33 +23,34 @@
         <nav class="flex-1 px-4 space-y-1 overflow-y-auto">
             <a href="index.html" class="flex items-center gap-3 px-3 py-3 rounded-xl sidebar-item text-slate-600 font-medium"><i data-lucide="layout-dashboard"></i><span class="text-sm">Dashboard</span></a>
             <div class="pt-4 pb-2 px-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">Inventori</div>
-            <a href="pembelian.html" class="flex items-center gap-3 px-3 py-3 rounded-xl sidebar-item text-slate-600 font-medium"><i data-lucide="shopping-bag"></i><span class="text-sm">Pembelian</span></a>
-            <a href="penyesuaian.html" class="flex items-center gap-3 px-3 py-3 rounded-xl active-nav"><i data-lucide="refresh-cw"></i><span class="text-sm font-semibold">Opname & Koreksi</span></a>
+            <a href="penyesuaian.html" class="flex items-center gap-3 px-3 py-3 rounded-xl sidebar-item text-slate-600 font-medium"><i data-lucide="refresh-cw"></i><span class="text-sm">Opname</span></a>
+            <a href="laporan_penyesuaian.html" class="flex items-center gap-3 px-3 py-3 rounded-xl active-nav"><i data-lucide="clipboard-list"></i><span class="text-sm font-semibold">Log Penyesuaian</span></a>
         </nav>
     </aside>
 
     <main class="flex-1 overflow-y-auto">
         <header class="bg-white border-b border-slate-200 p-6 flex justify-between items-center sticky top-0 z-10">
             <div>
-                <h2 class="text-2xl font-black text-slate-900 tracking-tight">Koreksi Stok</h2>
-                <p class="text-sm text-slate-500 font-medium">Sesuaikan atau tambah stok bahan tanpa transaksi beli</p>
+                <h2 class="text-2xl font-black text-slate-900 tracking-tight">Audit Penyesuaian Stok</h2>
+                <p class="text-sm text-slate-500 font-medium">Daftar perubahan stok manual (Opname/Tambah)</p>
+            </div>
+            <div class="flex gap-2">
+                <input type="text" id="search-log" onkeyup="filterTable()" placeholder="Cari bahan/alasan..." class="bg-slate-50 border-none rounded-xl px-4 py-2 text-xs font-bold outline-none focus:ring-2 focus:ring-rose-500 w-64">
             </div>
         </header>
 
         <div class="p-8">
             <div class="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
-                <table class="w-full text-left border-collapse">
+                <table class="w-full text-left border-collapse" id="log-table">
                     <thead class="bg-slate-50 text-[10px] font-black text-slate-400 uppercase tracking-widest">
                         <tr>
+                            <th class="p-6">Waktu Kejadian</th>
                             <th class="p-6">Bahan Baku</th>
-                            <th class="p-6">Stok Saat Ini</th>
-                            <th class="p-6">Metode</th>
-                            <th class="p-6">Jumlah / Nilai Baru</th>
-                            <th class="p-6">Alasan</th>
-                            <th class="p-6 text-center">Aksi</th>
+                            <th class="p-6">Stok Akhir</th>
+                            <th class="p-6">Alasan/Keterangan</th>
                         </tr>
                     </thead>
-                    <tbody id="adj-body" class="text-sm font-semibold">
+                    <tbody id="adj-log-body" class="text-sm font-semibold">
                         </tbody>
                 </table>
             </div>
@@ -61,70 +62,37 @@
         const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJra3BrZnZjc3NkbWdubmNycmh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA3OTQ4OTIsImV4cCI6MjA4NjM3MDg5Mn0.VeE2IZhQmTyKMMQI4Ukh0nt6YHR2zVs_nUnjtPt-GPQ";
         const _supabase = supabase.createClient(SB_URL, SB_KEY);
 
-        async function loadBahan() {
-            const { data } = await _supabase.from('bahan').select('*').order('nama_bahan');
-            document.getElementById('adj-body').innerHTML = data.map(b => `
-                <tr class="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
-                    <td class="p-6 font-bold text-slate-700">${b.nama_bahan}</td>
-                    <td class="p-6 text-slate-400">${b.stok_gram} ${b.satuan}</td>
-                    <td class="p-6">
-                        <select id="mode-${b.id}" class="bg-slate-100 p-2 rounded-lg text-xs font-bold border-none outline-none focus:ring-2 focus:ring-rose-500">
-                            <option value="set">Ganti Ke (Opname)</option>
-                            <option value="add">Tambah Stok (+)</option>
-                        </select>
-                    </td>
-                    <td class="p-6">
-                        <input type="number" id="input-${b.id}" placeholder="0" class="w-24 p-3 bg-slate-50 border-none rounded-xl font-bold focus:ring-2 focus:ring-rose-500">
-                    </td>
-                    <td class="p-6">
-                        <select id="ket-${b.id}" class="bg-slate-50 p-3 rounded-xl text-[10px] font-bold border-none outline-none">
-                            <option>Penyesuaian Rutin</option>
-                            <option>Bonus/Hibah</option>
-                            <option>Barang Rusak</option>
-                            <option>Salah Input</option>
-                        </select>
-                    </td>
-                    <td class="p-6 text-center">
-                        <button onclick="prosesAdj(${b.id}, ${b.stok_gram})" class="bg-slate-900 text-white px-5 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-rose-500 transition-all shadow-lg shadow-slate-200">Proses</button>
-                    </td>
-                </tr>
-            `).join('');
+        async function loadLogs() {
+            const { data } = await _supabase
+                .from('riwayat_penyesuaian')
+                .select('*, bahan(nama_bahan, satuan)')
+                .order('created_at', { ascending: false });
+
+            if (data) {
+                document.getElementById('adj-log-body').innerHTML = data.map(item => `
+                    <tr class="border-b border-slate-50 hover:bg-slate-50">
+                        <td class="p-6 text-slate-400 font-medium">
+                            ${new Date(item.created_at).toLocaleString('id-ID')}
+                        </td>
+                        <td class="p-6 font-extrabold text-slate-800">${item.bahan?.nama_bahan}</td>
+                        <td class="p-6 font-black text-rose-500">${item.stok_fisik} <small>${item.bahan?.satuan}</small></td>
+                        <td class="p-6 italic text-slate-500">${item.keterangan || '-'}</td>
+                    </tr>
+                `).join('');
+            }
             lucide.createIcons();
         }
 
-        async function prosesAdj(id, stokLama) {
-            const mode = document.getElementById(`mode-${id}`).value;
-            const val = parseFloat(document.getElementById(`input-${id}`).value);
-            const ket = document.getElementById(`ket-${id}`).value;
-            
-            if(isNaN(val)) return alert("Isi nilai jumlah!");
-
-            let stokBaru;
-            if (mode === "add") {
-                stokBaru = stokLama + val; // Menambah stok
-            } else {
-                stokBaru = val; // Mengganti stok (Opname)
-            }
-
-            // 1. Update Tabel Bahan
-            const { error } = await _supabase.from('bahan').update({ stok_gram: stokBaru }).eq('id', id);
-
-            if(!error) {
-                // 2. Log Riwayat Penyesuaian
-                await _supabase.from('riwayat_penyesuaian').insert([{
-                    bahan_id: id,
-                    stok_fisik: stokBaru,
-                    keterangan: `${mode === 'add' ? '[TAMBAH] ' : '[OPNAME] '} ${ket}`
-                }]);
-
-                alert(`Stok berhasil diupdate menjadi ${stokBaru}!`);
-                loadBahan();
-            } else {
-                alert("Gagal memproses data.");
+        function filterTable() {
+            const input = document.getElementById("search-log").value.toUpperCase();
+            const rows = document.getElementById("adj-log-body").getElementsByTagName("tr");
+            for (let i = 0; i < rows.length; i++) {
+                const text = rows[i].textContent || rows[i].innerText;
+                rows[i].style.display = text.toUpperCase().indexOf(input) > -1 ? "" : "none";
             }
         }
 
-        window.onload = loadBahan;
+        window.onload = loadLogs;
     </script>
 </body>
 </html>
