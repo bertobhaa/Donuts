@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Donuts | Dashboard Utama</title>
+    <title>Donuts | Dashboard Analitik</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -36,7 +36,6 @@
             </a>
 
             <div class="pt-4 pb-2 px-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Transaksi</div>
-
             <a href="kasir.html" class="flex items-center gap-3 px-3 py-3 rounded-xl sidebar-item text-slate-600 transition-all">
                 <i data-lucide="shopping-cart" class="w-5 h-5"></i>
                 <span class="text-sm">Kasir / Jualan</span>
@@ -50,7 +49,6 @@
                     </div>
                     <i data-lucide="chevron-down" id="chevron-icon" class="w-4 h-4 transition-transform duration-300"></i>
                 </button>
-
                 <div id="master-data-sub" class="mt-1 ml-4 border-l-2 border-slate-100 pl-2 space-y-1 overflow-hidden max-h-40 opacity-100">
                     <a href="produk.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-slate-500 hover:text-rose-600 hover:bg-rose-50 transition-all">
                         <i data-lucide="donut" class="w-4 h-4"></i>
@@ -66,117 +64,124 @@
                     </a>
                 </div>
             </div>
+            
+            <div class="pt-4 pb-2 px-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Laporan</div>
+            <a href="laporan.html" class="flex items-center gap-3 px-3 py-3 rounded-xl sidebar-item text-slate-600 transition-all">
+                <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
+                <span class="text-sm">Riwayat Jualan</span>
+            </a>
         </nav>
-
-        <div class="p-4 bg-slate-50 m-4 rounded-2xl border border-slate-100">
-            <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-full bg-rose-500 flex items-center justify-center text-white text-xs font-bold font-mono">AD</div>
-                <div class="flex-1 min-w-0">
-                    <p class="text-[11px] font-bold truncate">Admin Donuts</p>
-                    <p class="text-[9px] text-slate-500">Owner Store</p>
-                </div>
-            </div>
-        </div>
     </aside>
 
     <main class="flex-1 overflow-y-auto">
         <header class="bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-10 p-6 flex justify-between items-center">
             <div>
-                <h2 class="text-2xl font-bold">Dashboard</h2>
-                <p class="text-sm text-slate-500">Kelola operasional tokomu di sini.</p>
+                <h2 class="text-2xl font-bold">Ringkasan Bisnis</h2>
+                <p class="text-sm text-slate-500">Pantau performa tokomu hari ini.</p>
             </div>
-            <div id="jam-digital" class="bg-white border p-2 px-4 rounded-xl text-sm font-mono shadow-sm">00:00:00</div>
+            <div id="jam-digital" class="bg-slate-100 p-2 px-4 rounded-xl text-sm font-mono font-bold text-rose-500">00:00:00</div>
         </header>
 
         <div class="p-8">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-                <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-                    <p class="text-slate-500 text-xs font-bold uppercase mb-2">Total Menu</p>
-                    <h3 class="text-3xl font-bold text-slate-800" id="count-produk">0</h3>
+                <div class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm">
+                    <p class="text-slate-500 text-xs font-bold uppercase tracking-wider mb-2">Menu Aktif</p>
+                    <h3 class="text-3xl font-bold" id="count-produk">0</h3>
                 </div>
-                <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-                    <p class="text-slate-500 text-xs font-bold uppercase mb-2">Bahan Hampir Habis</p>
+                <div class="bg-rose-500 p-6 rounded-[2rem] shadow-xl shadow-rose-100 text-white">
+                    <p class="text-rose-100 text-xs font-bold uppercase tracking-wider mb-2">Omzet Hari Ini</p>
+                    <h3 class="text-3xl font-bold" id="total-jual">Rp 0</h3>
+                </div>
+                <div class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm">
+                    <p class="text-slate-500 text-xs font-bold uppercase tracking-wider mb-2">Stok Perlu Perhatian</p>
                     <h3 class="text-3xl font-bold text-orange-500" id="warning-bahan">0</h3>
-                </div>
-                <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-                    <p class="text-slate-500 text-xs font-bold uppercase mb-2">Penjualan Hari Ini</p>
-                    <h3 class="text-3xl font-bold text-green-600" id="total-jual">Rp 0</h3>
                 </div>
             </div>
 
-            <h3 class="text-xl font-bold mb-6 flex items-center gap-2">
-                <i data-lucide="donut" class="text-rose-500"></i> Pilih Donat untuk Dijual
-            </h3>
-            
-            <div id="produk-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="space-y-4">
+                    <h3 class="text-lg font-bold flex items-center gap-2">
+                        <i data-lucide="zap" class="text-yellow-500 w-5 h-5"></i> Akses Cepat
+                    </h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        <a href="kasir.html" class="p-6 bg-white border border-slate-100 rounded-[2rem] hover:shadow-lg transition-all flex flex-col items-center gap-3">
+                            <div class="p-3 bg-rose-50 text-rose-500 rounded-2xl"><i data-lucide="shopping-cart"></i></div>
+                            <span class="font-bold text-sm">Buka Kasir</span>
+                        </a>
+                        <a href="laporan.html" class="p-6 bg-white border border-slate-100 rounded-[2rem] hover:shadow-lg transition-all flex flex-col items-center gap-3">
+                            <div class="p-3 bg-blue-50 text-blue-500 rounded-2xl"><i data-lucide="file-text"></i></div>
+                            <span class="font-bold text-sm">Lihat Laporan</span>
+                        </a>
+                    </div>
                 </div>
+
+                <div class="space-y-4">
+                    <h3 class="text-lg font-bold flex items-center gap-2">
+                        <i data-lucide="package-search" class="text-orange-500 w-5 h-5"></i> Bahan Perlu Restock
+                    </h3>
+                    <div id="bahan-kritis-list" class="bg-white rounded-[2rem] border border-slate-100 p-6 space-y-4">
+                        <p class="text-slate-400 text-sm italic text-center py-4">Memuat data stok...</p>
+                    </div>
+                </div>
+            </div>
         </div>
     </main>
 
     <script>
-        // CONFIG SUPABASE
-        const SB_URL = "https://bkkpkfvcssdmgnncrrhu.supabase.co"; // Tambahkan https://
+        const SB_URL = "https://bkkpkfvcssdmgnncrrhu.supabase.co";
         const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJra3BrZnZjc3NkbWdubmNycmh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA3OTQ4OTIsImV4cCI6MjA4NjM3MDg5Mn0.VeE2IZhQmTyKMMQI4Ukh0nt6YHR2zVs_nUnjtPt-GPQ";
-        
-        // Inisialisasi Supabase Client yang benar
         const _supabase = supabase.createClient(SB_URL, SB_KEY);
 
-        // Fungsi Toggle Sidebar Master Data
+        async function loadDashboard() {
+            // 1. Hitung Produk
+            const { count: jmlProduk } = await _supabase.from('produk').select('*', { count: 'exact', head: true });
+            document.getElementById('count-produk').innerText = jmlProduk;
+
+            // 2. Omzet Hari Ini
+            const today = new Date().toISOString().split('T')[0];
+            const { data: trx } = await _supabase.from('transaksi').select('total_harga').gte('created_at', today);
+            const total = trx ? trx.reduce((sum, item) => sum + item.total_harga, 0) : 0;
+            document.getElementById('total-jual').innerText = `Rp ${total.toLocaleString('id-ID')}`;
+
+            // 3. Cek Bahan Kritis (< 500g)
+            const { data: bahan } = await _supabase.from('bahan').select('*').lt('stok_gram', 500);
+            const listBahan = document.getElementById('bahan-kritis-list');
+            
+            document.getElementById('warning-bahan').innerText = bahan ? bahan.length : 0;
+            listBahan.innerHTML = '';
+
+            if (bahan && bahan.length > 0) {
+                bahan.forEach(b => {
+                    listBahan.innerHTML += `
+                        <div class="flex justify-between items-center bg-orange-50 p-4 rounded-2xl border border-orange-100">
+                            <div>
+                                <p class="font-bold text-slate-800 text-sm">${b.nama_bahan}</p>
+                                <p class="text-xs text-orange-600">Sisa stok kritis!</p>
+                            </div>
+                            <span class="bg-white px-3 py-1 rounded-lg text-xs font-bold text-orange-600">${b.stok_gram}g</span>
+                        </div>
+                    `;
+                });
+            } else {
+                listBahan.innerHTML = '<p class="text-green-500 text-sm text-center py-4">✅ Semua stok bahan aman.</p>';
+            }
+        }
+
         function toggleMasterData() {
             const sub = document.getElementById('master-data-sub');
             const icon = document.getElementById('chevron-icon');
-            if (sub.classList.contains('max-h-0')) {
-                sub.classList.remove('max-h-0', 'opacity-0');
-                sub.classList.add('max-h-40', 'opacity-100');
-                icon.style.transform = 'rotate(0deg)';
-            } else {
-                sub.classList.remove('max-h-40', 'opacity-100');
-                sub.classList.add('max-h-0', 'opacity-0');
-                icon.style.transform = 'rotate(-90deg)';
-            }
+            const isHidden = sub.classList.contains('max-h-0');
+            sub.classList.toggle('max-h-0', !isHidden);
+            sub.classList.toggle('opacity-0', !isHidden);
+            sub.classList.toggle('max-h-40', isHidden);
+            sub.classList.toggle('opacity-100', isHidden);
+            icon.style.transform = isHidden ? 'rotate(0deg)' : 'rotate(-90deg)';
         }
 
-        // Ambil Data dari Supabase
-        async function loadDashboard() {
-            const { data: produk, error } = await _supabase
-                .from('produk')
-                .select(`id, nama, harga, resep(jumlah_dibutuhkan, bahan(nama_bahan, stok_gram))`);
-
-            if (error) {
-                console.error("Gagal load data:", error.message);
-                return;
-            }
-
-            const container = document.getElementById('produk-container');
-            container.innerHTML = '';
-            
-            produk.forEach(item => {
-                container.innerHTML += `
-                    <div class="bg-white rounded-[2.5rem] p-6 shadow-sm border border-slate-100 hover:shadow-xl hover:border-rose-100 transition-all text-center group">
-                        <div class="w-24 h-24 bg-rose-50 rounded-full mx-auto mb-4 flex items-center justify-center text-4xl group-hover:scale-110 transition-transform">🍩</div>
-                        <h4 class="font-bold text-lg text-slate-800">${item.nama}</h4>
-                        <p class="text-rose-500 font-bold mb-6 italic">Rp ${item.harga.toLocaleString('id-ID')}</p>
-                        <button onclick="prosesJual(${item.id}, '${item.nama}')" class="w-full bg-slate-900 text-white py-4 rounded-2xl hover:bg-rose-600 shadow-lg shadow-slate-200 hover:shadow-rose-200 transition-all font-bold text-sm">
-                            Catat Jual
-                        </button>
-                    </div>
-                `;
-            });
-
-            document.getElementById('count-produk').innerText = produk.length;
-        }
-
-        async function prosesJual(id, nama) {
-            alert(`Berhasil! Penjualan ${nama} dicatat.`);
-            // Di sini kamu bisa menambahkan logika rpc atau update stok ke Supabase
-        }
-
-        // Jam Digital
         setInterval(() => {
             document.getElementById('jam-digital').innerText = new Date().toLocaleTimeString('id-ID');
         }, 1000);
 
-        // Jalankan saat load
         loadDashboard();
         lucide.createIcons();
     </script>
