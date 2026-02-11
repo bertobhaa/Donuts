@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Donuts | Login Sistem</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-50 flex items-center justify-center min-h-screen p-4">
+
+    <div class="w-full max-w-md">
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-black italic text-rose-500 tracking-tighter">Donuts.</h1>
+            <p class="text-slate-500 font-medium mt-2">Manajemen Inventori & Kasir</p>
+        </div>
+
+        <div class="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-xl shadow-rose-100/20">
+            <h2 class="text-xl font-black text-slate-800 mb-6">Masuk ke Sistem</h2>
+            
+            <form id="loginForm" class="space-y-5">
+                <div>
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Email Address</label>
+                    <div class="relative mt-1">
+                        <i data-lucide="mail" class="w-5 h-5 absolute left-4 top-3.5 text-slate-300"></i>
+                        <input type="email" id="email" required 
+                            class="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-all font-semibold"
+                            placeholder="admin@donuts.com">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Password</label>
+                    <div class="relative mt-1">
+                        <i data-lucide="lock" class="w-5 h-5 absolute left-4 top-3.5 text-slate-300"></i>
+                        <input type="password" id="password" required 
+                            class="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-all font-semibold"
+                            placeholder="••••••••">
+                    </div>
+                </div>
+
+                <div id="errorMsg" class="hidden p-3 bg-rose-50 text-rose-600 text-xs font-bold rounded-xl border border-rose-100 animate-shake">
+                    Email atau password salah!
+                </div>
+
+                <button type="submit" id="btnLogin" 
+                    class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black text-sm flex items-center justify-center gap-2 hover:bg-rose-500 transition-all shadow-lg shadow-rose-100 group">
+                    <span>Akses Dashboard</span>
+                    <i data-lucide="arrow-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
+                </button>
+            </form>
+        </div>
+
+        <p class="text-center mt-8 text-slate-400 text-sm font-medium">
+            &copy; 2026 Donuts Business Solution. All rights reserved.
+        </p>
+    </div>
+
+    <script>
+        const SB_URL = "https://bkkpkfvcssdmgnncrrhu.supabase.co";
+        const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJra3BrZnZjc3NkbWdubmNycmh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA3OTQ4OTIsImV4cCI6MjA4NjM3MDg5Mn0.VeE2IZhQmTyKMMQI4Ukh0nt6YHR2zVs_nUnjtPt-GPQ";
+        const _supabase = supabase.createClient(SB_URL, SB_KEY);
+
+        const loginForm = document.getElementById('loginForm');
+        const btnLogin = document.getElementById('btnLogin');
+        const errorMsg = document.getElementById('errorMsg');
+
+        // Cek jika sudah login, langsung lempar ke index
+        async function checkExistingSession() {
+            const { data } = await _supabase.auth.getSession();
+            if (data.session) window.location.href = "index.html";
+        }
+
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            btnLogin.disabled = true;
+            btnLogin.innerHTML = `<span class="animate-spin rounded-full h-4 w-4 border-2 border-white/30 border-t-white"></span>`;
+            errorMsg.classList.add('hidden');
+
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            const { data, error } = await _supabase.auth.signInWithPassword({
+                email: email,
+                password: password,
+            });
+
+            if (error) {
+                errorMsg.classList.remove('hidden');
+                btnLogin.disabled = false;
+                btnLogin.innerHTML = `<span>Akses Dashboard</span> <i data-lucide="arrow-right" class="w-4 h-4"></i>`;
+                lucide.createIcons();
+            } else {
+                window.location.href = "index.html";
+            }
+        });
+
+        lucide.createIcons();
+        checkExistingSession();
+    </script>
+</body>
+</html>
