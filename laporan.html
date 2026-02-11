@@ -154,11 +154,25 @@
             lucide.createIcons();
         }
 
-        async function voidTrx(id) {
-            if(!confirm("Batalkan transaksi ini? Stok tidak akan kembali otomatis via UI ini (perlu manual/trigger database).")) return;
-            const { error } = await _supabase.from('transaksi').delete().eq('id', id);
-            if(!error) fetchLaporan();
-        }
+       async function voidTrx(id) {
+    const yakin = confirm("⚠️ PERINGATAN: Membatalkan transaksi ini akan menghapus data penjualan dan MENGEMBALIKAN STOK produk & bahan baku secara otomatis. Lanjutkan?");
+    
+    if(!yakin) return;
+
+    try {
+        const { error } = await _supabase
+            .from('transaksi')
+            .delete()
+            .eq('id', id);
+
+        if(error) throw error;
+
+        alert("Transaksi berhasil dibatalkan. Stok telah diperbarui.");
+        fetchLaporan(); // Refresh tabel
+    } catch (e) {
+        alert("Gagal melakukan void: " + e.message);
+    }
+}
 
         function reprint(idx) {
             const d = reportData[idx];
