@@ -13,7 +13,8 @@
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
         .sidebar-item:hover { background-color: #fff1f2; color: #e11d48; }
         .active-nav { background-color: #ffe4e6; color: #e11d48; font-weight: 700; }
-        .hidden { display: none !important; }
+        .modal { transition: opacity 0.25s ease; }
+        body.modal-active { overflow-x: hidden; overflow-y: hidden !important; }
     </style>
 </head>
 <body class="bg-slate-50 flex overflow-hidden h-screen text-slate-800">
@@ -22,39 +23,29 @@
         <div class="p-6">
             <h1 class="text-2xl font-black italic text-rose-500 tracking-tighter">Donuts.</h1>
         </div>
-        
-        <nav class="flex-1 px-4 space-y-1 overflow-y-auto">
+        <nav class="flex-1 px-4 space-y-1">
             <a href="index.html" class="flex items-center gap-3 px-3 py-3 rounded-xl sidebar-item text-slate-600 font-medium">
                 <i data-lucide="layout-dashboard" class="w-5 h-5"></i><span class="text-sm">Dashboard</span>
             </a>
-
-            <div class="pt-4 pb-2 px-2 text-[10px] font-black text-slate-400 uppercase tracking-widest text-rose-500">Manajemen Karyawan</div>
+            <div class="pt-4 pb-2 px-2 text-[10px] font-black text-slate-400 uppercase tracking-widest text-rose-500">Manajemen</div>
             <a href="user.html" class="flex items-center gap-3 px-3 py-3 rounded-xl active-nav">
                 <i data-lucide="users" class="w-5 h-5"></i><span class="text-sm">Daftar Pengguna</span>
             </a>
-
-            <div class="pt-4 pb-2 px-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">Sistem</div>
             <a href="pengaturan.html" class="flex items-center gap-3 px-3 py-3 rounded-xl sidebar-item text-slate-600 font-medium">
                 <i data-lucide="settings" class="w-5 h-5"></i><span class="text-sm">Pengaturan</span>
             </a>
         </nav>
-
-        <div class="p-4 border-t border-slate-100 bg-slate-50/50">
-            <button onclick="handleLogout()" class="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-slate-500 hover:bg-rose-500 hover:text-white transition-all font-bold text-sm">
-                <i data-lucide="log-out" class="w-5 h-5"></i><span>Keluar</span>
-            </button>
-        </div>
     </aside>
 
     <main class="flex-1 overflow-y-auto p-8">
-        <header class="mb-10 flex justify-between items-center">
+        <header class="mb-10 flex justify-between items-end">
             <div>
                 <h2 class="text-3xl font-black text-slate-900 tracking-tight">Manajemen User</h2>
                 <p class="text-slate-500 font-medium">Kelola hak akses admin dan kasir toko.</p>
             </div>
-            <div class="bg-rose-100 text-rose-600 px-4 py-2 rounded-2xl text-xs font-black flex items-center gap-2">
-                <i data-lucide="shield-check" class="w-4 h-4"></i> MODE ADMINISTRATOR
-            </div>
+            <button onclick="toggleModal()" class="bg-rose-500 hover:bg-rose-600 text-white px-6 py-3 rounded-2xl font-bold text-sm flex items-center gap-2 transition-all shadow-lg shadow-rose-100">
+                <i data-lucide="user-plus" class="w-4 h-4"></i> Tambah User Baru
+            </button>
         </header>
 
         <div class="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
@@ -62,97 +53,116 @@
                 <thead class="bg-slate-50 text-[10px] font-black text-slate-400 uppercase tracking-widest">
                     <tr>
                         <th class="p-6">User</th>
-                        <th class="p-6">Role / Jabatan</th>
-                        <th class="p-6">Terdaftar Pada</th>
+                        <th class="p-6">Role</th>
                         <th class="p-6 text-right">Aksi</th>
                     </tr>
                 </thead>
-                <tbody id="user-list" class="divide-y divide-slate-50">
-                    </tbody>
+                <tbody id="user-list" class="divide-y divide-slate-50"></tbody>
             </table>
         </div>
     </main>
 
+    <div id="modal-user" class="modal opacity-0 pointer-events-none fixed w-full h-full top-0 left-0 flex items-center justify-center z-50">
+        <div class="modal-overlay absolute w-full h-full bg-slate-900 opacity-50"></div>
+        <div class="modal-container bg-white w-full max-w-md mx-auto rounded-[2.5rem] shadow-2xl z-50 overflow-y-auto">
+            <div class="p-8">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-2xl font-black italic">Daftarkan User</h3>
+                    <button onclick="toggleModal()" class="text-slate-400 hover:text-slate-600"><i data-lucide="x"></i></button>
+                </div>
+                
+                <form id="add-user-form" class="space-y-4">
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-400 uppercase mb-2 ml-1">Email Karyawan</label>
+                        <input type="email" id="new-email" required class="w-full bg-slate-50 border-0 rounded-2xl px-5 py-3 focus:ring-2 focus:ring-rose-500 font-semibold outline-none" placeholder="email@donuts.com">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-400 uppercase mb-2 ml-1">Password Awal</label>
+                        <input type="password" id="new-password" required class="w-full bg-slate-50 border-0 rounded-2xl px-5 py-3 focus:ring-2 focus:ring-rose-500 font-semibold outline-none" placeholder="Min. 6 karakter">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-400 uppercase mb-2 ml-1">Role Jabatan</label>
+                        <select id="new-role" class="w-full bg-slate-50 border-0 rounded-2xl px-5 py-3 focus:ring-2 focus:ring-rose-500 font-bold outline-none">
+                            <option value="kasir">KASIR</option>
+                            <option value="admin">ADMIN</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black text-sm hover:bg-rose-500 transition-all mt-4">
+                        KONFIRMASI PENDAFTARAN
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <script>
         const SB_URL = "https://bkkpkfvcssdmgnncrrhu.supabase.co";
-        const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJra3BrZnZjc3NkbWdubmNycmh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA3OTQ4OTIsImV4cCI6MjA4NjM3MDg5Mn0.VeE2IZhQmTyKMMQI4Ukh0nt6YHR2zVs_nUnjtPt-GPQ";
+        const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."; // Gunakan Key Anda
         const _supabase = supabase.createClient(SB_URL, SB_KEY);
 
-        async function checkAuth() {
-            const { data: { session } } = await _supabase.auth.getSession();
-            if (!session) { window.location.href = "login.html"; return; }
-            
-            const { data: profile } = await _supabase.from('profil').select('role').eq('id', session.user.id).single();
-            if (profile?.role !== 'admin') {
-                alert("Akses Ditolak! Hanya Admin yang bisa mengelola user.");
-                window.location.href = "index.html";
-                return;
-            }
-            fetchUsers();
+        // --- MODAL TOGGLE ---
+        function toggleModal() {
+            const modal = document.getElementById('modal-user');
+            modal.classList.toggle('opacity-0');
+            modal.classList.toggle('pointer-events-none');
+            document.body.classList.toggle('modal-active');
         }
 
-        async function fetchUsers() {
-            const { data, error } = await _supabase.from('profil').select('*').order('created_at', { ascending: false });
-            
-            if (error) return console.error(error);
+        // --- ADD USER MANUAL ---
+        document.getElementById('add-user-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('new-email').value;
+            const password = document.getElementById('new-password').value;
+            const role = document.getElementById('new-role').value;
 
+            // 1. Daftarkan ke Supabase Auth
+            const { data: authData, error: authError } = await _supabase.auth.signUp({
+                email: email,
+                password: password,
+            });
+
+            if (authError) {
+                alert("Error Auth: " + authError.message);
+                return;
+            }
+
+            // 2. Insert ke Tabel Profil
+            if (authData.user) {
+                const { error: profileError } = await _supabase.from('profil').insert([
+                    { id: authData.user.id, email: email, role: role }
+                ]);
+
+                if (profileError) {
+                    alert("Auth Berhasil, tapi Profil gagal: " + profileError.message);
+                } else {
+                    alert("User " + email + " berhasil didaftarkan!");
+                    toggleModal();
+                    fetchUsers();
+                }
+            }
+        });
+
+        // --- FETCH & UPDATE DATA (Sama seperti sebelumnya) ---
+        async function fetchUsers() {
+            const { data } = await _supabase.from('profil').select('*').order('created_at', { ascending: false });
             const container = document.getElementById('user-list');
             container.innerHTML = data.map(u => `
                 <tr class="hover:bg-slate-50/50 transition-all">
                     <td class="p-6">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center font-bold text-slate-500">
-                                ${u.email ? u.email[0].toUpperCase() : '?'}
-                            </div>
-                            <div>
-                                <p class="font-bold text-slate-800">${u.email || 'No Email'}</p>
-                                <p class="text-[10px] text-slate-400 font-medium">ID: ${u.id.substring(0,8)}...</p>
-                            </div>
-                        </div>
+                        <p class="font-bold text-slate-800">${u.email}</p>
                     </td>
-                    <td class="p-6">
-                        <select onchange="updateRole('${u.id}', this.value)" class="bg-slate-100 border-0 rounded-lg text-xs font-black px-3 py-1 focus:ring-2 focus:ring-rose-500 cursor-pointer ${u.role === 'admin' ? 'text-rose-600' : 'text-blue-600'}">
-                            <option value="kasir" ${u.role === 'kasir' ? 'selected' : ''}>KASIR</option>
-                            <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>ADMIN</option>
-                        </select>
-                    </td>
-                    <td class="p-6 text-sm text-slate-500 font-medium">
-                        ${new Date(u.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+                    <td class="p-6 font-black text-xs ${u.role === 'admin' ? 'text-rose-500' : 'text-blue-500'} uppercase">
+                        ${u.role}
                     </td>
                     <td class="p-6 text-right">
-                        <button onclick="deleteUser('${u.id}')" class="text-slate-300 hover:text-rose-500 transition-all">
-                            <i data-lucide="user-minus" class="w-5 h-5"></i>
-                        </button>
+                        <button onclick="deleteUser('${u.id}')" class="text-slate-300 hover:text-rose-500 transition-all"><i data-lucide="trash-2"></i></button>
                     </td>
                 </tr>
             `).join('');
             lucide.createIcons();
         }
 
-        async function updateRole(userId, newRole) {
-            const { error } = await _supabase.from('profil').update({ role: newRole }).eq('id', userId);
-            if (error) {
-                alert("Gagal update role: " + error.message);
-            } else {
-                alert("Role berhasil diubah menjadi " + newRole);
-                fetchUsers();
-            }
-        }
-
-        async function deleteUser(userId) {
-            if (confirm("Apakah Anda yakin ingin menghapus akses user ini dari database profil?")) {
-                const { error } = await _supabase.from('profil').delete().eq('id', userId);
-                if (error) alert(error.message);
-                else fetchUsers();
-            }
-        }
-
-        async function handleLogout() {
-            await _supabase.auth.signOut();
-            window.location.href = "login.html";
-        }
-
-        window.onload = checkAuth;
+        window.onload = fetchUsers;
     </script>
 </body>
 </html>
