@@ -48,7 +48,7 @@
         <header class="bg-white/80 backdrop-blur-md border-b border-slate-200 p-6 flex justify-between items-center sticky top-0 z-10">
             <div>
                 <h2 class="text-2xl font-bold italic">Menu & Recipes.</h2>
-                <p class="text-sm text-slate-500">Hubungkan produk dengan bahan baku untuk HPP otomatis.</p>
+                <p class="text-sm text-slate-500">Kelola menu dan komposisi bahan baku (HPP).</p>
             </div>
             <button onclick="bukaModal()" class="bg-rose-500 text-white px-6 py-3 rounded-2xl font-bold text-sm flex items-center gap-2 hover:bg-rose-600 transition shadow-lg shadow-rose-100">
                 <i data-lucide="plus" class="w-4 h-4"></i> Tambah Menu
@@ -56,27 +56,24 @@
         </header>
 
         <div class="p-8">
-            <div id="produk-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                </div>
+            <div id="produk-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
         </div>
     </main>
 
     <div id="modal-produk" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-4xl p-8 rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
             <div class="flex justify-between items-center mb-6">
-                <h3 class="text-2xl font-black italic">Setup Menu.</h3>
+                <h3 id="modal-title" class="text-2xl font-black italic">Setup Menu.</h3>
                 <button onclick="tutupModal()" class="text-slate-400 hover:text-rose-500"><i data-lucide="x"></i></button>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 overflow-y-auto custom-scroll pr-2">
                 <div class="space-y-5">
                     <p class="text-[10px] font-black text-rose-500 uppercase tracking-[0.2em]">Product Detail</p>
-                    <div>
-                        <input type="text" id="p-nama" placeholder="Nama Produk (ex: Strawberry Glaze)" class="w-full p-4 bg-slate-50 rounded-2xl outline-none focus:ring-2 focus:ring-rose-500 font-bold border-none">
-                    </div>
+                    <input type="hidden" id="p-id"> <input type="text" id="p-nama" placeholder="Nama Produk" class="w-full p-4 bg-slate-50 rounded-2xl outline-none focus:ring-2 focus:ring-rose-500 font-bold border-none">
                     <div class="grid grid-cols-2 gap-4">
-                        <input type="number" id="p-harga" placeholder="Harga Jual (Rp)" class="w-full p-4 bg-slate-50 rounded-2xl outline-none focus:ring-2 focus:ring-rose-500 font-bold border-none">
-                        <input type="number" id="p-stok" placeholder="Stok Awal" class="w-full p-4 bg-slate-50 rounded-2xl outline-none focus:ring-2 focus:ring-rose-500 font-bold border-none">
+                        <input type="number" id="p-harga" placeholder="Harga Jual" class="w-full p-4 bg-slate-50 rounded-2xl outline-none focus:ring-2 focus:ring-rose-500 font-bold border-none">
+                        <input type="number" id="p-stok" placeholder="Stok" class="w-full p-4 bg-slate-50 rounded-2xl outline-none focus:ring-2 focus:ring-rose-500 font-bold border-none">
                     </div>
                     <input type="text" id="p-image" placeholder="URL Foto Produk" class="w-full p-4 bg-slate-50 rounded-2xl outline-none focus:ring-2 focus:ring-rose-500 text-sm border-none">
                 </div>
@@ -89,9 +86,7 @@
                         <button onclick="tambahBahanKeList()" class="bg-slate-900 text-white px-5 rounded-2xl hover:bg-blue-600 transition-all"><i data-lucide="plus"></i></button>
                     </div>
 
-                    <div id="temp-resep-list" class="space-y-2 min-h-[150px] border-2 border-dashed border-slate-100 rounded-[2rem] p-4 bg-slate-50/50">
-                        <p class="text-center text-slate-300 text-xs mt-12 italic">Pilih bahan baku di atas...</p>
-                    </div>
+                    <div id="temp-resep-list" class="space-y-2 min-h-[150px] border-2 border-dashed border-slate-100 rounded-[2rem] p-4 bg-slate-50/50"></div>
                     
                     <div class="bg-slate-900 p-5 rounded-[2rem] text-white flex justify-between items-center shadow-xl shadow-slate-200">
                         <div>
@@ -105,7 +100,7 @@
 
             <div class="mt-8 flex gap-4">
                 <button onclick="tutupModal()" class="flex-1 py-4 font-bold text-slate-400 hover:bg-slate-50 rounded-2xl transition">Batal</button>
-                <button onclick="simpanProdukLengkap()" class="flex-[2] bg-rose-500 text-white py-4 rounded-[1.5rem] font-black shadow-lg shadow-rose-200 hover:bg-rose-600 transition-all uppercase tracking-wider">Publish Menu</button>
+                <button id="btn-save" onclick="simpanProdukLengkap()" class="flex-[2] bg-rose-500 text-white py-4 rounded-[1.5rem] font-black shadow-lg shadow-rose-200 hover:bg-rose-600 transition-all uppercase tracking-wider">Simpan Menu</button>
             </div>
         </div>
     </div>
@@ -125,16 +120,66 @@
             loadProduk();
         }
 
+        async function loadProduk() {
+            const { data: produk } = await _supabase.from('produk').select('*').order('id', { ascending: false });
+            const grid = document.getElementById('produk-list');
+            grid.innerHTML = produk.map(p => `
+                <div class="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden group hover:shadow-xl transition-all duration-500">
+                    <div class="h-48 bg-slate-100 relative overflow-hidden">
+                        <img src="${p.image_url || 'https://images.unsplash.com/photo-1551024601-bec78aea704b?q=80&w=300'}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
+                        <div class="absolute top-4 right-4 bg-white/90 backdrop-blur px-4 py-1.5 rounded-full shadow-sm text-[10px] font-black text-rose-500">
+                            Rp ${Number(p.harga).toLocaleString()}
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <h4 class="font-black text-lg text-slate-800 mb-1">${p.nama}</h4>
+                        <div class="flex justify-between items-center mt-4 pt-4 border-t border-slate-50">
+                            <span class="text-[10px] font-black text-slate-300 uppercase tracking-widest">Stok: ${p.stok} Pcs</span>
+                            <div class="flex gap-2">
+                                <button onclick="bukaModalEdit(${p.id})" class="p-2 text-slate-300 hover:text-blue-500 transition-colors"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
+                                <button onclick="hapusProduk(${p.id})" class="p-2 text-slate-300 hover:text-rose-500 transition-colors"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            lucide.createIcons();
+        }
+
+        async function bukaModalEdit(id) {
+            bukaModal();
+            document.getElementById('modal-title').innerText = "Edit Menu.";
+            document.getElementById('btn-save').innerText = "Update Menu";
+            
+            // 1. Ambil data produk
+            const { data: p } = await _supabase.from('produk').select('*').eq('id', id).single();
+            document.getElementById('p-id').value = p.id;
+            document.getElementById('p-nama').value = p.nama;
+            document.getElementById('p-harga').value = p.harga;
+            document.getElementById('p-stok').value = p.stok;
+            document.getElementById('p-image').value = p.image_url;
+
+            // 2. Ambil data resep
+            const { data: resep } = await _supabase.from('resep').select('*, bahan(*)').eq('produk_id', id);
+            resepTemp = resep.map(r => ({
+                id: r.bahan_id,
+                nama_bahan: r.bahan.nama_bahan,
+                satuan: r.bahan.satuan,
+                harga_beli_per_gram: r.bahan.harga_beli_per_gram,
+                qty_resep: r.jumlah_dibutuhkan,
+                cost_resep: r.jumlah_dibutuhkan * (r.bahan.harga_beli_per_gram || 0)
+            }));
+            renderTempResep();
+        }
+
         function tambahBahanKeList() {
             const id = document.getElementById('select-bahan').value;
             const qty = parseFloat(document.getElementById('gram-pakai').value);
             const bahan = masterBahan.find(b => b.id == id);
-
             if(!qty) return;
 
             const cost = (bahan.harga_beli_per_gram || 0) * qty;
             resepTemp.push({ ...bahan, qty_resep: qty, cost_resep: cost });
-            
             renderTempResep();
             document.getElementById('gram-pakai').value = '';
         }
@@ -142,14 +187,13 @@
         function renderTempResep() {
             const container = document.getElementById('temp-resep-list');
             let totalHpp = 0;
-            
             if(resepTemp.length === 0) {
-                container.innerHTML = `<p class="text-center text-slate-300 text-xs mt-12 italic">Pilih bahan baku di atas...</p>`;
+                container.innerHTML = `<p class="text-center text-slate-300 text-xs mt-12 italic">Belum ada bahan...</p>`;
             } else {
                 container.innerHTML = resepTemp.map((item, index) => {
                     totalHpp += item.cost_resep;
                     return `
-                    <div class="flex justify-between items-center bg-white p-3 rounded-xl shadow-sm border border-slate-100 animate-in fade-in slide-in-from-right-2">
+                    <div class="flex justify-between items-center bg-white p-3 rounded-xl border border-slate-100 mb-2">
                         <div>
                             <p class="text-xs font-black text-slate-800">${item.nama_bahan}</p>
                             <p class="text-[10px] text-slate-400 font-bold">${item.qty_resep} ${item.satuan} • Rp ${Math.round(item.cost_resep).toLocaleString()}</p>
@@ -165,79 +209,62 @@
         }
 
         async function simpanProdukLengkap() {
+            const id = document.getElementById('p-id').value;
             const nama = document.getElementById('p-nama').value;
             const harga = document.getElementById('p-harga').value;
             const stok = document.getElementById('p-stok').value || 0;
             const img = document.getElementById('p-image').value || null;
 
-            if(!nama || !harga || resepTemp.length === 0) return alert("Wajib isi Nama, Harga, dan Resep!");
+            if(!nama || !harga || resepTemp.length === 0) return alert("Lengkapi data!");
 
-            // 1. Simpan ke tabel produk
-            const { data: prod, error: errP } = await _supabase.from('produk').insert([{
-                nama: nama,
-                harga: harga,
-                stok: stok,
-                image_url: img
-            }]).select();
+            const payload = { nama, harga, stok, image_url: img };
+            let resultId = id;
 
-            if(errP) return alert("Gagal simpan produk");
+            if(id) {
+                // UPDATE
+                await _supabase.from('produk').update(payload).eq('id', id);
+                await _supabase.from('resep').delete().eq('produk_id', id); // Hapus resep lama agar bisa diinsert baru
+            } else {
+                // INSERT
+                const { data } = await _supabase.from('produk').insert([payload]).select().single();
+                resultId = data.id;
+            }
 
-            // 2. Simpan rincian ke tabel resep
+            // Simpan rincian resep baru
             const payloadResep = resepTemp.map(r => ({
-                produk_id: prod[0].id,
+                produk_id: resultId,
                 bahan_id: r.id,
                 jumlah_dibutuhkan: r.qty_resep
             }));
 
-            const { error: errR } = await _supabase.from('resep').insert(payloadResep);
-            if(!errR) {
-                tutupModal();
-                loadProduk();
-                resepTemp = [];
-                alert("Menu & Resep berhasil disimpan!");
-            }
-        }
-
-        async function loadProduk() {
-            const { data: produk } = await _supabase.from('produk').select('*').order('id', { ascending: false });
-            const grid = document.getElementById('produk-list');
-            
-            grid.innerHTML = produk.map(p => `
-                <div class="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden group hover:shadow-xl transition-all duration-500">
-                    <div class="h-48 bg-slate-100 relative overflow-hidden">
-                        <img src="${p.image_url || 'https://images.unsplash.com/photo-1551024601-bec78aea704b?q=80&w=300&auto=format&fit=crop'}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
-                        <div class="absolute top-4 right-4 bg-white/90 backdrop-blur px-4 py-1.5 rounded-full shadow-sm text-[10px] font-black text-rose-500">
-                            Rp ${Number(p.harga).toLocaleString()}
-                        </div>
-                    </div>
-                    <div class="p-6">
-                        <h4 class="font-black text-lg text-slate-800 mb-1">${p.nama}</h4>
-                        <div class="flex justify-between items-center mt-4 pt-4 border-t border-slate-50">
-                            <span class="text-[10px] font-black text-slate-300 uppercase tracking-widest">Stok: ${p.stok} Pcs</span>
-                            <button onclick="hapusProduk(${p.id})" class="text-slate-300 hover:text-rose-500 transition-colors"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-                        </div>
-                    </div>
-                </div>
-            `).join('');
-            lucide.createIcons();
+            await _supabase.from('resep').insert(payloadResep);
+            tutupModal();
+            loadProduk();
+            alert("Berhasil disimpan!");
         }
 
         async function hapusProduk(id) {
-            if(confirm('Hapus produk & resepnya?')) {
+            if(confirm('Hapus produk ini?')) {
                 await _supabase.from('produk').delete().eq('id', id);
                 loadProduk();
             }
         }
 
-        function bukaModal() { document.getElementById('modal-produk').classList.remove('hidden'); }
-        function tutupModal() { 
-            document.getElementById('modal-produk').classList.add('hidden'); 
+        function bukaModal() { 
+            document.getElementById('modal-produk').classList.remove('hidden'); 
+            document.getElementById('modal-title').innerText = "Setup Menu.";
+            document.getElementById('btn-save').innerText = "Simpan Menu";
+            document.getElementById('p-id').value = '';
+            document.getElementById('p-nama').value = '';
+            document.getElementById('p-harga').value = '';
+            document.getElementById('p-stok').value = '';
+            document.getElementById('p-image').value = '';
             resepTemp = [];
             renderTempResep();
         }
+        function tutupModal() { document.getElementById('modal-produk').classList.add('hidden'); }
 
         init();
-        lucide.createIcons();
     </script>
 </body>
 </html>
