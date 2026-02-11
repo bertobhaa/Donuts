@@ -12,6 +12,8 @@
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
         .sidebar-item:hover { background-color: #fff1f2; color: #e11d48; }
         .active-nav { background-color: #ffe4e6; color: #e11d48; font-weight: 700; }
+        /* Animasi Modal */
+        .modal-overlay { background-color: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); }
     </style>
 </head>
 <body class="bg-slate-50 flex overflow-hidden h-screen text-slate-800">
@@ -21,12 +23,19 @@
             <h1 class="text-2xl font-black italic text-rose-500 tracking-tighter">Donuts.</h1>
         </div>
         <nav class="flex-1 px-4 space-y-1 overflow-y-auto">
-            <a href="index.html" class="flex items-center gap-3 px-3 py-3 rounded-xl sidebar-item text-slate-600 font-medium"><i data-lucide="layout-dashboard"></i><span class="text-sm">Dashboard</span></a>
-            <div class="pt-4 pb-2 px-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">Operasional</div>
-            <a href="kasir.html" class="flex items-center gap-3 px-3 py-3 rounded-xl sidebar-item text-slate-600 font-medium"><i data-lucide="shopping-cart"></i><span class="text-sm">Terminal Kasir</span></a>
+            <a href="index.html" class="flex items-center gap-3 px-3 py-3 rounded-xl sidebar-item text-slate-600 font-medium">
+                <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+                <span class="text-sm">Dashboard</span>
+            </a>
             <div class="pt-4 pb-2 px-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">Inventori</div>
-            <a href="pembelian.html" class="flex items-center gap-3 px-3 py-3 rounded-xl active-nav"><i data-lucide="shopping-bag"></i><span class="text-sm font-semibold">Pembelian</span></a>
-            <a href="penyesuaian.html" class="flex items-center gap-3 px-3 py-3 rounded-xl sidebar-item text-slate-600 font-medium"><i data-lucide="refresh-cw"></i><span class="text-sm">Opname</span></a>
+            <a href="pembelian.html" class="flex items-center gap-3 px-3 py-3 rounded-xl active-nav">
+                <i data-lucide="shopping-bag" class="w-5 h-5"></i>
+                <span class="text-sm font-semibold">Pembelian</span>
+            </a>
+            <a href="penyesuaian.html" class="flex items-center gap-3 px-3 py-3 rounded-xl sidebar-item text-slate-600 font-medium">
+                <i data-lucide="refresh-cw" class="w-5 h-5"></i>
+                <span class="text-sm">Opname</span>
+            </a>
         </nav>
     </aside>
 
@@ -34,40 +43,74 @@
         <header class="bg-white border-b border-slate-200 p-6 flex justify-between items-center sticky top-0 z-10">
             <div>
                 <h2 class="text-2xl font-black text-slate-900 tracking-tight">Input Pembelian</h2>
-                <p class="text-sm text-slate-500 font-medium">Tambah stok bahan baku dari supplier</p>
+                <p class="text-sm text-slate-500 font-medium">Catat belanja bahan untuk update stok & HPP</p>
             </div>
-            <a href="laporan_pembelian.html" class="bg-slate-900 text-white px-5 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2">
-                <i data-lucide="history" class="w-4 h-4"></i> Riwayat Belanja
-            </a>
+            <div class="flex gap-3">
+                <button onclick="openModal()" class="bg-rose-100 text-rose-600 px-5 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 hover:bg-rose-200 transition-all">
+                    <i data-lucide="plus-circle" class="w-4 h-4"></i> Bahan Baru?
+                </button>
+                <a href="laporan_pembelian.html" class="bg-slate-900 text-white px-5 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2">
+                    <i data-lucide="history" class="w-4 h-4"></i> Riwayat
+                </a>
+            </div>
         </header>
 
         <div class="p-8">
             <div class="max-w-3xl bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-100 mx-auto">
                 <form id="form-pembelian" class="space-y-6">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div class="space-y-2">
+                        <div class="space-y-2 col-span-2 md:col-span-1">
                             <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block ml-2">Pilih Bahan Baku</label>
                             <select id="bahan-id" required class="w-full p-4 bg-slate-50 border-none rounded-2xl font-bold outline-none focus:ring-2 focus:ring-rose-500">
                                 </select>
                         </div>
-                        <div class="space-y-2">
+                        <div class="space-y-2 col-span-2 md:col-span-1">
                             <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block ml-2">Nama Supplier</label>
-                            <input type="text" id="supplier" placeholder="Contoh: Toko Sembako Jaya" class="w-full p-4 bg-slate-50 border-none rounded-2xl font-bold outline-none focus:ring-2 focus:ring-rose-500">
+                            <input type="text" id="supplier" placeholder="Contoh: Toko Berkah" class="w-full p-4 bg-slate-50 border-none rounded-2xl font-bold outline-none focus:ring-2 focus:ring-rose-500">
                         </div>
                         <div class="space-y-2">
-                            <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block ml-2">Jumlah (Gram/Pcs)</label>
-                            <input type="number" id="qty" required placeholder="0" class="w-full p-4 bg-slate-50 border-none rounded-2xl font-bold outline-none focus:ring-2 focus:ring-rose-500">
+                            <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block ml-2">Jumlah Belanja (Qty)</label>
+                            <input type="number" step="any" id="qty" required placeholder="0" class="w-full p-4 bg-slate-50 border-none rounded-2xl font-bold outline-none focus:ring-2 focus:ring-rose-500">
                         </div>
                         <div class="space-y-2">
-                            <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block ml-2">Total Harga Beli (Rp)</label>
+                            <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block ml-2">Total Bayar (Rp)</label>
                             <input type="number" id="total" required placeholder="0" class="w-full p-4 bg-slate-50 border-none rounded-2xl font-bold outline-none focus:ring-2 focus:ring-rose-500">
                         </div>
                     </div>
-                    <button type="submit" class="w-full bg-rose-500 text-white py-5 rounded-3xl font-black shadow-xl shadow-rose-100 hover:bg-rose-600 transition-all uppercase tracking-widest mt-4">Simpan Pembelian & Update Stok</button>
+                    <button type="submit" class="w-full bg-rose-500 text-white py-5 rounded-3xl font-black shadow-xl shadow-rose-100 hover:bg-rose-600 transition-all uppercase tracking-widest mt-4">
+                        Simpan Pembelian
+                    </button>
                 </form>
             </div>
         </div>
     </main>
+
+    <div id="modal-bahan" class="fixed inset-0 z-50 modal-overlay hidden flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md rounded-[2.5rem] p-8 shadow-2xl relative">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-black text-slate-800 italic">Daftar Bahan Baru.</h3>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-rose-500"><i data-lucide="x"></i></button>
+            </div>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block ml-2 mb-1">Nama Bahan Baku</label>
+                    <input type="text" id="new-nama-bahan" placeholder="Contoh: Tepung Cakra" class="w-full p-4 bg-slate-50 border-none rounded-2xl font-bold outline-none focus:ring-2 focus:ring-rose-500">
+                </div>
+                <div>
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block ml-2 mb-1">Satuan</label>
+                    <select id="new-satuan" class="w-full p-4 bg-slate-50 border-none rounded-2xl font-bold outline-none focus:ring-2 focus:ring-rose-500">
+                        <option value="gram">Gram (g)</option>
+                        <option value="pcs">Pcs / Butir</option>
+                        <option value="ml">Mililiter (ml)</option>
+                    </select>
+                </div>
+                <button onclick="saveNewBahan()" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black mt-2 hover:bg-rose-500 transition-all">
+                    Daftarkan Bahan
+                </button>
+            </div>
+        </div>
+    </div>
 
     <script>
         const SB_URL = "https://bkkpkfvcssdmgnncrrhu.supabase.co";
@@ -76,10 +119,39 @@
 
         async function init() {
             const { data } = await _supabase.from('bahan').select('*').order('nama_bahan');
-            document.getElementById('bahan-id').innerHTML = data.map(b => `<option value="${b.id}">${b.nama_bahan} (${b.satuan})</option>`).join('');
+            const select = document.getElementById('bahan-id');
+            select.innerHTML = data.map(b => `<option value="${b.id}">${b.nama_bahan} (${b.satuan})</option>`).join('');
             lucide.createIcons();
         }
 
+        // Fungsi Modal
+        function openModal() { document.getElementById('modal-bahan').classList.remove('hidden'); }
+        function closeModal() { document.getElementById('modal-bahan').classList.add('hidden'); }
+
+        // Simpan Bahan Baru secara instan
+        async function saveNewBahan() {
+            const nama = document.getElementById('new-nama-bahan').value;
+            const satuan = document.getElementById('new-satuan').value;
+
+            if(!nama) return alert("Nama bahan tidak boleh kosong");
+
+            const { data, error } = await _supabase
+                .from('bahan')
+                .insert([{ nama_bahan: nama, satuan: satuan, stok_gram: 0 }])
+                .select();
+
+            if(!error) {
+                alert("Bahan '" + nama + "' berhasil terdaftar!");
+                closeModal();
+                document.getElementById('new-nama-bahan').value = '';
+                await init(); // Refresh dropdown
+                document.getElementById('bahan-id').value = data[0].id; // Langsung pilih bahan yang baru dibuat
+            } else {
+                alert("Gagal menambah bahan baru.");
+            }
+        }
+
+        // Simpan Transaksi Pembelian
         document.getElementById('form-pembelian').onsubmit = async (e) => {
             e.preventDefault();
             const id = document.getElementById('bahan-id').value;
@@ -87,21 +159,29 @@
             const total = parseFloat(document.getElementById('total').value);
             const hargaSatuan = total / qty;
 
-            // 1. Log Pembelian
-            await _supabase.from('riwayat_pembelian').insert([{
-                bahan_id: id, jumlah: qty, total_harga: total, supplier: document.getElementById('supplier').value
-            }]);
+            try {
+                // 1. Catat di Riwayat Pembelian
+                await _supabase.from('riwayat_pembelian').insert([{
+                    bahan_id: id, 
+                    jumlah: qty, 
+                    total_harga: total, 
+                    supplier: document.getElementById('supplier').value
+                }]);
 
-            // 2. Update Stok & HPP Bahan
-            const { data: b } = await _supabase.from('bahan').select('stok_gram').eq('id', id).single();
-            await _supabase.from('bahan').update({
-                stok_gram: (b.stok_gram || 0) + qty,
-                harga_beli_per_gram: hargaSatuan
-            }).eq('id', id);
+                // 2. Ambil stok lama & Update Stok + HPP Baru
+                const { data: b } = await _supabase.from('bahan').select('stok_gram').eq('id', id).single();
+                await _supabase.from('bahan').update({
+                    stok_gram: (b.stok_gram || 0) + qty,
+                    harga_beli_per_gram: hargaSatuan
+                }).eq('id', id);
 
-            alert("Stok berhasil diperbarui!");
-            location.reload();
+                alert("Pembelian berhasil disimpan!");
+                location.reload();
+            } catch (err) {
+                alert("Terjadi kesalahan sistem.");
+            }
         };
+
         init();
     </script>
 </body>
