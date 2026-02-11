@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Master Data - Produk | Donuts</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .sidebar-item:hover { background-color: #fff1f2; color: #e11d48; }
+        .active-nav { background-color: #ffe4e6; color: #e11d48; font-weight: 700; }
+    </style>
+</head>
+<body class="bg-slate-50 flex h-screen overflow-hidden">
+
+    <aside class="w-64 bg-white border-r border-slate-200 flex flex-col h-full z-20">
+        <div class="p-6">
+            <div class="flex items-center gap-3">
+                <div class="bg-rose-500 p-2 rounded-xl shadow-lg shadow-rose-200">
+                    <span class="text-white text-xl">🍩</span>
+                </div>
+                <h1 class="text-xl font-bold text-slate-800 tracking-tight text-center">Donuts.</h1>
+            </div>
+        </div>
+
+        <nav class="flex-1 px-4 space-y-1 overflow-y-auto">
+            <a href="index.html" class="flex items-center gap-3 px-3 py-3 rounded-xl sidebar-item text-slate-600 transition-all">
+                <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+                <span class="text-sm">Dashboard</span>
+            </a>
+
+            <div class="pt-4 pb-2 px-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">Master Data</div>
+
+            <div id="master-data-sub" class="ml-2 border-l-2 border-rose-200 pl-2 space-y-1">
+                <a href="produk.html" class="flex items-center gap-3 px-3 py-2 rounded-lg active-nav transition-all">
+                    <i data-lucide="donut" class="w-4 h-4"></i>
+                    <span class="text-sm">Data Produk</span>
+                </a>
+                <a href="bahan.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-slate-500 hover:text-rose-600 transition-all">
+                    <i data-lucide="package" class="w-4 h-4"></i>
+                    <span>Bahan Baku</span>
+                </a>
+            </div>
+        </nav>
+    </aside>
+
+    <main class="flex-1 overflow-y-auto">
+        <header class="bg-white border-b border-slate-200 p-6 flex justify-between items-center sticky top-0 z-10">
+            <div>
+                <h2 class="text-2xl font-bold">Data Produk</h2>
+                <p class="text-sm text-slate-500">Kelola daftar donat yang kamu jual.</p>
+            </div>
+            <button onclick="bukaModal()" class="bg-rose-500 text-white px-5 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 hover:bg-rose-600 transition shadow-lg shadow-rose-100">
+                <i data-lucide="plus" class="w-4 h-4"></i> Tambah Produk
+            </button>
+        </header>
+
+        <div class="p-8">
+            <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
+                <table class="w-full text-left">
+                    <thead class="bg-slate-50 border-b border-slate-100">
+                        <tr>
+                            <th class="p-5 text-xs font-bold text-slate-400 uppercase">Nama Donat</th>
+                            <th class="p-5 text-xs font-bold text-slate-400 uppercase text-center">Harga</th>
+                            <th class="p-5 text-xs font-bold text-slate-400 uppercase text-center">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="produk-table-body">
+                        </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <div id="modal-produk" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center">
+        <div class="bg-white w-full max-w-md p-8 rounded-[2.5rem] shadow-2xl">
+            <h3 class="text-xl font-bold mb-6 text-center">🍩 Tambah Donat Baru</h3>
+            <div class="space-y-4">
+                <div>
+                    <label class="text-xs font-bold text-slate-400 uppercase mb-1 block">Nama Produk</label>
+                    <input type="text" id="input-nama" class="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl focus:outline-none focus:border-rose-500" placeholder="Contoh: Choco Berry">
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-slate-400 uppercase mb-1 block">Harga (Rp)</label>
+                    <input type="number" id="input-harga" class="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl focus:outline-none focus:border-rose-500" placeholder="15000">
+                </div>
+                <div class="flex gap-3 pt-4">
+                    <button onclick="tutupModal()" class="flex-1 py-3 font-bold text-slate-400 hover:bg-slate-100 rounded-xl transition">Batal</button>
+                    <button onclick="simpanProduk()" class="flex-1 bg-rose-500 text-white py-3 font-bold rounded-xl hover:bg-rose-600 shadow-lg shadow-rose-100 transition">Simpan</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const SB_URL = "https://bkkpkfvcssdmgnncrrhu.supabase.co";
+        const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJra3BrZnZjc3NkbWdubmNycmh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA3OTQ4OTIsImV4cCI6MjA4NjM3MDg5Mn0.VeE2IZhQmTyKMMQI4Ukh0nt6YHR2zVs_nUnjtPt-GPQ";
+        const _supabase = supabase.createClient(SB_URL, SB_KEY);
+
+        async function loadProduk() {
+            const { data: produk } = await _supabase.from('produk').select('*').order('id', { ascending: false });
+            const tbody = document.getElementById('produk-table-body');
+            tbody.innerHTML = '';
+
+            produk.forEach(p => {
+                tbody.innerHTML += `
+                    <tr class="border-b border-slate-50 hover:bg-slate-50 transition">
+                        <td class="p-5 font-bold text-slate-700">${p.nama}</td>
+                        <td class="p-5 text-center text-rose-500 font-bold">Rp ${p.harga.toLocaleString('id-ID')}</td>
+                        <td class="p-5 text-center">
+                            <button onclick="hapusProduk(${p.id})" class="p-2 text-slate-300 hover:text-rose-500 transition"><i data-lucide="trash-2"></i></button>
+                        </td>
+                    </tr>
+                `;
+            });
+            lucide.createIcons();
+        }
+
+        async function simpanProduk() {
+            const nama = document.getElementById('input-nama').value;
+            const harga = document.getElementById('input-harga').value;
+
+            if(!nama || !harga) return alert("Isi semua data!");
+
+            const { error } = await _supabase.from('produk').insert([{ nama, harga }]);
+            if (error) alert(error.message);
+            else {
+                tutupModal();
+                loadProduk();
+            }
+        }
+
+        async function hapusProduk(id) {
+            if(confirm('Hapus produk ini?')) {
+                await _supabase.from('produk').delete().eq('id', id);
+                loadProduk();
+            }
+        }
+
+        function bukaModal() { document.getElementById('modal-produk').classList.remove('hidden'); }
+        function tutupModal() { document.getElementById('modal-produk').classList.add('hidden'); }
+
+        loadProduk();
+        lucide.createIcons();
+    </script>
+</body>
+</html>
