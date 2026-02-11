@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laporan Pembelian - Donuts POS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-50 flex h-screen overflow-hidden text-slate-800">
+
+    <aside class="w-64 bg-white border-r border-slate-200 flex flex-col h-full z-20">
+        <div class="p-6">
+            <h1 class="text-xl font-bold text-rose-500 italic">Donuts Inventory.</h1>
+        </div>
+        <nav class="flex-1 px-4 space-y-1">
+            <a href="index.html" class="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-slate-50 text-slate-600 font-semibold"><i data-lucide="layout-grid"></i> Dashboard</a>
+            <div class="pt-4 pb-2 px-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Laporan Stok</div>
+            <a href="laporan_pembelian.html" class="flex items-center gap-3 px-3 py-3 rounded-xl bg-emerald-50 text-emerald-600 font-bold"><i data-lucide="file-text"></i> Riwayat Pembelian</a>
+            <a href="laporan_penyesuaian.html" class="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-slate-50 text-slate-600 font-semibold"><i data-lucide="file-warning"></i> Riwayat Penyesuaian</a>
+        </nav>
+    </aside>
+
+    <main class="flex-1 overflow-y-auto p-8">
+        <header class="flex justify-between items-end mb-8">
+            <div>
+                <h2 class="text-3xl font-black tracking-tighter">Riwayat Pembelian</h2>
+                <p class="text-slate-500 text-sm">Daftar semua stok bahan baku yang masuk</p>
+            </div>
+            <div class="flex gap-3">
+                <input type="date" id="filter-tgl" class="p-3 bg-white border border-slate-200 rounded-xl font-bold text-xs outline-none focus:ring-2 focus:ring-emerald-500">
+                <button onclick="fetchLogPembelian()" class="bg-emerald-500 text-white px-5 py-3 rounded-xl font-bold text-xs hover:bg-emerald-600 transition shadow-lg shadow-emerald-100">Cari Data</button>
+            </div>
+        </header>
+
+        <div class="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
+            <table class="w-full text-left">
+                <thead class="bg-slate-50 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                    <tr>
+                        <th class="p-6">Waktu</th>
+                        <th class="p-6">Bahan Baku</th>
+                        <th class="p-6">Supplier</th>
+                        <th class="p-6">Qty Masuk</th>
+                        <th class="p-6 text-right">Total Bayar</th>
+                    </tr>
+                </thead>
+                <tbody id="pembelian-body" class="text-sm font-semibold"></tbody>
+                <tfoot class="bg-slate-900 text-white font-bold">
+                    <tr>
+                        <td colspan="4" class="p-6 text-right uppercase text-[10px] tracking-widest">Total Belanja Periode Ini</td>
+                        <td class="p-6 text-right text-lg" id="grand-total-beli">Rp 0</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </main>
+
+    <script>
+        // Supabase Init...
+        async function fetchLogPembelian() {
+            const tgl = document.getElementById('filter-tgl').value;
+            let query = _supabase.from('riwayat_pembelian').select('*, bahan(nama_bahan, satuan)').order('created_at', { ascending: false });
+            
+            if(tgl) { query = query.gte('created_at', tgl).lte('created_at', tgl + 'T23:59:59'); }
+
+            const { data, error } = await query;
+            let total = 0;
+            document.getElementById('pembelian-body').innerHTML = data.map(i => {
+                total += i.total_harga;
+                return `
+                <tr class="border-b border-slate-50">
+                    <td class="p-6 text-slate-400">${new Date(i.created_at).toLocaleString('id-ID')}</td>
+                    <td class="p-6 font-bold text-slate-800">${i.bahan.nama_bahan}</td>
+                    <td class="p-6">${i.supplier || '-'}</td>
+                    <td class="p-6"><span class="px-3 py-1 bg-emerald-50 text-emerald-600 rounded-full text-xs">+ ${i.jumlah} ${i.bahan.satuan}</span></td>
+                    <td class="p-6 text-right font-black">Rp ${Number(i.total_harga).toLocaleString()}</td>
+                </tr>`;
+            }).join('');
+            document.getElementById('grand-total-beli').innerText = `Rp ${total.toLocaleString()}`;
+        }
+        window.onload = () => { fetchLogPembelian(); lucide.createIcons(); };
+    </script>
+</body>
+</html>
