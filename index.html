@@ -13,8 +13,8 @@
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
         .sidebar-item:hover { background-color: #fff1f2; color: #e11d48; }
         .active-nav { background-color: #ffe4e6; color: #e11d48; font-weight: 700; }
-        .hidden { display: none !important; }
         #master-data-sub, #inv-sub { transition: all 0.3s ease-in-out; }
+        .hidden { display: none !important; }
     </style>
 </head>
 <body class="bg-slate-50 flex overflow-hidden h-screen text-slate-800">
@@ -31,46 +31,47 @@
             </a>
 
             <div class="pt-4 pb-2 px-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">Operasional</div>
-            <a href="kasir.html" class="flex items-center gap-3 px-3 py-3 rounded-xl sidebar-item text-slate-600 font-medium transition-all">
-                <i data-lucide="shopping-cart" class="w-5 h-5"></i><span class="text-sm">Terminal Kasir</span>
+            
+            <a href="kasir.html" class="flex items-center gap-3 px-3 py-3 rounded-xl sidebar-item text-slate-600 transition-all font-medium">
+                <i data-lucide="shopping-cart" class="w-5 h-5"></i>
+                <span class="text-sm">Terminal Kasir</span>
             </a>
-
-            <div id="admin-only-nav" class="hidden">
-                <div class="pt-4 pb-2 px-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">Gudang & Laporan</div>
+            
+            <div id="admin-section" class="hidden">
+                <div class="pt-4 pb-2 px-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">Inventori</div>
                 <div>
-                    <button onclick="toggleMenu('inv-sub', 'chevron-inv')" class="w-full flex items-center justify-between px-3 py-3 rounded-xl text-slate-600 hover:bg-slate-50 transition-all font-medium">
+                    <button onclick="toggleMenu('inv-sub', 'chevron-inv')" class="w-full flex items-center justify-between px-3 py-3 rounded-xl text-slate-600 hover:bg-slate-50 transition-all">
                         <div class="flex items-center gap-3">
-                            <i data-lucide="box" class="w-5 h-5"></i><span class="text-sm">Inventori</span>
+                            <i data-lucide="box" class="w-5 h-5"></i>
+                            <span class="text-sm font-semibold">Stok & Gudang</span>
                         </div>
                         <i data-lucide="chevron-down" id="chevron-inv" class="w-4 h-4 transition-transform"></i>
                     </button>
-                    <div id="inv-sub" class="mt-1 ml-4 border-l-2 pl-2 space-y-1 overflow-hidden max-h-0 opacity-0 transition-all duration-300">
-                        <a href="laporan_inventori.html" class="block px-3 py-2 rounded-lg text-sm text-slate-500 hover:text-rose-600">Nilai Stok</a>
-                        <a href="laporan_pembelian.html" class="block px-3 py-2 rounded-lg text-sm text-slate-500 hover:text-rose-600">Riwayat Belanja</a>
+                    <div id="inv-sub" class="mt-1 ml-4 border-l-2 pl-2 space-y-1 overflow-hidden max-h-0 opacity-0">
+                        <a href="pembelian.html" class="block px-3 py-2 rounded-lg text-sm text-slate-500 hover:text-rose-600">Pembelian</a>
+                        <a href="laporan_inventori.html" class="block px-3 py-2 rounded-lg text-sm text-slate-500 hover:text-rose-600">Laporan Stok</a>
                     </div>
                 </div>
-
+                
                 <div class="pt-4 pb-2 px-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">Data Master</div>
-                <a href="produk.html" class="flex items-center gap-3 px-3 py-3 rounded-xl sidebar-item text-slate-600 font-medium">
-                    <i data-lucide="database" class="w-5 h-5"></i><span class="text-sm">Manajemen Produk</span>
-                </a>
-                <a href="bahan.html" class="flex items-center gap-3 px-3 py-3 rounded-xl sidebar-item text-slate-600 font-medium">
-                    <i data-lucide="layers" class="w-5 h-5"></i><span class="text-sm">Bahan Baku</span>
+                <a href="produk.html" class="flex items-center gap-3 px-3 py-3 rounded-xl sidebar-item text-slate-600 transition-all font-medium">
+                    <i data-lucide="database" class="w-5 h-5"></i>
+                    <span class="text-sm">Produk & Resep</span>
                 </a>
             </div>
         </nav>
 
-        <div class="p-4 border-t border-slate-100 bg-slate-50/50">
+        <div class="p-4 border-t border-slate-100">
             <div class="flex items-center gap-3 px-2 mb-4">
-                <div class="w-10 h-10 rounded-full bg-rose-500 flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-rose-200" id="user-initial">U</div>
+                <div class="w-10 h-10 rounded-full bg-rose-500 flex items-center justify-center text-white font-bold" id="user-initial">-</div>
                 <div class="overflow-hidden">
-                    <p class="text-xs font-black text-slate-900 truncate" id="user-email">Loading...</p>
-                    <p class="text-[10px] font-bold text-rose-500 uppercase tracking-tighter" id="role-display">User</p>
+                    <p class="text-xs font-black text-slate-900 truncate" id="user-email">User</p>
+                    <p class="text-[10px] font-bold text-rose-500 uppercase" id="user-role">Kasir</p>
                 </div>
             </div>
             <button onclick="handleLogout()" class="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-slate-500 hover:bg-rose-500 hover:text-white transition-all group font-bold text-sm">
                 <i data-lucide="log-out" class="w-5 h-5"></i>
-                <span>Keluar Sistem</span>
+                <span>Keluar</span>
             </button>
         </div>
     </aside>
@@ -81,7 +82,7 @@
                 <h2 class="text-2xl font-black text-slate-900 tracking-tight">Ringkasan Bisnis</h2>
                 <p class="text-sm text-slate-500 font-medium" id="tanggal-hari-ini"></p>
             </div>
-            <div id="jam-digital" class="bg-slate-900 px-6 py-2 rounded-2xl text-rose-500 font-mono font-bold shadow-lg border border-slate-700">00:00:00</div>
+            <div id="jam-digital" class="bg-slate-900 px-6 py-2 rounded-2xl text-rose-500 font-mono font-bold shadow-lg">00:00:00</div>
         </header>
 
         <div class="p-8">
@@ -99,18 +100,18 @@
                     <h3 class="text-2xl font-black text-white" id="total-laba">Rp 0</h3>
                 </div>
                 <div class="bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm">
-                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Terjual</p>
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Produk Terjual</p>
                     <h3 class="text-2xl font-black text-slate-800" id="qty-keluar">0</h3>
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
                 <div class="space-y-4">
-                    <h3 class="text-lg font-extrabold flex items-center gap-2 px-2"><i data-lucide="award" class="text-yellow-500"></i> Terlaris Hari Ini</h3>
+                    <h3 class="text-lg font-extrabold flex items-center gap-2 px-2"><i data-lucide="award" class="text-yellow-500"></i> Donut Terlaris</h3>
                     <div id="produk-list-analysis" class="bg-white rounded-[2.5rem] border p-6 space-y-3 min-h-[200px]"></div>
                 </div>
                 <div class="space-y-4">
-                    <h3 class="text-lg font-extrabold flex items-center gap-2 px-2"><i data-lucide="alert-circle" class="text-rose-500"></i> Stok Bahan Kritis</h3>
+                    <h3 class="text-lg font-extrabold flex items-center gap-2 px-2"><i data-lucide="alert-triangle" class="text-orange-500"></i> Stok Kritis</h3>
                     <div id="bahan-kritis-list" class="bg-white rounded-[2.5rem] border p-6 space-y-3 min-h-[200px]"></div>
                 </div>
             </div>
@@ -122,98 +123,97 @@
         const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJra3BrZnZjc3NkbWdubmNycmh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA3OTQ4OTIsImV4cCI6MjA4NjM3MDg5Mn0.VeE2IZhQmTyKMMQI4Ukh0nt6YHR2zVs_nUnjtPt-GPQ";
         const _supabase = supabase.createClient(SB_URL, SB_KEY);
 
+        // --- SISTEM KEAMANAN & CEK LOGIN ---
         async function checkAuth() {
             const { data: { session } } = await _supabase.auth.getSession();
+            
             if (!session) {
                 window.location.href = "login.html";
                 return;
             }
 
-            // Ambil data profil untuk cek Role
-            const { data: profile } = await _supabase
-                .from('profil')
-                .select('*')
-                .eq('id', session.user.id)
-                .single();
+            // Ambil Role dari tabel profil
+            const { data: profile } = await _supabase.from('profil').select('*').eq('id', session.user.id).single();
+            const role = profile?.role || 'kasir';
 
-            const userRole = profile?.role || 'kasir';
-            
-            // UI Update
+            // Update UI Profil
             document.getElementById('user-email').innerText = session.user.email;
-            document.getElementById('user-initial').innerText = session.user.email.charAt(0).toUpperCase();
-            document.getElementById('role-display').innerText = userRole.toUpperCase();
+            document.getElementById('user-initial').innerText = session.user.email[0].toUpperCase();
+            document.getElementById('user-role').innerText = role.toUpperCase();
 
-            // Tampilkan Navigasi Admin jika role-nya 'admin'
-            if (userRole === 'admin') {
-                document.getElementById('admin-only-nav').classList.remove('hidden');
+            // Tampilkan menu jika admin
+            if (role === 'admin') {
+                document.getElementById('admin-section').classList.remove('hidden');
             }
 
             initDashboard();
         }
 
         async function handleLogout() {
-            if (confirm("Keluar dari sistem?")) {
-                await _supabase.auth.signOut();
-                window.location.href = "login.html";
-            }
+            await _supabase.auth.signOut();
+            window.location.href = "login.html";
         }
 
+        // --- LOGIKA DASHBOARD ---
         async function initDashboard() {
             try {
                 const startOfDay = new Date();
                 startOfDay.setHours(0,0,0,0);
 
-                // HPP & Transaksi logic
-                const { data: pData } = await _supabase.from('produk').select(`id, nama_produk, resep(jumlah_dibutuhkan, bahan(harga_beli_per_gram))`);
-                const hppMap = {};
+                // 1. Data Produk (Kolom 'nama')
+                const { data: pData } = await _supabase.from('produk').select(`id, nama, resep(jumlah_dibutuhkan, bahan(harga_beli_per_gram))`);
+                const hppLookup = {};
                 pData?.forEach(p => {
                     let cost = 0;
                     p.resep?.forEach(r => cost += (r.jumlah_dibutuhkan * (r.bahan?.harga_beli_per_gram || 0)));
-                    hppMap[p.id] = cost;
+                    hppLookup[p.id] = cost;
                 });
 
+                // 2. Transaksi
                 const { data: trx } = await _supabase.from('transaksi').select('*').gte('created_at', startOfDay.toISOString());
-                let omzet = 0, hpp = 0, qty = 0;
-                let ringkasan = {};
-                
+                let omzet = 0, hppTotal = 0, qty = 0, ringkasan = {};
+
                 trx?.forEach(t => {
                     omzet += t.total_harga;
                     const items = typeof t.items === 'string' ? JSON.parse(t.items) : t.items;
                     items.forEach(it => {
                         qty += it.qty;
-                        hpp += (hppMap[it.id] || 0) * it.qty;
+                        hppTotal += (hppLookup[it.id] || 0) * it.qty;
                         if(!ringkasan[it.id]) ringkasan[it.id] = { nama: it.nama, q: 0 };
                         ringkasan[it.id].q += it.qty;
                     });
                 });
 
-                document.getElementById('total-jual').innerText = "Rp " + omzet.toLocaleString();
-                document.getElementById('total-hpp').innerText = "Rp " + hpp.toLocaleString();
-                document.getElementById('total-laba').innerText = "Rp " + (omzet - hpp).toLocaleString();
+                document.getElementById('total-jual').innerText = formatIDR(omzet);
+                document.getElementById('total-hpp').innerText = formatIDR(hppTotal);
+                document.getElementById('total-laba').innerText = formatIDR(omzet - hppTotal);
                 document.getElementById('qty-keluar').innerText = qty + " Pcs";
 
-                // Render Terlaris
+                // 3. Render Top 3 Terlaris
                 const sorted = Object.values(ringkasan).sort((a,b) => b.q - a.q).slice(0,3);
                 document.getElementById('produk-list-analysis').innerHTML = sorted.map(i => `
                     <div class="flex justify-between items-center p-4 bg-slate-50 rounded-2xl border border-slate-100">
                         <span class="font-bold text-slate-700">${i.nama}</span>
                         <span class="bg-rose-500 text-white px-4 py-1 rounded-full text-xs font-black">${i.q} Pcs</span>
                     </div>
-                `).join('') || '<p class="text-center text-slate-400 py-10">Belum ada jualan</p>';
+                `).join('') || '<p class="text-center py-10 text-slate-400 italic">Belum ada transaksi</p>';
 
-                // Stok Kritis
+                // 4. Stok Kritis
                 const { data: kritis } = await _supabase.from('bahan').select('*').lt('stok_gram', 1000).limit(3);
                 document.getElementById('bahan-kritis-list').innerHTML = kritis?.map(b => `
-                    <div class="flex justify-between items-center p-4 bg-rose-50 rounded-2xl border border-rose-100">
-                        <span class="font-bold text-slate-700">${b.nama_bahan}</span>
-                        <span class="text-rose-600 font-black">${b.stok_gram} <small>${b.satuan}</small></span>
+                    <div class="flex justify-between items-center p-4 bg-orange-50 rounded-2xl border border-orange-100">
+                        <span class="font-bold text-orange-900">${b.nama_bahan}</span>
+                        <span class="font-black text-orange-600">${b.stok_gram} <small>${b.satuan}</small></span>
                     </div>
-                `).join('') || '<p class="text-emerald-500 text-center py-10 font-bold">Semua stok aman ✓</p>';
+                `).join('') || '<p class="text-emerald-500 text-center py-10 font-bold italic">Semua stok aman ✓</p>';
 
                 lucide.createIcons();
-            } catch (err) { console.error(err); }
+            } catch (e) { console.error(e); }
         }
 
+        // --- HELPER FUNCTIONS ---
+        function formatIDR(v) { return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(v); }
+        
         function toggleMenu(id, iconId) {
             const el = document.getElementById(id);
             const icon = document.getElementById(iconId);
