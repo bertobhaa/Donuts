@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Donuts | Dashboard Analitik</title>
+    <title>Donuts | Dashboard Analitik Pro</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -14,7 +14,8 @@
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
         .sidebar-item:hover { background-color: #fff1f2; color: #e11d48; }
         .active-nav { background-color: #ffe4e6; color: #e11d48; font-weight: 700; }
-        #master-data-sub { transition: all 0.3s ease-in-out; }
+        .stats-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .stats-card:hover { transform: translateY(-5px); }
     </style>
 </head>
 <body class="bg-slate-50 flex overflow-hidden h-screen text-slate-800">
@@ -41,38 +42,24 @@
                 <span class="text-sm">Kasir / Jualan</span>
             </a>
 
-            <div class="pt-2">
-                <button onclick="toggleMasterData()" class="w-full flex items-center justify-between px-3 py-3 rounded-xl text-slate-600 hover:bg-slate-50 transition-all group">
-                    <div class="flex items-center gap-3">
-                        <i data-lucide="database" class="w-5 h-5 text-slate-400 group-hover:text-rose-500"></i>
-                        <span class="text-sm font-semibold">Master Data</span>
-                    </div>
-                    <i data-lucide="chevron-down" id="chevron-icon" class="w-4 h-4 transition-transform duration-300"></i>
-                </button>
-                <div id="master-data-sub" class="mt-1 ml-4 border-l-2 border-slate-100 pl-2 space-y-1 overflow-hidden max-h-40 opacity-100">
-                    <a href="produk.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-slate-500 hover:text-rose-600 hover:bg-rose-50 transition-all">
-                        <i data-lucide="donut" class="w-4 h-4"></i>
-                        <span>Data Produk</span>
-                    </a>
-                    <a href="bahan.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-slate-500 hover:text-rose-600 hover:bg-rose-50 transition-all">
-                        <i data-lucide="package" class="w-4 h-4"></i>
-                        <span>Bahan Baku</span>
-                    </a>
-                    <a href="resep.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-slate-500 hover:text-rose-600 hover:bg-rose-50 transition-all">
-                        <i data-lucide="scroll-text" class="w-4 h-4"></i>
-                        <span>Resep Donut</span>
-                    </a>
-                </div>
-            </div>
+            <div class="pt-4 pb-2 px-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">Master Data</div>
+            <a href="produk.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-slate-500 hover:text-rose-600 hover:bg-rose-50 transition-all">
+                <i data-lucide="donut" class="w-4 h-4"></i>
+                <span>Data Produk</span>
+            </a>
+            <a href="bahan.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-slate-500 hover:text-rose-600 hover:bg-rose-50 transition-all">
+                <i data-lucide="package" class="w-4 h-4"></i>
+                <span>Bahan Baku</span>
+            </a>
+            <a href="resep.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-slate-500 hover:text-rose-600 hover:bg-rose-50 transition-all">
+                <i data-lucide="scroll-text" class="w-4 h-4"></i>
+                <span>Resep Donut</span>
+            </a>
             
-            <div class="pt-4 pb-2 px-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">Sistem & Laporan</div>
+            <div class="pt-4 pb-2 px-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">Laporan</div>
             <a href="laporan.html" class="flex items-center gap-3 px-3 py-3 rounded-xl sidebar-item text-slate-600 transition-all font-medium">
                 <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
                 <span class="text-sm">Riwayat Jualan</span>
-            </a>
-            <a href="pengaturan.html" class="flex items-center gap-3 px-3 py-3 rounded-xl sidebar-item text-slate-600 transition-all font-medium">
-                <i data-lucide="settings" class="w-5 h-5"></i>
-                <span class="text-sm">Pengaturan Toko</span>
             </a>
         </nav>
     </aside>
@@ -80,62 +67,74 @@
     <main class="flex-1 overflow-y-auto">
         <header class="bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-10 p-6 flex justify-between items-center">
             <div>
-                <h2 class="text-2xl font-black text-slate-900">Ringkasan Bisnis</h2>
-                <p class="text-sm text-slate-500 font-medium" id="tanggal-hari-ini">Memuat tanggal...</p>
+                <h2 class="text-2xl font-black text-slate-900">Dashboard Analitik</h2>
+                <p class="text-sm text-slate-500 font-medium" id="tanggal-hari-ini">...</p>
             </div>
-            <div id="jam-digital" class="bg-slate-900 p-2 px-6 rounded-2xl text-sm font-mono font-bold text-rose-500 shadow-xl shadow-slate-200">00:00:00</div>
+            <div id="jam-digital" class="bg-slate-900 p-2 px-6 rounded-2xl text-sm font-mono font-bold text-rose-500 shadow-xl shadow-slate-200 uppercase tracking-tighter">00:00:00</div>
         </header>
 
         <div class="p-8">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-                <div class="bg-white p-7 rounded-[2.5rem] border border-slate-100 shadow-sm group hover:border-rose-200 transition-all">
-                    <p class="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-2">Menu Aktif</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+                <div class="bg-rose-500 p-6 rounded-[2.5rem] shadow-2xl shadow-rose-200 text-white relative overflow-hidden stats-card">
+                    <p class="text-rose-100 text-[10px] font-black uppercase tracking-widest mb-2 relative z-10">Omzet Hari Ini</p>
+                    <h3 class="text-3xl font-black relative z-10" id="total-jual">Rp 0</h3>
+                    <i data-lucide="trending-up" class="absolute right-[-10px] bottom-[-10px] w-24 h-24 text-rose-400/30 rotate-12"></i>
+                </div>
+
+                <div class="bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm stats-card">
+                    <p class="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-2">Estimasi Laba Bersih</p>
                     <div class="flex items-center justify-between">
-                        <h3 class="text-4xl font-black text-slate-800" id="count-produk">0</h3>
-                        <div class="p-3 bg-rose-50 text-rose-500 rounded-2xl"><i data-lucide="donut"></i></div>
+                        <h3 class="text-3xl font-black text-emerald-500" id="total-laba">Rp 0</h3>
+                        <div class="p-2 bg-emerald-50 text-emerald-500 rounded-xl"><i data-lucide="heart" class="w-5 h-5"></i></div>
                     </div>
                 </div>
 
-                <div class="bg-rose-500 p-7 rounded-[2.5rem] shadow-2xl shadow-rose-200 text-white relative overflow-hidden group">
-                    <div class="relative z-10">
-                        <p class="text-rose-100 text-[10px] font-black uppercase tracking-widest mb-2">Omzet Hari Ini</p>
-                        <h3 class="text-4xl font-black" id="total-jual">Rp 0</h3>
+                <div class="bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm stats-card">
+                    <p class="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-2">Total Modal (HPP)</p>
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-3xl font-black text-slate-800" id="total-hpp">Rp 0</h3>
+                        <div class="p-2 bg-slate-50 text-slate-400 rounded-xl"><i data-lucide="calculator" class="w-5 h-5"></i></div>
                     </div>
-                    <i data-lucide="trending-up" class="absolute right-[-10px] bottom-[-10px] w-32 h-32 text-rose-400/20 rotate-12"></i>
                 </div>
 
-                <div class="bg-white p-7 rounded-[2.5rem] border border-slate-100 shadow-sm group hover:border-orange-200 transition-all">
-                    <p class="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-2">Stok Kritis</p>
+                <div class="bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm stats-card">
+                    <p class="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-2">Barang Keluar</p>
                     <div class="flex items-center justify-between">
-                        <h3 class="text-4xl font-black text-orange-500" id="warning-bahan">0</h3>
-                        <div class="p-3 bg-orange-50 text-orange-500 rounded-2xl"><i data-lucide="alert-triangle"></i></div>
+                        <h3 class="text-3xl font-black text-slate-800" id="qty-terjual">0 <span class="text-xs text-slate-400 font-bold uppercase">Pcs</span></h3>
+                        <div class="p-2 bg-rose-50 text-rose-500 rounded-xl"><i data-lucide="package-check" class="w-5 h-5"></i></div>
                     </div>
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div class="space-y-4">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div class="lg:col-span-2 space-y-4">
                     <h3 class="text-lg font-extrabold flex items-center gap-2">
-                        <i data-lucide="zap" class="text-yellow-500 w-5 h-5"></i> Akses Cepat
+                        <i data-lucide="bar-chart-big" class="text-rose-500 w-5 h-5"></i> Top Produk Hari Ini
                     </h3>
-                    <div class="grid grid-cols-2 gap-4">
-                        <a href="kasir.html" class="p-8 bg-white border border-slate-100 rounded-[2.5rem] hover:shadow-2xl hover:shadow-rose-100 transition-all group flex flex-col items-center gap-4">
-                            <div class="p-4 bg-rose-50 text-rose-500 rounded-3xl group-hover:scale-110 transition-transform"><i data-lucide="shopping-cart" class="w-8 h-8"></i></div>
-                            <span class="font-extrabold text-sm">Buka Kasir</span>
-                        </a>
-                        <a href="pengaturan.html" class="p-8 bg-white border border-slate-100 rounded-[2.5rem] hover:shadow-2xl hover:shadow-blue-100 transition-all group flex flex-col items-center gap-4">
-                            <div class="p-4 bg-blue-50 text-blue-500 rounded-3xl group-hover:scale-110 transition-transform"><i data-lucide="settings" class="w-8 h-8"></i></div>
-                            <span class="font-extrabold text-sm">Atur Toko</span>
-                        </a>
+                    <div class="bg-white rounded-[2.5rem] border border-slate-100 p-8 shadow-sm">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left">
+                                <thead>
+                                    <tr class="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-50">
+                                        <th class="pb-4">Nama Produk</th>
+                                        <th class="pb-4 text-center">Terjual</th>
+                                        <th class="pb-4 text-right">Subtotal</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="top-produk-body" class="text-sm">
+                                    <tr><td colspan="3" class="py-10 text-center text-slate-400 italic">Menganalisis transaksi...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
 
                 <div class="space-y-4">
                     <h3 class="text-lg font-extrabold flex items-center gap-2">
-                        <i data-lucide="package-search" class="text-slate-800 w-5 h-5"></i> Pantauan Stok Bahan
+                        <i data-lucide="alert-triangle" class="text-orange-500 w-5 h-5"></i> Stok Kritis (< 1kg)
                     </h3>
-                    <div id="bahan-kritis-list" class="bg-white rounded-[2.5rem] border border-slate-100 p-6 space-y-4 shadow-sm min-h-[220px]">
-                        <p class="text-slate-400 text-sm italic text-center py-12">Memverifikasi ketersediaan stok...</p>
+                    <div id="bahan-kritis-list" class="bg-white rounded-[2.5rem] border border-slate-100 p-6 space-y-4 shadow-sm min-h-[300px]">
+                        <p class="text-slate-400 text-sm italic text-center py-12">Mengecek gudang...</p>
                     </div>
                 </div>
             </div>
@@ -149,75 +148,114 @@
 
         async function loadDashboard() {
             try {
-                // 1. Hitung Produk
-                const { count: jmlProduk } = await _supabase.from('produk').select('*', { count: 'exact', head: true });
-                document.getElementById('count-produk').innerText = jmlProduk || 0;
-
-                // 2. Omzet Hari Ini (Perbaikan Akurasi Waktu)
                 const startOfDay = new Date();
                 startOfDay.setHours(0,0,0,0);
-                
+
+                // 1. Ambil Transaksi & Detail Hari Ini
                 const { data: trx } = await _supabase
                     .from('transaksi')
-                    .select('total_harga')
+                    .select('*')
                     .gte('created_at', startOfDay.toISOString());
-                
-                const total = trx ? trx.reduce((sum, item) => sum + item.total_harga, 0) : 0;
-                document.getElementById('total-jual').innerText = new Intl.NumberFormat('id-ID', {
-                    style: 'currency', currency: 'IDR', maximumFractionDigits: 0
-                }).format(total);
 
-                // 3. Cek Bahan Kritis (< 500g)
-                const { data: bahan } = await _supabase.from('bahan').select('*').lt('stok_gram', 500);
-                const listBahan = document.getElementById('bahan-kritis-list');
+                // 2. Ambil Master Data Produk & Resep untuk hitung HPP
+                const { data: produkHPP } = await _supabase.from('produk').select(`
+                    id, nama, harga, 
+                    resep(jumlah_dibutuhkan, bahan(harga_beli_per_gram))
+                `);
+
+                // Map HPP per produk
+                const hppMap = {};
+                produkHPP.forEach(p => {
+                    let cost = 0;
+                    p.resep.forEach(r => {
+                        cost += (r.jumlah_dibutuhkan * (r.bahan?.harga_beli_per_gram || 0));
+                    });
+                    hppMap[p.id] = cost;
+                });
+
+                let totalOmzet = 0;
+                let totalHPP = 0;
+                let totalQty = 0;
+                let topProduk = {};
+
+                if (trx) {
+                    trx.forEach(t => {
+                        totalOmzet += t.total_harga;
+                        // Asumsi t.items adalah array produk: [{id:1, qty:2, subtotal:20000}, ...]
+                        t.items?.forEach(item => {
+                            totalQty += item.qty;
+                            totalHPP += (hppMap[item.id] || 0) * item.qty;
+                            
+                            if(!topProduk[item.id]) {
+                                topProduk[item.id] = { nama: item.nama, qty: 0, subtotal: 0 };
+                            }
+                            topProduk[item.id].qty += item.qty;
+                            topProduk[item.id].subtotal += item.subtotal;
+                        });
+                    });
+                }
+
+                // Render Summary
+                document.getElementById('total-jual').innerText = formatRupiah(totalOmzet);
+                document.getElementById('total-hpp').innerText = formatRupiah(totalHPP);
+                document.getElementById('total-laba').innerText = formatRupiah(totalOmzet - totalHPP);
+                document.getElementById('qty-terjual').innerHTML = `${totalQty} <span class="text-xs text-slate-400 font-bold uppercase">Pcs</span>`;
+
+                // Render Top Produk Table
+                const tbody = document.getElementById('top-produk-body');
+                tbody.innerHTML = '';
+                const sorted = Object.values(topProduk).sort((a,b) => b.qty - a.qty);
                 
-                document.getElementById('warning-bahan').innerText = bahan ? bahan.length : 0;
+                if(sorted.length > 0) {
+                    sorted.forEach(p => {
+                        tbody.innerHTML += `
+                            <tr class="border-b border-slate-50 group hover:bg-slate-50 transition-all">
+                                <td class="py-4 font-bold text-slate-700">${p.nama}</td>
+                                <td class="py-4 text-center font-mono font-bold">${p.qty}</td>
+                                <td class="py-4 text-right font-bold text-rose-500">${formatRupiah(p.subtotal)}</td>
+                            </tr>
+                        `;
+                    });
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="3" class="py-10 text-center text-slate-400">Belum ada jualan hari ini</td></tr>';
+                }
+
+                // 3. Cek Bahan Baku Kritis
+                const { data: bahan } = await _supabase.from('bahan').select('*').lt('stok_gram', 1000).order('stok_gram', { ascending: true });
+                const listBahan = document.getElementById('bahan-kritis-list');
                 listBahan.innerHTML = '';
 
                 if (bahan && bahan.length > 0) {
                     bahan.forEach(b => {
                         listBahan.innerHTML += `
-                            <div class="flex justify-between items-center bg-orange-50 p-4 rounded-2xl border border-orange-100 group hover:bg-orange-100 transition-all">
+                            <div class="flex justify-between items-center bg-orange-50 p-4 rounded-2xl border border-orange-100">
                                 <div>
                                     <p class="font-extrabold text-slate-800 text-sm">${b.nama_bahan}</p>
-                                    <p class="text-[10px] text-orange-600 font-black uppercase tracking-tighter">Perlu Restock!</p>
+                                    <p class="text-[10px] text-orange-600 font-black uppercase tracking-tighter">Segera Belanja!</p>
                                 </div>
-                                <span class="bg-white px-4 py-2 rounded-xl text-xs font-black text-orange-600 shadow-sm">${b.stok_gram}g</span>
+                                <span class="bg-white px-3 py-1.5 rounded-xl text-xs font-black text-orange-600 shadow-sm">${b.stok_gram}g</span>
                             </div>
                         `;
                     });
                 } else {
-                    listBahan.innerHTML = `
-                        <div class="flex flex-col items-center justify-center py-10 text-green-500 opacity-60">
-                            <i data-lucide="check-circle" class="w-12 h-12 mb-2"></i>
-                            <p class="text-sm font-bold">Semua stok bahan aman</p>
-                        </div>`;
+                    listBahan.innerHTML = `<div class="flex flex-col items-center justify-center py-10 text-emerald-500 opacity-60"><i data-lucide="check-circle" class="w-12 h-12 mb-2"></i><p class="text-sm font-bold">Stok aman terkendali</p></div>`;
                 }
+
                 lucide.createIcons();
             } catch (e) {
-                console.error("Gagal memuat data dashboard:", e);
+                console.error("Dashboard Error:", e);
             }
         }
 
-        function toggleMasterData() {
-            const sub = document.getElementById('master-data-sub');
-            const icon = document.getElementById('chevron-icon');
-            const isHidden = sub.classList.contains('max-h-0');
-            sub.classList.toggle('max-h-0', !isHidden);
-            sub.classList.toggle('opacity-0', !isHidden);
-            sub.classList.toggle('max-h-40', isHidden);
-            sub.classList.toggle('opacity-100', isHidden);
-            icon.style.transform = isHidden ? 'rotate(0deg)' : 'rotate(-180deg)';
+        function formatRupiah(val) {
+            return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(val);
         }
 
-        // Setup Jam & Tanggal
         setInterval(() => {
             document.getElementById('jam-digital').innerText = new Date().toLocaleTimeString('id-ID');
         }, 1000);
 
-        document.getElementById('tanggal-hari-ini').innerText = new Date().toLocaleDateString('id-ID', {
-            weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
-        });
+        document.getElementById('tanggal-hari-ini').innerText = new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
         loadDashboard();
         lucide.createIcons();
