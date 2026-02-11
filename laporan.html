@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Laporan Penjualan | Donuts</title>
+    <title>Financial Report | Donuts</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -13,53 +13,28 @@
     </style>
 </head>
 <body class="bg-slate-50 flex h-screen overflow-hidden">
-
-    <aside class="w-64 bg-white border-r border-slate-200 flex flex-col h-full z-20">
-        <div class="p-6">
-            <h1 class="text-xl font-bold text-rose-500">Donuts.</h1>
-        </div>
-        <nav class="flex-1 px-4 space-y-1">
-            <a href="index.html" class="flex items-center gap-3 px-3 py-3 rounded-xl sidebar-item text-slate-600 hover:bg-slate-50 transition-all">
-                <i data-lucide="layout-dashboard" class="w-5 h-5"></i> Dashboard
-            </a>
-            <div class="pt-4 pb-2 px-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Transaksi</div>
-            <a href="kasir.html" class="flex items-center gap-3 px-3 py-3 rounded-xl text-slate-600 hover:bg-slate-50">
-                <i data-lucide="shopping-cart" class="w-5 h-5"></i> Kasir
-            </a>
-            <a href="laporan.html" class="flex items-center gap-3 px-3 py-3 rounded-xl bg-rose-50 text-rose-600 font-bold">
-                <i data-lucide="bar-chart-3" class="w-5 h-5"></i> Riwayat Jualan
-            </a>
-        </nav>
-    </aside>
-
     <main class="flex-1 overflow-y-auto">
-        <header class="bg-white border-b p-8 flex justify-between items-end">
-            <div>
-                <h2 class="text-3xl font-black tracking-tight">Financial Report</h2>
-                <p class="text-slate-500 text-sm">Review data transaksi dan performa outlet.</p>
-            </div>
-            <div class="flex gap-4">
-                <div class="bg-white border rounded-2xl p-4 shadow-sm text-center min-w-[150px]">
-                    <p class="text-[10px] font-bold text-slate-400 uppercase">Omzet Kotor</p>
-                    <p class="text-xl font-black text-rose-600" id="total-omzet">Rp 0</p>
-                </div>
+        <header class="p-8 flex justify-between items-center bg-white border-b">
+            <div><h2 class="text-3xl font-black">Riwayat Jualan</h2><p class="text-slate-400">Semua transaksi tercatat di sini.</p></div>
+            <div class="bg-rose-500 text-white p-6 rounded-[2rem] text-right shadow-lg shadow-rose-200">
+                <p class="text-[10px] font-bold uppercase opacity-80">Total Omzet</p>
+                <p class="text-2xl font-black" id="total-omzet">Rp 0</p>
             </div>
         </header>
 
         <div class="p-8">
-            <div class="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden">
+            <div class="bg-white rounded-[2.5rem] border border-slate-100 overflow-hidden shadow-sm">
                 <table class="w-full text-left">
-                    <thead class="bg-slate-50 border-b border-slate-100">
-                        <tr class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
-                            <th class="p-6">Waktu / ID</th>
-                            <th class="p-6">Item terjual</th>
-                            <th class="p-6 text-center">Metode</th>
-                            <th class="p-6 text-right">Pajak</th>
-                            <th class="p-6 text-right font-bold text-slate-900">Total Harga</th>
+                    <thead class="bg-slate-50 text-[10px] font-bold uppercase text-slate-400 tracking-widest border-b">
+                        <tr>
+                            <th class="p-6">Waktu</th>
+                            <th class="p-6">Items</th>
+                            <th class="p-6">Metode</th>
+                            <th class="p-6 text-right">Potongan</th>
+                            <th class="p-6 text-right">Total</th>
                         </tr>
                     </thead>
-                    <tbody id="laporan-body" class="text-sm divide-y divide-slate-50">
-                        </tbody>
+                    <tbody id="laporan-body" class="text-sm divide-y"></tbody>
                 </table>
             </div>
         </div>
@@ -71,40 +46,23 @@
         const _supabase = supabase.createClient(SB_URL, SB_KEY);
 
         async function loadLaporan() {
-            const { data, error } = await _supabase
-                .from('transaksi')
-                .select(`*, bank_payment(nama_metode)`)
-                .order('created_at', { ascending: false });
-
-            if(error) return console.error(error);
-
+            const { data } = await _supabase.from('transaksi').select(`*, bank_payment(nama_metode)`).order('created_at', { ascending: false });
+            let omzet = 0;
             const tbody = document.getElementById('laporan-body');
-            let grandTotal = 0;
-
             tbody.innerHTML = data.map(t => {
-                grandTotal += t.total_harga;
+                omzet += t.total_harga;
                 return `
-                <tr class="hover:bg-slate-50 transition-colors">
-                    <td class="p-6">
-                        <div class="font-bold text-slate-800">${new Date(t.created_at).toLocaleDateString('id-ID')}</div>
-                        <div class="text-[10px] text-slate-400 font-mono">${new Date(t.created_at).toLocaleTimeString('id-ID')} • #TX-${t.id}</div>
-                    </td>
-                    <td class="p-6 text-slate-600 font-medium">${t.detail_item}</td>
-                    <td class="p-6 text-center">
-                        <span class="px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-[10px] font-bold uppercase tracking-widest border border-blue-100">
-                            ${t.bank_payment?.nama_metode || 'Cash'}
-                        </span>
-                    </td>
-                    <td class="p-6 text-right text-slate-400 italic">Rp ${t.pajak_nominal.toLocaleString()}</td>
-                    <td class="p-6 text-right font-black text-rose-600 text-base">Rp ${t.total_harga.toLocaleString()}</td>
-                </tr>
-                `;
+                <tr class="hover:bg-slate-50 transition-all">
+                    <td class="p-6 font-mono text-xs">${new Date(t.created_at).toLocaleString('id-ID')}</td>
+                    <td class="p-6 font-medium">${t.detail_item}</td>
+                    <td class="p-6"><span class="bg-blue-50 text-blue-600 px-3 py-1 rounded-full text-[10px] font-bold uppercase border border-blue-100">${t.bank_payment?.nama_metode || 'Cash'}</span></td>
+                    <td class="p-6 text-right text-rose-400 italic">Rp ${t.diskon_nominal.toLocaleString()}</td>
+                    <td class="p-6 text-right font-black text-slate-800 text-base">Rp ${t.total_harga.toLocaleString()}</td>
+                </tr>`;
             }).join('');
-
-            document.getElementById('total-omzet').innerText = `Rp ${grandTotal.toLocaleString()}`;
+            document.getElementById('total-omzet').innerText = `Rp ${omzet.toLocaleString()}`;
             lucide.createIcons();
         }
-
         loadLaporan();
     </script>
 </body>
