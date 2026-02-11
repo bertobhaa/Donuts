@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pengaturan Toko | Donuts</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-50 flex h-screen overflow-hidden">
+
+    <aside class="w-64 bg-white border-r border-slate-200 flex flex-col h-full z-20">
+        <div class="p-6"><h1 class="text-xl font-bold text-rose-500">Donuts.</h1></div>
+        <nav class="flex-1 px-4 space-y-1">
+            <a href="index.html" class="flex items-center gap-3 px-3 py-3 rounded-xl sidebar-item text-slate-600 hover:bg-slate-50 transition-all">
+                <i data-lucide="layout-dashboard" class="w-5 h-5"></i> Dashboard
+            </a>
+            <div class="pt-4 pb-2 px-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">Sistem</div>
+            <a href="pengaturan.html" class="flex items-center gap-3 px-3 py-3 rounded-xl bg-rose-50 text-rose-600 font-bold">
+                <i data-lucide="settings" class="w-5 h-5"></i> Konfigurasi
+            </a>
+        </nav>
+    </aside>
+
+    <main class="flex-1 overflow-y-auto p-12">
+        <div class="max-w-2xl mx-auto">
+            <header class="mb-10">
+                <h2 class="text-3xl font-black text-slate-800">Pengaturan Biaya</h2>
+                <p class="text-slate-500">Atur besaran pajak PPN dan diskon promo toko.</p>
+            </header>
+
+            <div class="grid gap-6">
+                <div class="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 flex items-center justify-between">
+                    <div class="flex items-center gap-5">
+                        <div class="bg-blue-50 p-4 rounded-2xl text-blue-500"><i data-lucide="percent"></i></div>
+                        <div>
+                            <h4 class="font-bold text-slate-800 text-lg">Pajak PPN</h4>
+                            <p class="text-sm text-slate-400">Pajak standar pemerintah (Normal: 11%)</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <input type="number" id="val-ppn" class="w-20 bg-slate-50 border p-3 rounded-xl text-center font-bold outline-none focus:border-blue-400" value="0">
+                        <span class="font-bold text-slate-400">%</span>
+                    </div>
+                </div>
+
+                <div class="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 flex items-center justify-between">
+                    <div class="flex items-center gap-5">
+                        <div class="bg-rose-50 p-4 rounded-2xl text-rose-500"><i data-lucide="tag"></i></div>
+                        <div>
+                            <h4 class="font-bold text-slate-800 text-lg">Diskon Global</h4>
+                            <p class="text-sm text-slate-400">Potongan harga untuk seluruh menu</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <input type="number" id="val-diskon" class="w-20 bg-slate-50 border p-3 rounded-xl text-center font-bold outline-none focus:border-rose-400" value="0">
+                        <span class="font-bold text-slate-400">%</span>
+                    </div>
+                </div>
+
+                <button onclick="updateSettings()" id="btn-save" class="mt-4 bg-slate-900 text-white py-5 rounded-[2rem] font-bold hover:bg-rose-600 transition-all shadow-xl shadow-rose-100">
+                    Simpan Perubahan
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const SB_URL = "https://bkkpkfvcssdmgnncrrhu.supabase.co";
+        const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJra3BrZnZjc3NkbWdubmNycmh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA3OTQ4OTIsImV4cCI6MjA4NjM3MDg5Mn0.VeE2IZhQmTyKMMQI4Ukh0nt6YHR2zVs_nUnjtPt-GPQ";
+        const _supabase = supabase.createClient(SB_URL, SB_KEY);
+
+        async function loadSettings() {
+            const { data } = await _supabase.from('settings').select('*');
+            data.forEach(s => {
+                if(s.key === 'ppn') document.getElementById('val-ppn').value = s.value;
+                if(s.key === 'diskon_global') document.getElementById('val-diskon').value = s.value;
+            });
+            lucide.createIcons();
+        }
+
+        async function updateSettings() {
+            const btn = document.getElementById('btn-save');
+            btn.innerText = "Menyimpan...";
+            
+            const ppn = document.getElementById('val-ppn').value;
+            const diskon = document.getElementById('val-diskon').value;
+
+            await _supabase.from('settings').update({ value: ppn }).eq('key', 'ppn');
+            await _supabase.from('settings').update({ value: diskon }).eq('key', 'diskon_global');
+
+            alert("Konfigurasi berhasil diperbarui!");
+            btn.innerText = "Simpan Perubahan";
+        }
+
+        loadSettings();
+    </script>
+</body>
+</html>
