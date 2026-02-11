@@ -13,7 +13,7 @@
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
         .sidebar-item:hover { background-color: #fff1f2; color: #e11d48; }
         .active-nav { background-color: #ffe4e6; color: #e11d48; font-weight: 700; }
-        #master-data-sub { transition: all 0.3s ease-in-out; }
+        #master-data-sub, #inv-sub { transition: all 0.3s ease-in-out; }
     </style>
 </head>
 <body class="bg-slate-50 flex overflow-hidden h-screen text-slate-800">
@@ -40,18 +40,35 @@
                 <i data-lucide="file-bar-chart-2" class="w-5 h-5"></i>
                 <span class="text-sm">Laporan Detail</span>
             </a>
+
+            <div class="pt-4 pb-2 px-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">Inventori</div>
+            
+            <div>
+                <button onclick="toggleMenu('inv-sub', 'chevron-inv')" class="w-full flex items-center justify-between px-3 py-3 rounded-xl text-slate-600 hover:bg-slate-50 transition-all">
+                    <div class="flex items-center gap-3">
+                        <i data-lucide="box" class="w-5 h-5"></i>
+                        <span class="text-sm font-semibold">Stok & Gudang</span>
+                    </div>
+                    <i data-lucide="chevron-down" id="chevron-inv" class="w-4 h-4 transition-transform"></i>
+                </button>
+                <div id="inv-sub" class="mt-1 ml-4 border-l-2 pl-2 space-y-1 overflow-hidden max-h-0 opacity-0">
+                    <a href="pembelian.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-slate-500 hover:text-rose-600"><span>Pembelian</span></a>
+                    <a href="penyesuaian.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-slate-500 hover:text-rose-600"><span>Opname</span></a>
+                    <a href="laporan_pembelian.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-slate-500 hover:text-rose-600"><span>Log Belanja</span></a>
+                </div>
+            </div>
             
             <div class="pt-4 pb-2 px-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">Data Master</div>
             
             <div>
-                <button onclick="toggleMasterData()" class="w-full flex items-center justify-between px-3 py-3 rounded-xl text-slate-600 hover:bg-slate-50 transition-all">
+                <button onclick="toggleMenu('master-data-sub', 'chevron-master')" class="w-full flex items-center justify-between px-3 py-3 rounded-xl text-slate-600 hover:bg-slate-50 transition-all">
                     <div class="flex items-center gap-3">
                         <i data-lucide="database" class="w-5 h-5"></i>
                         <span class="text-sm font-semibold">Manajemen</span>
                     </div>
-                    <i data-lucide="chevron-down" id="chevron-icon" class="w-4 h-4 transition-transform"></i>
+                    <i data-lucide="chevron-down" id="chevron-master" class="w-4 h-4 transition-transform"></i>
                 </button>
-                <div id="master-data-sub" class="mt-1 ml-4 border-l-2 pl-2 space-y-1 overflow-hidden max-h-40 opacity-100">
+                <div id="master-data-sub" class="mt-1 ml-4 border-l-2 pl-2 space-y-1 overflow-hidden max-h-0 opacity-0">
                     <a href="produk.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-slate-500 hover:text-rose-600"><span>Data Produk</span></a>
                     <a href="bahan.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-slate-500 hover:text-rose-600"><span>Bahan Baku</span></a>
                     <a href="resep.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-slate-500 hover:text-rose-600"><span>Resep Menu</span></a>
@@ -77,49 +94,63 @@
 
         <div class="p-8">
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-                <div class="bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
+                <div class="bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm">
                     <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Omzet Hari Ini</p>
                     <h3 class="text-2xl font-black text-slate-800" id="total-jual">Rp 0</h3>
                 </div>
-                <div class="bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
+                <div class="bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm">
                     <p class="text-[10px] font-black text-rose-400 uppercase tracking-widest mb-1">Total HPP</p>
                     <h3 class="text-2xl font-black text-rose-500" id="total-hpp">Rp 0</h3>
                 </div>
                 <div class="bg-slate-900 p-6 rounded-[2.5rem] shadow-xl shadow-slate-200">
-                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 text-rose-300">Laba Bersih</p>
+                    <p class="text-[10px] font-black text-rose-300 uppercase tracking-widest mb-1">Laba Bersih</p>
                     <h3 class="text-2xl font-black text-white" id="total-laba">Rp 0</h3>
                 </div>
-                <div class="bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
+                <div class="bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm">
                     <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Produk Terjual</p>
                     <h3 class="text-2xl font-black text-slate-800" id="qty-keluar">0</h3>
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
                 <div class="space-y-4">
                     <div class="flex justify-between items-center px-2">
                         <h3 class="text-lg font-extrabold flex items-center gap-2"><i data-lucide="award" class="text-yellow-500"></i> Donut Terlaris</h3>
-                        <a href="laporan.html" class="text-xs font-bold text-rose-500 hover:underline">Lihat Detail</a>
                     </div>
-                    <div id="produk-list-analysis" class="bg-white rounded-[2.5rem] border p-6 space-y-3 shadow-sm min-h-[300px]">
-                        <div class="animate-pulse space-y-3">
-                            <div class="h-12 bg-slate-100 rounded-2xl"></div>
-                            <div class="h-12 bg-slate-100 rounded-2xl"></div>
-                        </div>
+                    <div id="produk-list-analysis" class="bg-white rounded-[2.5rem] border p-6 space-y-3 shadow-sm min-h-[250px]">
+                        <div class="animate-pulse space-y-3"><div class="h-12 bg-slate-100 rounded-2xl"></div></div>
                     </div>
                 </div>
 
                 <div class="space-y-4">
                     <div class="flex justify-between items-center px-2">
                         <h3 class="text-lg font-extrabold flex items-center gap-2"><i data-lucide="package" class="text-slate-800"></i> Peringatan Stok</h3>
-                        <a href="bahan.html" class="text-xs font-bold text-rose-500 hover:underline">Kelola Stok</a>
                     </div>
-                    <div id="bahan-kritis-list" class="bg-white rounded-[2.5rem] border p-6 space-y-3 shadow-sm min-h-[300px]">
-                         <div class="animate-pulse space-y-3">
-                            <div class="h-12 bg-slate-100 rounded-2xl"></div>
-                            <div class="h-12 bg-slate-100 rounded-2xl"></div>
+                    <div id="bahan-kritis-list" class="bg-white rounded-[2.5rem] border p-6 space-y-3 shadow-sm min-h-[250px]">
+                        <div class="animate-pulse space-y-3"><div class="h-12 bg-slate-100 rounded-2xl"></div></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div class="lg:col-span-2 space-y-4">
+                    <div class="flex justify-between items-center px-2">
+                        <h3 class="text-lg font-extrabold flex items-center gap-2"><i data-lucide="trending-up" class="text-amber-500"></i> Pengeluaran Bahan Terbesar</h3>
+                        <span class="text-[10px] bg-amber-100 text-amber-600 px-3 py-1 rounded-full font-bold uppercase tracking-tighter">Bulan Ini</span>
+                    </div>
+                    <div id="bahan-boros-list" class="bg-white rounded-[2.5rem] border p-8 space-y-6 shadow-sm">
                         </div>
+                </div>
+
+                <div class="bg-rose-500 rounded-[2.5rem] p-8 text-white flex flex-col justify-center relative overflow-hidden shadow-xl shadow-rose-200">
+                    <div class="relative z-10">
+                        <h3 class="text-xl font-black mb-2">Restock Bahan?</h3>
+                        <p class="text-rose-100 text-sm mb-6 leading-relaxed">Jangan biarkan produksi terhenti. Catat belanja bahan baku sekarang.</p>
+                        <a href="pembelian.html" class="bg-white text-rose-500 px-6 py-4 rounded-2xl font-bold inline-flex items-center gap-2 hover:scale-105 transition-transform shadow-lg">
+                            <i data-lucide="plus-circle" class="w-5 h-5"></i> Catat Pembelian
+                        </a>
                     </div>
+                    <i data-lucide="shopping-bag" class="absolute -right-8 -bottom-8 w-48 h-48 text-white/10 rotate-12"></i>
                 </div>
             </div>
         </div>
@@ -130,132 +161,99 @@
         const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJra3BrZnZjc3NkbWdubmNycmh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA3OTQ4OTIsImV4cCI6MjA4NjM3MDg5Mn0.VeE2IZhQmTyKMMQI4Ukh0nt6YHR2zVs_nUnjtPt-GPQ";
         const _supabase = supabase.createClient(SB_URL, SB_KEY);
 
-        async function loadDashboard() {
+        async function initDashboard() {
             try {
                 const startOfDay = new Date();
                 startOfDay.setHours(0,0,0,0);
 
-                // 1. Ambil Produk & Detail Resep untuk kalkulasi HPP
-                const { data: produkData } = await _supabase.from('produk').select(`
-                    id, 
-                    nama, 
-                    resep(
-                        jumlah_dibutuhkan, 
-                        bahan(harga_beli_per_gram)
-                    )
-                `);
-
+                // 1. Data Produk & HPP
+                const { data: produkData } = await _supabase.from('produk').select(`id, nama, resep(jumlah_dibutuhkan, bahan(harga_beli_per_gram))`);
                 const hppLookup = {};
                 produkData?.forEach(p => {
-                    let modalSatuan = 0;
-                    p.resep?.forEach(r => {
-                        modalSatuan += (r.jumlah_dibutuhkan * (r.bahan?.harga_beli_per_gram || 0));
-                    });
-                    hppLookup[p.id] = modalSatuan;
+                    let modal = 0;
+                    p.resep?.forEach(r => modal += (r.jumlah_dibutuhkan * (r.bahan?.harga_beli_per_gram || 0)));
+                    hppLookup[p.id] = modal;
                 });
 
-                // 2. Ambil Transaksi Hari Ini
-                const { data: trx, error: trxError } = await _supabase.from('transaksi')
-                    .select('*')
-                    .gte('created_at', startOfDay.toISOString());
-
-                if (trxError) throw trxError;
-
+                // 2. Transaksi Hari Ini
+                const { data: trx } = await _supabase.from('transaksi').select('*').gte('created_at', startOfDay.toISOString());
                 let omzet = 0, hppTotal = 0, qtyTotal = 0, ringkasan = {};
 
                 trx?.forEach(t => {
                     omzet += (t.total_harga || 0);
-                    // Pastikan parsing kolom items aman (karena tipenya jsonb)
                     const items = Array.isArray(t.items) ? t.items : JSON.parse(t.items || "[]");
-                    
                     items.forEach(item => {
                         qtyTotal += item.qty;
                         hppTotal += (hppLookup[item.id] || 0) * item.qty;
-                        
-                        if(!ringkasan[item.id]) {
-                            ringkasan[item.id] = { nama: item.nama, qty: 0 };
-                        }
+                        if(!ringkasan[item.id]) ringkasan[item.id] = { nama: item.nama, qty: 0 };
                         ringkasan[item.id].qty += item.qty;
                     });
                 });
 
-                // Update UI Statistik
                 document.getElementById('total-jual').innerText = formatIDR(omzet);
                 document.getElementById('total-hpp').innerText = formatIDR(hppTotal);
                 document.getElementById('total-laba').innerText = formatIDR(omzet - hppTotal);
-                document.getElementById('qty-keluar').innerText = qtyTotal.toLocaleString() + " Pcs";
+                document.getElementById('qty-keluar').innerText = qtyTotal + " Pcs";
 
-                // Render List Produk Terlaris
-                const prodCont = document.getElementById('produk-list-analysis');
-                const sortedProducts = Object.values(ringkasan).sort((a,b) => b.qty - a.qty);
-                
-                prodCont.innerHTML = sortedProducts.length ? '' : 
-                    `<div class="flex flex-col items-center justify-center h-48 opacity-30 italic">
-                        <i data-lucide="info" class="w-8 h-8 mb-2"></i>
-                        <p>Belum ada data jualan hari ini</p>
-                    </div>`;
+                // 3. Render Terlaris
+                const sorted = Object.values(ringkasan).sort((a,b) => b.qty - a.qty).slice(0,3);
+                document.getElementById('produk-list-analysis').innerHTML = sorted.map(i => `
+                    <div class="flex justify-between items-center p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                        <span class="font-bold text-slate-700">${i.nama}</span>
+                        <span class="bg-rose-500 text-white px-4 py-1 rounded-full text-xs font-black">${i.qty} Pcs</span>
+                    </div>
+                `).join('') || '<p class="text-center py-10 text-slate-400 italic">Belum ada jualan hari ini</p>';
 
-                sortedProducts.forEach(i => {
-                    prodCont.innerHTML += `
-                        <div class="flex justify-between items-center p-4 bg-slate-50 rounded-2xl border border-slate-100 hover:bg-rose-50 transition-colors">
-                            <span class="font-bold text-slate-700">${i.nama}</span>
-                            <span class="bg-rose-500 text-white px-4 py-1 rounded-full text-xs font-black shadow-md shadow-rose-200">${i.qty} Pcs</span>
-                        </div>`;
-                });
+                // 4. Stok Kritis (< 1000 gram / 1kg)
+                const { data: bahanKritis } = await _supabase.from('bahan').select('*').lt('stok_gram', 1000).limit(3);
+                document.getElementById('bahan-kritis-list').innerHTML = bahanKritis?.map(b => `
+                    <div class="flex justify-between items-center p-4 bg-orange-50 rounded-2xl border border-orange-100">
+                        <span class="font-bold text-orange-900">${b.nama_bahan}</span>
+                        <span class="font-black text-orange-600">${b.stok_gram} <small>${b.satuan}</small></span>
+                    </div>
+                `).join('') || '<p class="text-center py-10 text-emerald-500 italic font-bold">Semua stok aman ✓</p>';
 
-                // 3. Cek Stok Bahan Baku Kritis (< 500 gram)
-                const { data: bahan } = await _supabase.from('bahan').select('*').lt('stok_gram', 500);
-                const bahanCont = document.getElementById('bahan-kritis-list');
-                
-                bahanCont.innerHTML = bahan?.length ? '' : 
-                    `<div class="flex flex-col items-center justify-center h-48 opacity-30 italic">
-                        <i data-lucide="check-circle-2" class="w-8 h-8 mb-2 text-emerald-500"></i>
-                        <p>Semua stok bahan baku aman</p>
-                    </div>`;
-
-                bahan?.forEach(b => {
-                    bahanCont.innerHTML += `
-                        <div class="flex justify-between items-center p-4 bg-orange-50 rounded-2xl border border-orange-100">
-                            <div class="flex items-center gap-3">
-                                <div class="w-2 h-2 rounded-full bg-orange-500 animate-pulse"></div>
-                                <span class="font-bold text-orange-900">${b.nama_bahan}</span>
+                // 5. Pengeluaran Bahan (Bahan Terboros)
+                const { data: boros } = await _supabase.from('pengeluaran_bahan_bulan_ini').select('*').limit(3);
+                const borosCont = document.getElementById('bahan-boros-list');
+                if(boros && boros.length > 0) {
+                    const maxVal = boros[0].total_biaya;
+                    borosCont.innerHTML = boros.map(item => `
+                        <div class="space-y-2">
+                            <div class="flex justify-between text-sm font-bold">
+                                <span>${item.nama_bahan}</span>
+                                <span>Rp ${Number(item.total_biaya).toLocaleString()}</span>
                             </div>
-                            <span class="font-black text-orange-600">${b.stok_gram} <small>gram</small></span>
-                        </div>`;
-                });
+                            <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+                                <div class="bg-amber-400 h-full rounded-full transition-all duration-1000" style="width: ${(item.total_biaya / maxVal) * 100}%"></div>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    borosCont.innerHTML = '<p class="text-center py-5 text-slate-400 italic">Belum ada data belanja.</p>';
+                }
 
                 lucide.createIcons();
-            } catch (e) { 
-                console.error("Dashboard Error:", e);
-                alert("Gagal memuat dashboard. Periksa koneksi atau skema database.");
-            }
+            } catch (e) { console.error(e); }
         }
 
-        function formatIDR(v) { 
-            return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(v); 
+        function toggleMenu(id, iconId) {
+            const el = document.getElementById(id);
+            const icon = document.getElementById(iconId);
+            const isOpen = el.classList.contains('max-h-40');
+            el.classList.toggle('max-h-40', !isOpen);
+            el.classList.toggle('max-h-0', isOpen);
+            el.classList.toggle('opacity-100', !isOpen);
+            el.classList.toggle('opacity-0', isOpen);
+            icon.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
         }
 
-        function toggleMasterData() {
-            const sub = document.getElementById('master-data-sub');
-            const icon = document.getElementById('chevron-icon');
-            const isHidden = sub.classList.contains('max-h-0');
-            sub.classList.toggle('max-h-0', !isHidden);
-            sub.classList.toggle('opacity-0', !isHidden);
-            sub.classList.toggle('max-h-40', isHidden);
-            sub.classList.toggle('opacity-100', isHidden);
-            icon.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
-        }
+        function formatIDR(v) { return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(v); }
 
-        // Timer & Init
-        setInterval(() => { 
-            document.getElementById('jam-digital').innerText = new Date().toLocaleTimeString('id-ID'); 
-        }, 1000);
-
-        document.getElementById('tanggal-hari-ini').innerText = new Date().toLocaleDateString('id-ID', { 
-            weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
-        });
-
-        window.onload = loadDashboard;
+        setInterval(() => { document.getElementById('jam-digital').innerText = new Date().toLocaleTimeString('id-ID'); }, 1000);
+        document.getElementById('tanggal-hari-ini').innerText = new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        
+        window.onload = initDashboard;
     </script>
 </body>
 </html>
