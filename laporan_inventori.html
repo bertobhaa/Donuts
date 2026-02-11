@@ -131,7 +131,7 @@
             // 1. Data Bahan Baku
             const { data: bahan } = await _supabase.from('bahan').select('*').order('nama_bahan');
             // 2. Data Produk Jual
-            const { data: produk } = await _supabase.from('produk').select('*').order('nama_produk');
+            const { data: produk } = await _supabase.from('produk').select('*').order('nama');
 
             let totalBahan = 0;
             let totalProduk = 0;
