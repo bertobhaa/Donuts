@@ -12,29 +12,25 @@
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
         .sidebar-item:hover { background-color: #fff1f2; color: #e11d48; }
         .active-nav { background-color: #ffe4e6; color: #e11d48; font-weight: 700; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
     </style>
 </head>
-<body class="bg-slate-50 flex h-screen overflow-hidden">
+<body class="bg-slate-50 flex h-screen overflow-hidden text-slate-800">
 
     <aside class="w-64 bg-white border-r border-slate-200 flex flex-col h-full z-20">
         <div class="p-6">
             <div class="flex items-center gap-3">
-                <div class="bg-rose-500 p-2 rounded-xl shadow-lg shadow-rose-200">
-                    <span class="text-white text-xl">🍩</span>
-                </div>
-                <h1 class="text-xl font-bold text-slate-800 tracking-tight text-center">Donuts.</h1>
+                <div class="bg-rose-500 p-2 rounded-xl shadow-lg shadow-rose-200"><span class="text-white text-xl">🍩</span></div>
+                <h1 class="text-xl font-bold text-slate-800 tracking-tight">Donuts.</h1>
             </div>
         </div>
-
         <nav class="flex-1 px-4 space-y-1 overflow-y-auto">
             <a href="index.html" class="flex items-center gap-3 px-3 py-3 rounded-xl sidebar-item text-slate-600 transition-all">
                 <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
                 <span class="text-sm">Dashboard</span>
             </a>
-
-            <div class="pt-4 pb-2 px-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">Master Data</div>
-
-            <div id="master-data-sub" class="ml-2 border-l-2 border-rose-200 pl-2 space-y-1">
+            <div class="pt-4 pb-2 px-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Master Data</div>
+            <div class="ml-2 border-l-2 border-rose-200 pl-2 space-y-1">
                 <a href="produk.html" class="flex items-center gap-3 px-3 py-2 rounded-lg active-nav transition-all">
                     <i data-lucide="donut" class="w-4 h-4"></i>
                     <span class="text-sm">Data Produk</span>
@@ -43,53 +39,75 @@
                     <i data-lucide="package" class="w-4 h-4"></i>
                     <span>Bahan Baku</span>
                 </a>
+                <a href="resep.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-slate-500 hover:text-rose-600 transition-all">
+                    <i data-lucide="scroll-text" class="w-4 h-4"></i>
+                    <span>Resep</span>
+                </a>
             </div>
         </nav>
     </aside>
 
-    <main class="flex-1 overflow-y-auto">
-        <header class="bg-white border-b border-slate-200 p-6 flex justify-between items-center sticky top-0 z-10">
+    <main class="flex-1 overflow-y-auto bg-slate-50">
+        <header class="bg-white/80 backdrop-blur-md border-b border-slate-200 p-6 flex justify-between items-center sticky top-0 z-10">
             <div>
-                <h2 class="text-2xl font-bold">Data Produk</h2>
-                <p class="text-sm text-slate-500">Kelola daftar donat yang kamu jual.</p>
+                <h2 class="text-2xl font-bold">Daftar Menu Produk</h2>
+                <p class="text-sm text-slate-500">Kelola informasi harga dan stok donat.</p>
             </div>
-            <button onclick="bukaModal()" class="bg-rose-500 text-white px-5 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 hover:bg-rose-600 transition shadow-lg shadow-rose-100">
-                <i data-lucide="plus" class="w-4 h-4"></i> Tambah Produk
+            <button onclick="bukaModal()" class="bg-rose-500 text-white px-6 py-3 rounded-2xl font-bold text-sm flex items-center gap-2 hover:bg-rose-600 transition shadow-lg shadow-rose-100">
+                <i data-lucide="plus" class="w-4 h-4"></i> Tambah Donat
             </button>
         </header>
 
         <div class="p-8">
-            <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
+            <div class="mb-6 relative max-w-md">
+                <i data-lucide="search" class="w-4 h-4 absolute left-4 top-3.5 text-slate-400"></i>
+                <input type="text" id="cari-produk" onkeyup="filterProduk()" placeholder="Cari nama donat..." class="w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-2xl outline-none focus:border-rose-400 text-sm shadow-sm">
+            </div>
+
+            <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden">
                 <table class="w-full text-left">
                     <thead class="bg-slate-50 border-b border-slate-100">
                         <tr>
-                            <th class="p-5 text-xs font-bold text-slate-400 uppercase">Nama Donat</th>
-                            <th class="p-5 text-xs font-bold text-slate-400 uppercase text-center">Harga</th>
-                            <th class="p-5 text-xs font-bold text-slate-400 uppercase text-center">Aksi</th>
+                            <th class="p-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Produk</th>
+                            <th class="p-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">Harga Jual</th>
+                            <th class="p-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">Stok Jadi</th>
+                            <th class="p-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">Aksi</th>
                         </tr>
                     </thead>
-                    <tbody id="produk-table-body">
+                    <tbody id="produk-table-body" class="divide-y divide-slate-50">
                         </tbody>
                 </table>
             </div>
         </div>
     </main>
 
-    <div id="modal-produk" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center">
-        <div class="bg-white w-full max-w-md p-8 rounded-[2.5rem] shadow-2xl">
-            <h3 class="text-xl font-bold mb-6 text-center">🍩 Tambah Donat Baru</h3>
+    <div id="modal-produk" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md p-8 rounded-[2.5rem] shadow-2xl scale-up-animation">
+            <h3 class="text-xl font-bold mb-6 flex items-center gap-2">
+                <span class="bg-rose-100 p-2 rounded-lg text-rose-500">🍩</span> Tambah Donat Baru
+            </h3>
             <div class="space-y-4">
                 <div>
-                    <label class="text-xs font-bold text-slate-400 uppercase mb-1 block">Nama Produk</label>
-                    <input type="text" id="input-nama" class="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl focus:outline-none focus:border-rose-500" placeholder="Contoh: Choco Berry">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase mb-1 ml-2 block">Nama Donat</label>
+                    <input type="text" id="input-nama" class="w-full bg-slate-50 border border-slate-200 p-3.5 rounded-2xl focus:outline-none focus:border-rose-500 transition" placeholder="Misal: Tiramisu Glaze">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-[10px] font-bold text-slate-400 uppercase mb-1 ml-2 block">Harga (Rp)</label>
+                        <input type="number" id="input-harga" class="w-full bg-slate-50 border border-slate-200 p-3.5 rounded-2xl focus:outline-none focus:border-rose-500" placeholder="12000">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-bold text-slate-400 uppercase mb-1 ml-2 block">Stok Awal</label>
+                        <input type="number" id="input-stok" class="w-full bg-slate-50 border border-slate-200 p-3.5 rounded-2xl focus:outline-none focus:border-rose-500" placeholder="0">
+                    </div>
                 </div>
                 <div>
-                    <label class="text-xs font-bold text-slate-400 uppercase mb-1 block">Harga (Rp)</label>
-                    <input type="number" id="input-harga" class="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl focus:outline-none focus:border-rose-500" placeholder="15000">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase mb-1 ml-2 block">Link Foto (URL)</label>
+                    <input type="text" id="input-image" class="w-full bg-slate-50 border border-slate-200 p-3.5 rounded-2xl focus:outline-none focus:border-rose-500" placeholder="https://...">
                 </div>
-                <div class="flex gap-3 pt-4">
-                    <button onclick="tutupModal()" class="flex-1 py-3 font-bold text-slate-400 hover:bg-slate-100 rounded-xl transition">Batal</button>
-                    <button onclick="simpanProduk()" class="flex-1 bg-rose-500 text-white py-3 font-bold rounded-xl hover:bg-rose-600 shadow-lg shadow-rose-100 transition">Simpan</button>
+                <div class="flex gap-3 pt-6">
+                    <button onclick="tutupModal()" class="flex-1 py-4 font-bold text-slate-400 hover:bg-slate-100 rounded-2xl transition">Batal</button>
+                    <button onclick="simpanProduk()" class="flex-1 bg-rose-500 text-white py-4 font-bold rounded-2xl hover:bg-rose-600 shadow-lg shadow-rose-200 transition">Simpan Menu</button>
                 </div>
             </div>
         </div>
@@ -101,17 +119,34 @@
         const _supabase = supabase.createClient(SB_URL, SB_KEY);
 
         async function loadProduk() {
-            const { data: produk } = await _supabase.from('produk').select('*').order('id', { ascending: false });
+            const { data: produk, error } = await _supabase.from('produk').select('*').order('id', { ascending: false });
+            if(error) return console.error(error);
+            
             const tbody = document.getElementById('produk-table-body');
             tbody.innerHTML = '';
 
             produk.forEach(p => {
                 tbody.innerHTML += `
-                    <tr class="border-b border-slate-50 hover:bg-slate-50 transition">
-                        <td class="p-5 font-bold text-slate-700">${p.nama}</td>
-                        <td class="p-5 text-center text-rose-500 font-bold">Rp ${p.harga.toLocaleString('id-ID')}</td>
+                    <tr class="hover:bg-slate-50/50 transition">
+                        <td class="p-5">
+                            <div class="flex items-center gap-4">
+                                <div class="w-12 h-12 bg-slate-100 rounded-xl overflow-hidden flex items-center justify-center text-xl shadow-inner border border-white">
+                                    ${p.image_url ? `<img src="${p.image_url}" class="w-full h-full object-cover">` : '🍩'}
+                                </div>
+                                <div>
+                                    <div class="font-bold text-slate-800">${p.nama}</div>
+                                    <div class="text-[10px] text-slate-400 font-mono italic">ID: #${p.id}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="p-5 text-center font-bold text-rose-500">Rp ${Number(p.harga).toLocaleString('id-ID')}</td>
                         <td class="p-5 text-center">
-                            <button onclick="hapusProduk(${p.id})" class="p-2 text-slate-300 hover:text-rose-500 transition"><i data-lucide="trash-2"></i></button>
+                            <span class="px-3 py-1 bg-slate-100 rounded-full text-xs font-bold text-slate-600">${p.stok || 0} Pcs</span>
+                        </td>
+                        <td class="p-5 text-center">
+                            <button onclick="hapusProduk(${p.id})" class="p-2.5 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
                         </td>
                     </tr>
                 `;
@@ -122,22 +157,40 @@
         async function simpanProduk() {
             const nama = document.getElementById('input-nama').value;
             const harga = document.getElementById('input-harga').value;
+            const stok = document.getElementById('input-stok').value || 0;
+            const image_url = document.getElementById('input-image').value || null;
 
-            if(!nama || !harga) return alert("Isi semua data!");
+            if(!nama || !harga) return alert("Nama dan Harga wajib diisi!");
 
-            const { error } = await _supabase.from('produk').insert([{ nama, harga }]);
-            if (error) alert(error.message);
-            else {
+            const { error } = await _supabase.from('produk').insert([{ nama, harga, stok, image_url }]);
+            if (error) {
+                alert("Error: " + error.message);
+            } else {
                 tutupModal();
                 loadProduk();
+                // Reset input
+                document.getElementById('input-nama').value = '';
+                document.getElementById('input-harga').value = '';
+                document.getElementById('input-stok').value = '';
+                document.getElementById('input-image').value = '';
             }
         }
 
         async function hapusProduk(id) {
-            if(confirm('Hapus produk ini?')) {
-                await _supabase.from('produk').delete().eq('id', id);
+            if(confirm('Hapus produk ini secara permanen?')) {
+                const { error } = await _supabase.from('produk').delete().eq('id', id);
+                if(error) alert(error.message);
                 loadProduk();
             }
+        }
+
+        function filterProduk() {
+            const keyword = document.getElementById('cari-produk').value.toLowerCase();
+            const rows = document.querySelectorAll('#produk-table-body tr');
+            rows.forEach(row => {
+                const nama = row.querySelector('.font-bold').innerText.toLowerCase();
+                row.style.display = nama.includes(keyword) ? '' : 'none';
+            });
         }
 
         function bukaModal() { document.getElementById('modal-produk').classList.remove('hidden'); }
