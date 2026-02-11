@@ -17,22 +17,25 @@
 <body class="bg-slate-50 flex h-screen overflow-hidden">
 
     <aside class="w-64 bg-white border-r border-slate-200 flex flex-col h-full z-20">
-        <div class="p-6"><h1 class="text-xl font-bold text-rose-500">Donuts.</h1></div>
+        <div class="p-6"><h1 class="text-xl font-bold text-rose-500 flex items-center gap-2">🍩 Donuts.</h1></div>
         <nav class="flex-1 px-4 space-y-1">
-            <a href="index.html" class="flex items-center gap-3 px-3 py-3 rounded-xl sidebar-item text-slate-600"><i data-lucide="layout-dashboard" class="w-5 h-5"></i> Dashboard</a>
+            <a href="index.html" class="flex items-center gap-3 px-3 py-3 rounded-xl sidebar-item text-slate-600 transition-all"><i data-lucide="layout-dashboard" class="w-5 h-5"></i> Dashboard</a>
             <div class="pt-4 pb-2 px-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Master Data</div>
             <div class="ml-2 border-l-2 border-slate-100 pl-2 space-y-1">
-                <a href="produk.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-500 hover:text-rose-600">Data Produk</a>
-                <a href="bahan.html" class="flex items-center gap-3 px-3 py-2 rounded-lg active-nav">Bahan Baku</a>
-                <a href="resep.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-500 hover:text-rose-600">Resep</a>
+                <a href="produk.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-500 hover:text-rose-600 transition-all">Data Produk</a>
+                <a href="bahan.html" class="flex items-center gap-3 px-3 py-2 rounded-lg active-nav transition-all">Bahan Baku</a>
+                <a href="resep.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-500 hover:text-rose-600 transition-all">Kalkulator HPP</a>
             </div>
         </nav>
     </aside>
 
     <main class="flex-1 overflow-y-auto">
         <header class="bg-white border-b p-6 flex justify-between items-center sticky top-0 z-10">
-            <h2 class="text-2xl font-bold">Stok Bahan Baku</h2>
-            <button onclick="bukaModal()" class="bg-rose-500 text-white px-5 py-2.5 rounded-xl font-bold text-sm">+ Tambah Bahan</button>
+            <div>
+                <h2 class="text-2xl font-bold">Stok & Inventaris</h2>
+                <p class="text-xs text-slate-400">Atur stok dan pantau harga beli bahan.</p>
+            </div>
+            <button onclick="bukaModal()" class="bg-slate-900 text-white px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-rose-500 transition-all">+ Tambah Bahan</button>
         </header>
 
         <div class="p-8">
@@ -42,7 +45,7 @@
                         <tr>
                             <th class="p-5 text-xs font-bold text-slate-400 uppercase">Nama Bahan</th>
                             <th class="p-5 text-xs font-bold text-slate-400 uppercase text-center">Sisa Stok</th>
-                            <th class="p-5 text-xs font-bold text-slate-400 uppercase text-center">Satuan</th>
+                            <th class="p-5 text-xs font-bold text-slate-400 uppercase text-center">Harga / Satuan</th>
                             <th class="p-5 text-xs font-bold text-slate-400 uppercase text-center">Aksi</th>
                         </tr>
                     </thead>
@@ -52,18 +55,37 @@
         </div>
     </main>
 
-    <div id="modal-bahan" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center">
-        <div class="bg-white w-full max-w-md p-8 rounded-[2rem]">
+    <div id="modal-bahan" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md p-8 rounded-[2rem] shadow-2xl">
             <h3 class="text-xl font-bold mb-6">📦 Tambah Stok Bahan</h3>
             <div class="space-y-4">
-                <input type="text" id="nama-bahan" placeholder="Nama Bahan (Tepung Terigu)" class="w-full bg-slate-50 border p-3 rounded-xl outline-none">
-                <input type="number" id="stok-bahan" placeholder="Jumlah Stok" class="w-full bg-slate-50 border p-3 rounded-xl outline-none">
-                <select id="satuan-bahan" class="w-full bg-slate-50 border p-3 rounded-xl outline-none">
-                    <option value="gram">Gram (g)</option>
-                    <option value="ml">Mililiter (ml)</option>
-                    <option value="pcs">Pcs</option>
-                </select>
-                <button onclick="simpanBahan()" class="w-full bg-rose-500 text-white py-3 rounded-xl font-bold">Simpan Bahan</button>
+                <div>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase ml-2">Nama Bahan</label>
+                    <input type="text" id="nama-bahan" placeholder="Tepung Terigu" class="w-full bg-slate-50 border p-3 rounded-xl outline-none focus:ring-2 focus:ring-rose-500">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-[10px] font-bold text-slate-400 uppercase ml-2">Jumlah</label>
+                        <input type="number" id="stok-bahan" placeholder="1000" class="w-full bg-slate-50 border p-3 rounded-xl outline-none">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-bold text-slate-400 uppercase ml-2">Satuan</label>
+                        <select id="satuan-bahan" class="w-full bg-slate-50 border p-3 rounded-xl outline-none">
+                            <option value="gram">Gram (g)</option>
+                            <option value="ml">Mililiter (ml)</option>
+                            <option value="pcs">Pcs</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase ml-2">Total Harga Beli (Rp)</label>
+                    <input type="number" id="harga-total" placeholder="Contoh: 15000" class="w-full bg-slate-50 border p-3 rounded-xl outline-none">
+                    <p class="text-[10px] text-slate-400 mt-1 italic">*Digunakan untuk menghitung modal per resep.</p>
+                </div>
+                <div class="flex gap-2 pt-4">
+                    <button onclick="document.getElementById('modal-bahan').classList.add('hidden')" class="flex-1 py-3 text-slate-400 font-bold">Batal</button>
+                    <button onclick="simpanBahan()" class="flex-1 bg-rose-500 text-white py-3 rounded-xl font-bold">Simpan</button>
+                </div>
             </div>
         </div>
     </div>
@@ -78,13 +100,18 @@
             const tbody = document.getElementById('bahan-table-body');
             tbody.innerHTML = '';
             data.forEach(b => {
+                const harga = b.harga_beli_per_gram || 0;
                 tbody.innerHTML += `
-                    <tr class="border-b hover:bg-slate-50">
-                        <td class="p-5 font-bold">${b.nama_bahan}</td>
-                        <td class="p-5 text-center font-mono ${b.stok_gram < 500 ? 'text-rose-500' : 'text-slate-600'}">${b.stok_gram}</td>
-                        <td class="p-5 text-center text-slate-400 text-xs uppercase">${b.satuan}</td>
+                    <tr class="border-b hover:bg-slate-50 transition-all">
+                        <td class="p-5 font-bold text-slate-700">${b.nama_bahan}</td>
+                        <td class="p-5 text-center font-mono">
+                            <span class="${b.stok_gram < 500 ? 'text-rose-500 bg-rose-50 px-3 py-1 rounded-full' : 'text-slate-600'}">
+                                ${b.stok_gram} <span class="text-[10px] uppercase">${b.satuan}</span>
+                            </span>
+                        </td>
+                        <td class="p-5 text-center font-bold text-slate-400 text-sm">Rp ${parseFloat(harga).toFixed(2)} / ${b.satuan}</td>
                         <td class="p-5 text-center">
-                            <button onclick="hapusBahan(${b.id})" class="text-slate-300 hover:text-rose-500"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                            <button onclick="hapusBahan(${b.id})" class="text-slate-300 hover:text-rose-500 transition-all"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                         </td>
                     </tr>
                 `;
@@ -94,9 +121,21 @@
 
         async function simpanBahan() {
             const nama_bahan = document.getElementById('nama-bahan').value;
-            const stok_gram = document.getElementById('stok-bahan').value;
+            const stok_gram = parseFloat(document.getElementById('stok-bahan').value);
             const satuan = document.getElementById('satuan-bahan').value;
-            await _supabase.from('bahan').insert([{ nama_bahan, stok_gram, satuan }]);
+            const hargaTotal = parseFloat(document.getElementById('harga-total').value);
+
+            if(!nama_bahan || !stok_gram || !hargaTotal) return alert("Harap isi semua data!");
+
+            // Rumus Harga per satuan (Gram/ML/Pcs)
+            const harga_beli_per_gram = hargaTotal / stok_gram;
+
+            await _supabase.from('bahan').insert([{ 
+                nama_bahan, 
+                stok_gram, 
+                satuan, 
+                harga_beli_per_gram 
+            }]);
             location.reload();
         }
 
