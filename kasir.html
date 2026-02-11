@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Donuts POS - Terminal Kasir</title>
+    <link rel="icon" href="data:;base64,iVBORw0KGgo=">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -41,8 +42,7 @@
             </div>
         </div>
 
-        <div id="produk-list" class="flex-1 overflow-y-auto p-8 grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 content-start hide-scrollbar">
-            </div>
+        <div id="produk-list" class="flex-1 overflow-y-auto p-8 grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 content-start hide-scrollbar"></div>
     </main>
 
     <aside class="w-full md:w-[450px] bg-white border-l border-slate-200 flex flex-col h-full shadow-2xl z-10 no-print">
@@ -60,11 +60,9 @@
         </div>
 
         <div class="p-8 bg-white border-t border-slate-100 space-y-6 shadow-[0_-20px_50px_rgba(0,0,0,0.04)]">
-            <div class="grid grid-cols-1 gap-4">
-                <div>
-                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 block">Payment Method</label>
-                    <select id="select-bank" class="w-full bg-slate-50 border-none p-4 rounded-2xl outline-none font-bold text-sm focus:ring-2 focus:ring-rose-500/20"></select>
-                </div>
+            <div>
+                <label class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 block">Payment Method</label>
+                <select id="select-bank" class="w-full bg-slate-50 border-none p-4 rounded-2xl outline-none font-bold text-sm focus:ring-2 focus:ring-rose-500/20"></select>
             </div>
 
             <div class="space-y-3 pt-4 border-t border-dashed border-slate-200">
@@ -83,8 +81,7 @@
     </aside>
 
     <div id="modal-struk" class="fixed inset-0 bg-slate-900/90 backdrop-blur-md z-[100] hidden flex flex-col items-center justify-center p-4">
-        <div class="bg-white w-full max-w-[350px] p-10 rounded-[2.5rem] shadow-2xl font-mono text-[11px] text-slate-800" id="print-area">
-            </div>
+        <div class="bg-white w-full max-w-[350px] p-10 rounded-[2.5rem] shadow-2xl font-mono text-[11px] text-slate-800" id="print-area"></div>
         <div class="flex gap-4 mt-8 no-print">
             <button onclick="window.print()" class="bg-white text-slate-900 px-8 py-4 rounded-2xl font-black shadow-xl hover:bg-slate-50">Print Receipt</button>
             <button onclick="location.reload()" class="bg-rose-500 text-white px-8 py-4 rounded-2xl font-black shadow-xl shadow-rose-500/30">New Transaction</button>
@@ -100,14 +97,12 @@
         let discRate = 0;
 
         async function init() {
-            // 1. Ambil Settings (Diskon)
             const { data: settings } = await _supabase.from('settings').select('*');
             if (settings) {
                 const disc = settings.find(s => s.key === 'diskon_global');
                 if(disc) discRate = disc.value / 100;
             }
 
-            // 2. Ambil Menu Produk
             const { data: produk } = await _supabase.from('produk').select('*').order('nama');
             const pContainer = document.getElementById('produk-list');
             pContainer.innerHTML = produk.map(p => `
@@ -120,7 +115,6 @@
                 </div>
             `).join('');
 
-            // 3. Ambil Metode Pembayaran
             const { data: banks } = await _supabase.from('bank_payment').select('*').eq('aktif', true);
             document.getElementById('select-bank').innerHTML = banks.map(b => `<option value="${b.id}">${b.nama_metode}</option>`).join('');
             
@@ -142,13 +136,11 @@
         function renderCart() {
             const container = document.getElementById('cart-list');
             const btn = document.getElementById('btn-bayar');
-            
             if(cart.length === 0) {
                 container.innerHTML = `<div class="text-center py-20 opacity-20 italic">Pesanan kosong</div>`;
                 btn.disabled = true;
                 return;
             }
-
             btn.disabled = false;
             container.innerHTML = cart.map((item, idx) => `
                 <div class="flex justify-between items-center bg-slate-50 p-5 rounded-3xl border border-slate-100">
@@ -166,7 +158,6 @@
 
             const sub = cart.reduce((a, b) => a + (b.harga * b.qty), 0);
             const disc = sub * discRate;
-            
             document.getElementById('subtotal').innerText = `Rp ${sub.toLocaleString()}`;
             document.getElementById('diskon-label').innerText = `- Rp ${disc.toLocaleString()}`;
             document.getElementById('total-tagihan').innerText = `Rp ${(sub - disc).toLocaleString()}`;
@@ -184,30 +175,26 @@
             btn.disabled = true;
 
             try {
-                // 1. Simpan Transaksi Ke Tabel 'transaksi'
                 const { data: trx, error: errTrx } = await _supabase.from('transaksi').insert([{
                     total_harga: total,
                     total_qty: cart.reduce((a, b) => a + b.qty, 0),
                     diskon_nominal: discNominal,
                     bank_id: bankId,
-                    detail_item: cart.map(i => `${i.qty}x ${i.nama}`).join(', ')
+                    detail_item: cart.map(i => `${i.qty}x ${i.nama}`).join(', '),
+                    items: cart // Format JSON agar Dashboard bisa menghitung HPP
                 }]).select().single();
 
                 if(errTrx) throw errTrx;
 
-                // 2. POTONG STOK OTOMATIS BERDASARKAN RESEP
-                // Pastikan kamu sudah menjalankan SQL RPC 'proses_pengurangan_stok' di Supabase Editor
                 for (const item of cart) {
                     await _supabase.rpc('proses_pengurangan_stok', {
                         produk_id_input: item.id,
                         qty_beli: item.qty
                     });
                 }
-
                 showReceipt(trx, sub, discNominal, total);
-
             } catch (e) {
-                alert("Kesalahan Sistem: " + e.message);
+                alert("Kesalahan: " + e.message);
                 btn.disabled = false;
                 btn.innerText = "Complete Payment";
             }
@@ -216,30 +203,22 @@
         function showReceipt(trx, sub, disc, total) {
             const area = document.getElementById('print-area');
             const bankText = document.getElementById('select-bank').options[document.getElementById('select-bank').selectedIndex].text;
-            
             area.innerHTML = `
                 <div class="text-center mb-8">
                     <h2 class="text-xl font-black uppercase italic tracking-tighter">Donuts.</h2>
-                    <p class="opacity-60">Jalan Manis No. 10, Jakarta</p>
-                    <p class="text-[9px] mt-1">${new Date().toLocaleString('id-ID')}</p>
+                    <p class="opacity-60 text-[9px] mt-1">${new Date().toLocaleString('id-ID')}</p>
                 </div>
-                <div class="space-y-3 mb-6">
-                    ${cart.map(i => `
-                        <div class="flex justify-between">
-                            <span>${i.qty}x ${i.nama}</span>
-                            <span>${(i.qty * i.harga).toLocaleString()}</span>
-                        </div>
-                    `).join('')}
+                <div class="space-y-2 mb-4">
+                    ${cart.map(i => `<div class="flex justify-between"><span>${i.qty}x ${i.nama}</span><span>${(i.qty * i.harga).toLocaleString()}</span></div>`).join('')}
                 </div>
-                <div class="border-t border-dashed border-slate-300 pt-4 space-y-1 font-bold">
+                <div class="border-t border-dashed pt-3 space-y-1 font-bold">
                     <div class="flex justify-between opacity-60"><span>Subtotal</span><span>${sub.toLocaleString()}</span></div>
                     ${disc > 0 ? `<div class="flex justify-between text-rose-500"><span>Discount</span><span>-${disc.toLocaleString()}</span></div>` : ''}
-                    <div class="flex justify-between text-base border-t border-slate-100 pt-2 mt-2"><span>TOTAL</span><span>Rp ${total.toLocaleString()}</span></div>
+                    <div class="flex justify-between text-base border-t pt-2"><span>TOTAL</span><span>Rp ${total.toLocaleString()}</span></div>
                 </div>
-                <div class="mt-10 text-center space-y-4">
-                    <div class="bg-slate-50 py-2 rounded-xl border border-slate-100 uppercase font-black tracking-widest text-[9px]">Paid via ${bankText}</div>
-                    <p class="opacity-50 italic">Thank you for your sweetness!</p>
-                    <p class="text-[8px] opacity-30 mt-4 tracking-widest">ID: #TRX-${trx.id}</p>
+                <div class="mt-8 text-center space-y-2">
+                    <div class="bg-slate-50 py-1 rounded-lg border text-[8px] font-black uppercase tracking-widest">Paid via ${bankText}</div>
+                    <p class="text-[8px] opacity-30 mt-4 tracking-widest">#TRX-${trx.id}</p>
                 </div>
             `;
             document.getElementById('modal-struk').classList.remove('hidden');
@@ -253,10 +232,7 @@
             });
         }
 
-        setInterval(() => {
-            document.getElementById('real-time-clock').innerText = new Date().toLocaleTimeString('id-ID');
-        }, 1000);
-
+        setInterval(() => { document.getElementById('real-time-clock').innerText = new Date().toLocaleTimeString('id-ID'); }, 1000);
         init();
     </script>
 </body>
