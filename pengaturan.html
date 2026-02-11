@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Settings | Donuts</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍩</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -11,27 +12,82 @@
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
         .card-shadow { box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05); }
+        .sidebar-item:hover { background-color: #fff1f2; color: #e11d48; }
+        .active-nav { background-color: #ffe4e6; color: #e11d48; font-weight: 700; }
+        .hidden { display: none !important; }
     </style>
 </head>
 <body class="bg-slate-50 flex h-screen overflow-hidden text-slate-800">
 
+    <aside class="w-64 bg-white border-r border-slate-200 flex flex-col h-full z-20">
+        <div class="p-6">
+            <h1 class="text-2xl font-black italic text-rose-500 tracking-tighter">Donuts.</h1>
+        </div>
+        
+        <nav class="flex-1 px-4 space-y-1 overflow-y-auto">
+            <a href="index.html" class="flex items-center gap-3 px-3 py-3 rounded-xl sidebar-item text-slate-600 font-medium transition-all">
+                <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+                <span class="text-sm">Dashboard</span>
+            </a>
+
+            <div class="pt-4 pb-2 px-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">Operasional</div>
+            <a href="kasir.html" class="flex items-center gap-3 px-3 py-3 rounded-xl sidebar-item text-slate-600 font-medium transition-all">
+                <i data-lucide="shopping-cart" class="w-5 h-5"></i>
+                <span class="text-sm">Terminal Kasir</span>
+            </a>
+
+            <div id="admin-section" class="hidden">
+                <div class="pt-4 pb-2 px-2 text-[10px] font-black text-slate-400 uppercase tracking-widest text-rose-500">Laporan & Analitik</div>
+                <a href="laporan.html" class="flex items-center gap-3 px-3 py-3 rounded-xl sidebar-item text-slate-600 font-medium transition-all">
+                    <i data-lucide="file-bar-chart-2" class="w-5 h-5"></i>
+                    <span class="text-sm">Laporan Detail</span>
+                </a>
+
+                <div class="pt-4 pb-2 px-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">Inventori</div>
+                <div>
+                    <button onclick="toggleMenu('inv-sub', 'chevron-inv')" class="w-full flex items-center justify-between px-3 py-3 rounded-xl text-slate-600 hover:bg-slate-50 transition-all font-medium">
+                        <div class="flex items-center gap-3">
+                            <i data-lucide="box" class="w-5 h-5"></i>
+                            <span class="text-sm">Stok & Gudang</span>
+                        </div>
+                        <i data-lucide="chevron-down" id="chevron-inv" class="w-4 h-4 transition-transform"></i>
+                    </button>
+                    <div id="inv-sub" class="mt-1 ml-4 border-l-2 pl-2 space-y-1 overflow-hidden max-h-0 opacity-0 transition-all duration-300">
+                        <a href="pembelian.html" class="block px-3 py-2 rounded-lg text-sm text-slate-500 hover:text-rose-600">Pembelian</a>
+                        <a href="penyesuaian.html" class="block px-3 py-2 rounded-lg text-sm text-slate-500 hover:text-rose-600">Opname (SO)</a>
+                        <a href="laporan_penyesuaian.html" class="block px-3 py-2 rounded-lg text-sm text-slate-500 hover:text-rose-600">Laporan Opname</a>
+                        <a href="laporan_inventori.html" class="block px-3 py-2 rounded-lg text-sm text-slate-500 hover:text-rose-600">Nilai Inventori</a>
+                    </div>
+                </div>
+
+                <div class="pt-4 pb-2 px-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">Sistem</div>
+                <a href="pengaturan.html" class="flex items-center gap-3 px-3 py-3 rounded-xl active-nav transition-all">
+                    <i data-lucide="settings" class="w-5 h-5"></i>
+                    <span class="text-sm">Pengaturan</span>
+                </a>
+            </div>
+        </nav>
+
+        <div class="p-4 border-t border-slate-100 bg-slate-50/50">
+            <button onclick="handleLogout()" class="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-slate-500 hover:bg-rose-500 hover:text-white transition-all font-bold text-sm">
+                <i data-lucide="log-out" class="w-5 h-5"></i>
+                <span>Keluar</span>
+            </button>
+        </div>
+    </aside>
+
     <main class="flex-1 p-8 md:p-12 overflow-y-auto">
         <div class="max-w-4xl mx-auto">
             <div class="mb-10">
-                <a href="index.html" class="inline-flex items-center gap-2 text-slate-400 hover:text-rose-500 mb-6 transition-all font-bold text-sm">
-                    <i data-lucide="arrow-left" class="w-4 h-4"></i> Kembali ke Dashboard
-                </a>
                 <h2 class="text-3xl font-black tracking-tight">Konfigurasi Sistem</h2>
-                <p class="text-slate-500">Kelola biaya layanan, diskon, dan metode pembayaran toko.</p>
+                <p class="text-slate-500 font-medium">Kelola biaya layanan, diskon, dan metode pembayaran toko.</p>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                
                 <div class="space-y-6">
                     <h3 class="text-lg font-bold flex items-center gap-2 px-2">
                         <i data-lucide="percent" class="w-5 h-5 text-rose-500"></i> Pajak & Diskon
                     </h3>
-                    
                     <div class="bg-white p-6 rounded-[2.5rem] border border-slate-100 card-shadow space-y-4">
                         <div class="flex items-center justify-between p-4 bg-slate-50 rounded-2xl">
                             <div>
@@ -40,7 +96,6 @@
                             </div>
                             <input type="number" id="ppn" class="w-20 bg-white border border-slate-200 p-2 rounded-xl text-center font-bold focus:ring-2 focus:ring-rose-500 outline-none">
                         </div>
-
                         <div class="flex items-center justify-between p-4 bg-slate-50 rounded-2xl">
                             <div>
                                 <p class="font-bold text-sm">Diskon (%)</p>
@@ -48,8 +103,9 @@
                             </div>
                             <input type="number" id="diskon" class="w-20 bg-white border border-slate-200 p-2 rounded-xl text-center font-bold focus:ring-2 focus:ring-rose-500 outline-none">
                         </div>
-
-                        <button onclick="saveSettings()" id="btn-save-settings" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-bold hover:bg-rose-600 transition-all shadow-lg shadow-slate-200">Simpan Biaya</button>
+                        <button onclick="saveSettings()" id="btn-save-settings" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-bold hover:bg-rose-600 transition-all shadow-lg shadow-slate-200 flex justify-center items-center gap-2">
+                            <i data-lucide="save" class="w-4 h-4"></i> Simpan Biaya
+                        </button>
                     </div>
                 </div>
 
@@ -57,21 +113,18 @@
                     <h3 class="text-lg font-bold flex items-center gap-2 px-2">
                         <i data-lucide="credit-card" class="w-5 h-5 text-blue-500"></i> Metode Pembayaran
                     </h3>
-
                     <div class="bg-white p-6 rounded-[2.5rem] border border-slate-100 card-shadow">
                         <div class="flex gap-2 mb-6">
-                            <input type="text" id="new-bank" placeholder="Contoh: QRIS, ShopeePay" class="flex-1 bg-slate-50 border border-slate-100 p-4 rounded-2xl text-sm font-medium focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all">
+                            <input type="text" id="new-bank" placeholder="QRIS, ShopeePay..." class="flex-1 bg-slate-50 border border-slate-100 p-4 rounded-2xl text-sm font-medium focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all">
                             <button onclick="addBank()" class="bg-blue-500 text-white p-4 rounded-2xl hover:bg-blue-600 transition-all shadow-lg shadow-blue-100">
                                 <i data-lucide="plus"></i>
                             </button>
                         </div>
-
                         <div id="bank-list" class="space-y-3">
                             <p class="text-center text-slate-400 text-sm py-4 italic">Memuat bank...</p>
                         </div>
                     </div>
                 </div>
-
             </div>
         </div>
     </main>
@@ -81,10 +134,38 @@
         const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJra3BrZnZjc3NkbWdubmNycmh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA3OTQ4OTIsImV4cCI6MjA4NjM3MDg5Mn0.VeE2IZhQmTyKMMQI4Ukh0nt6YHR2zVs_nUnjtPt-GPQ";
         const _supabase = supabase.createClient(SB_URL, SB_KEY);
 
+        async function checkAuth() {
+            const { data: { session } } = await _supabase.auth.getSession();
+            if (!session) { window.location.href = "login.html"; return; }
+            
+            const { data: profile } = await _supabase.from('profil').select('role').eq('id', session.user.id).single();
+            if (profile?.role === 'admin') {
+                document.getElementById('admin-section').classList.remove('hidden');
+                init();
+            } else {
+                alert("Akses Khusus Admin!");
+                window.location.href = "index.html";
+            }
+        }
+
         async function init() {
             await loadSettings();
             await loadBanks();
             lucide.createIcons();
+        }
+
+        function toggleMenu(id, iconId) {
+            const el = document.getElementById(id);
+            const icon = document.getElementById(iconId);
+            if (el.classList.contains('max-h-0')) {
+                el.classList.remove('max-h-0', 'opacity-0');
+                el.classList.add('max-h-96', 'opacity-100', 'mt-2', 'mb-2');
+                icon.style.transform = 'rotate(180deg)';
+            } else {
+                el.classList.add('max-h-0', 'opacity-0');
+                el.classList.remove('max-h-96', 'opacity-100', 'mt-2', 'mb-2');
+                icon.style.transform = 'rotate(0deg)';
+            }
         }
 
         // --- FUNGSI SETTINGS ---
@@ -100,7 +181,9 @@
 
         async function saveSettings() {
             const btn = document.getElementById('btn-save-settings');
+            const originalText = btn.innerHTML;
             btn.innerText = "Menyimpan...";
+            
             const ppn = document.getElementById('ppn').value;
             const diskon = document.getElementById('diskon').value;
 
@@ -108,7 +191,7 @@
             await _supabase.from('settings').update({ value: diskon }).eq('key', 'diskon_global');
             
             alert("Pengaturan biaya berhasil disimpan!");
-            btn.innerText = "Simpan Biaya";
+            btn.innerHTML = originalText;
         }
 
         // --- FUNGSI METODE PEMBAYARAN ---
@@ -139,11 +222,8 @@
 
         async function addBank() {
             const input = document.getElementById('new-bank');
-            if (!input.value) return alert("Masukkan nama metode pembayaran!");
-
-            const { error } = await _supabase.from('bank_payment').insert([{ nama_metode: input.value, aktif: true }]);
-            if (error) alert("Gagal menambah data!");
-            
+            if (!input.value) return;
+            await _supabase.from('bank_payment').insert([{ nama_metode: input.value, aktif: true }]);
             input.value = '';
             await loadBanks();
         }
@@ -155,7 +235,12 @@
             }
         }
 
-        init();
+        async function handleLogout() {
+            await _supabase.auth.signOut();
+            window.location.href = "login.html";
+        }
+
+        window.onload = checkAuth;
     </script>
 </body>
 </html>
