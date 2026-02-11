@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pembelian Stok - Donuts POS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-50 flex h-screen overflow-hidden text-slate-800">
+
+    <aside class="w-64 bg-white border-r border-slate-200 flex flex-col h-full z-20">
+        <div class="p-6">
+            <div class="flex items-center gap-3">
+                <div class="bg-emerald-500 p-2 rounded-xl shadow-lg shadow-emerald-200"><span class="text-white text-xl">📦</span></div>
+                <h1 class="text-xl font-bold text-slate-800 tracking-tight">Inventory.</h1>
+            </div>
+        </div>
+        <nav class="flex-1 px-4 space-y-1 overflow-y-auto">
+            <a href="index.html" class="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-slate-50 text-slate-600 transition-all font-semibold">
+                <i data-lucide="layout-dashboard" class="w-5 h-5"></i> Dashboard
+            </a>
+            <div class="pt-4 pb-2 px-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Manajemen Stok</div>
+            <a href="pembelian.html" class="flex items-center gap-3 px-3 py-3 rounded-xl bg-emerald-50 text-emerald-600 font-bold">
+                <i data-lucide="shopping-bag" class="w-5 h-5"></i> Pembelian (Masuk)
+            </a>
+            <a href="penyesuaian.html" class="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-slate-50 text-slate-600 font-semibold">
+                <i data-lucide="refresh-cw" class="w-5 h-5"></i> Penyesuaian (Opname)
+            </a>
+            <div class="pt-4 pb-2 px-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Laporan</div>
+            <a href="laporan_pembelian.html" class="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-slate-50 text-slate-600 font-semibold">
+                <i data-lucide="file-check" class="w-5 h-5"></i> Riwayat Pembelian
+            </a>
+        </nav>
+    </aside>
+
+    <main class="flex-1 overflow-y-auto p-8">
+        <header class="mb-8 flex justify-between items-end">
+            <div>
+                <h2 class="text-3xl font-black tracking-tighter">Catat Pembelian</h2>
+                <p class="text-slate-500 text-sm">Update stok bahan baku dari nota supplier</p>
+            </div>
+        </header>
+
+        <div class="max-w-3xl bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-100">
+            <form id="form-pembelian" class="space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Bahan Baku</label>
+                        <select id="pilih-bahan" required class="w-full p-4 bg-slate-50 border-none rounded-2xl font-bold outline-none focus:ring-2 focus:ring-emerald-500"></select>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Supplier</label>
+                        <input type="text" id="supplier" placeholder="Contoh: Toko Bahan Makmur" class="w-full p-4 bg-slate-50 border-none rounded-2xl font-bold outline-none focus:ring-2 focus:ring-emerald-500">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Jumlah (Gram/Pcs)</label>
+                        <input type="number" id="qty" required placeholder="0" class="w-full p-4 bg-slate-50 border-none rounded-2xl font-bold outline-none focus:ring-2 focus:ring-emerald-500">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Total Bayar (Rp)</label>
+                        <input type="number" id="total-bayar" required placeholder="0" class="w-full p-4 bg-slate-50 border-none rounded-2xl font-bold outline-none focus:ring-2 focus:ring-emerald-500">
+                    </div>
+                </div>
+                <button type="submit" class="w-full bg-emerald-500 text-white py-5 rounded-3xl font-black shadow-xl shadow-emerald-100 hover:bg-emerald-600 transition-all uppercase tracking-widest">Simpan & Update Stok</button>
+            </form>
+        </div>
+    </main>
+
+    <script>
+        const SB_URL = "URL_SUPABASE_ANDA";
+        const SB_KEY = "KEY_SUPABASE_ANDA";
+        const _supabase = supabase.createClient(SB_URL, SB_KEY);
+
+        async function init() {
+            const { data } = await _supabase.from('bahan').select('*').order('nama_bahan');
+            document.getElementById('pilih-bahan').innerHTML = data.map(b => `<option value="${b.id}">${b.nama_bahan} (${b.satuan})</option>`).join('');
+            lucide.createIcons();
+        }
+
+        document.getElementById('form-pembelian').onsubmit = async (e) => {
+            e.preventDefault();
+            const btn = e.target.querySelector('button');
+            btn.disabled = true; btn.innerText = "Processing...";
+
+            const bahanId = document.getElementById('pilih-bahan').value;
+            const qty = parseFloat(document.getElementById('qty').value);
+            const total = parseFloat(document.getElementById('total-bayar').value);
+            const hargaSatuan = total / qty;
+
+            // 1. Simpan Riwayat
+            await _supabase.from('riwayat_pembelian').insert([{
+                bahan_id: bahanId, jumlah: qty, total_harga: total, supplier: document.getElementById('supplier').value
+            }]);
+
+            // 2. Update Stok & Harga di tabel Bahan
+            const { data: b } = await _supabase.from('bahan').select('stok_gram').eq('id', bahanId).single();
+            await _supabase.from('bahan').update({
+                stok_gram: (b.stok_gram || 0) + qty,
+                harga_beli_per_gram: hargaSatuan
+            }).eq('id', bahanId);
+
+            alert("Stok berhasil diperbarui!");
+            window.location.href = "laporan_pembelian.html";
+        };
+
+        init();
+    </script>
+</body>
+</html>
