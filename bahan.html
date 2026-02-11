@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Master Data - Bahan Baku | Donuts</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .sidebar-item:hover { background-color: #fff1f2; color: #e11d48; }
+        .active-nav { background-color: #ffe4e6; color: #e11d48; font-weight: 700; }
+    </style>
+</head>
+<body class="bg-slate-50 flex h-screen overflow-hidden text-slate-800">
+
+    <aside class="w-64 bg-white border-r border-slate-200 flex flex-col h-full z-20">
+        <div class="p-6">
+            <div class="flex items-center gap-3">
+                <div class="bg-rose-500 p-2 rounded-xl shadow-lg shadow-rose-200"><span class="text-white text-xl">🍩</span></div>
+                <h1 class="text-xl font-bold text-slate-800 tracking-tight">Donuts.</h1>
+            </div>
+        </div>
+        <nav class="flex-1 px-4 space-y-1 overflow-y-auto">
+            <a href="index.html" class="flex items-center gap-3 px-3 py-3 rounded-xl sidebar-item text-slate-600 transition-all">
+                <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+                <span class="text-sm font-semibold">Dashboard</span>
+            </a>
+            <div class="pt-4 pb-2 px-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Master Data</div>
+            <div class="ml-2 border-l-2 border-slate-100 pl-2 space-y-1">
+                <a href="produk.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-slate-500 hover:text-rose-600 transition-all">
+                    <i data-lucide="donut" class="w-4 h-4"></i>
+                    <span>Data Produk</span>
+                </a>
+                <a href="bahan.html" class="flex items-center gap-3 px-3 py-2 rounded-lg active-nav transition-all">
+                    <i data-lucide="package" class="w-4 h-4"></i>
+                    <span>Bahan Baku</span>
+                </a>
+            </div>
+        </nav>
+    </aside>
+
+    <main class="flex-1 overflow-y-auto">
+        <header class="bg-white/80 backdrop-blur-md border-b border-slate-200 p-6 flex justify-between items-center sticky top-0 z-10">
+            <div>
+                <h2 class="text-2xl font-bold">Stok Bahan Baku</h2>
+                <p class="text-sm text-slate-500">Pantau ketersediaan bahan di gudang.</p>
+            </div>
+            <button onclick="bukaModal()" class="bg-slate-900 text-white px-5 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 hover:bg-rose-600 transition shadow-lg">
+                <i data-lucide="plus" class="w-4 h-4"></i> Tambah Bahan
+            </button>
+        </header>
+
+        <div class="p-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <div class="bg-orange-50 border border-orange-100 p-4 rounded-2xl flex items-center gap-4">
+                    <div class="bg-orange-500 text-white p-3 rounded-xl"><i data-lucide="alert-circle"></i></div>
+                    <div>
+                        <p class="text-orange-800 font-bold text-sm">Peringatan Stok</p>
+                        <p class="text-orange-600 text-xs">Bahan di bawah 500g ditandai merah.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden">
+                <table class="w-full text-left border-collapse">
+                    <thead class="bg-slate-50 border-b border-slate-100">
+                        <tr>
+                            <th class="p-6 text-xs font-bold text-slate-400 uppercase tracking-wider">Nama Bahan</th>
+                            <th class="p-6 text-xs font-bold text-slate-400 uppercase tracking-wider text-center">Sisa Stok</th>
+                            <th class="p-6 text-xs font-bold text-slate-400 uppercase tracking-wider text-center">Satuan</th>
+                            <th class="p-6 text-xs font-bold text-slate-400 uppercase tracking-wider text-center">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="bahan-table-body">
+                        </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <div id="modal-bahan" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 hidden flex items-center justify-center">
+        <div class="bg-white w-full max-w-sm p-8 rounded-[2.5rem] shadow-2xl">
+            <h3 class="text-xl font-bold mb-6 flex items-center gap-2"><i data-lucide="package-plus" class="text-rose-500"></i> Tambah Bahan</h3>
+            <div class="space-y-4">
+                <div>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase ml-2">Nama Bahan</label>
+                    <input type="text" id="in-nama" class="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl mt-1 focus:ring-2 focus:ring-rose-200 outline-none" placeholder="Tepung Terigu">
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase ml-2">Jumlah Awal</label>
+                    <input type="number" id="in-stok" class="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl mt-1 focus:ring-2 focus:ring-rose-200 outline-none" placeholder="1000">
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="tutupModal()" class="flex-1 py-3 text-slate-400 font-bold text-sm">Batal</button>
+                    <button onclick="simpanBahan()" class="flex-1 bg-rose-500 text-white py-3 rounded-xl font-bold text-sm shadow-lg shadow-rose-100">Simpan</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const SB_URL = "https://bkkpkfvcssdmgnncrrhu.supabase.co";
+        const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJra3BrZnZjc3NkbWdubmNycmh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA3OTQ4OTIsImV4cCI6MjA4NjM3MDg5Mn0.VeE2IZhQmTyKMMQI4Ukh0nt6YHR2zVs_nUnjtPt-GPQ";
+        const _supabase = supabase.createClient(SB_URL, SB_KEY);
+
+        async function loadBahan() {
+            const { data: bahan } = await _supabase.from('bahan').select('*').order('nama_bahan');
+            const tbody = document.getElementById('bahan-table-body');
+            tbody.innerHTML = '';
+
+            bahan.forEach(b => {
+                const isCritical = b.stok_gram < 500;
+                tbody.innerHTML += `
+                    <tr class="border-b border-slate-50 hover:bg-slate-50/50">
+                        <td class="p-6 font-semibold">${b.nama_bahan}</td>
+                        <td class="p-6 text-center">
+                            <span class="${isCritical ? 'bg-rose-100 text-rose-600' : 'bg-green-100 text-green-600'} px-4 py-1.5 rounded-full font-bold text-sm">
+                                ${b.stok_gram.toLocaleString()}
+                            </span>
+                        </td>
+                        <td class="p-6 text-center text-slate-400 text-sm">${b.satuan}</td>
+                        <td class="p-6 text-center">
+                            <button onclick="hapusBahan(${b.id})" class="text-slate-300 hover:text-rose-500 transition"><i data-lucide="trash-2" class="w-5 h-5"></i></button>
+                        </td>
+                    </tr>
+                `;
+            });
+            lucide.createIcons();
+        }
+
+        async function simpanBahan() {
+            const nama_bahan = document.getElementById('in-nama').value;
+            const stok_gram = document.getElementById('in-stok').value;
+            if(!nama_bahan || !stok_gram) return alert("Data tidak lengkap!");
+
+            await _supabase.from('bahan').insert([{ nama_bahan, stok_gram }]);
+            tutupModal();
+            loadBahan();
+        }
+
+        async function hapusBahan(id) {
+            if(confirm('Hapus bahan ini?')) {
+                await _supabase.from('bahan').delete().eq('id', id);
+                loadBahan();
+            }
+        }
+
+        function bukaModal() { document.getElementById('modal-bahan').classList.remove('hidden'); }
+        function tutupModal() { document.getElementById('modal-bahan').classList.add('hidden'); }
+
+        loadBahan();
+        lucide.createIcons();
+    </script>
+</body>
+</html>
