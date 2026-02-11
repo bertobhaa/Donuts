@@ -1,35 +1,96 @@
-<main class="flex-1 overflow-y-auto p-8">
-    <header class="mb-8">
-        <h2 class="text-3xl font-black tracking-tighter text-slate-900">Riwayat Penyesuaian</h2>
-        <p class="text-slate-500 text-sm">Audit koreksi stok (Stock Opname)</p>
-    </header>
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Donuts | Laporan Penyesuaian</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .sidebar-item:hover { background-color: #fff1f2; color: #e11d48; }
+        .active-nav { background-color: #ffe4e6; color: #e11d48; font-weight: 700; }
+        @media print { .no-print { display: none !important; } main { margin: 0; } }
+    </style>
+</head>
+<body class="bg-slate-50 flex overflow-hidden h-screen text-slate-800">
 
-    <div class="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
-        <table class="w-full text-left">
-            <thead class="bg-slate-50 text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                <tr>
-                    <th class="p-6">Tanggal</th>
-                    <th class="p-6">Bahan</th>
-                    <th class="p-6">Stok Fisik</th>
-                    <th class="p-6">Alasan / Keterangan</th>
-                </tr>
-            </thead>
-            <tbody id="penyesuaian-body" class="text-sm font-semibold"></tbody>
-        </table>
-    </div>
-</main>
+    <aside class="w-64 bg-white border-r border-slate-200 flex flex-col h-full z-20 no-print">
+        <div class="p-6">
+            <h1 class="text-2xl font-black italic text-rose-500 tracking-tighter">Donuts.</h1>
+        </div>
+        <nav class="flex-1 px-4 space-y-1">
+            <a href="index.html" class="flex items-center gap-3 px-3 py-3 rounded-xl sidebar-item text-slate-600 font-medium"><i data-lucide="layout-dashboard"></i><span class="text-sm">Dashboard</span></a>
+            <div class="pt-4 pb-2 px-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">Inventori</div>
+            <a href="penyesuaian.html" class="flex items-center gap-3 px-3 py-3 rounded-xl sidebar-item text-slate-600 font-medium"><i data-lucide="refresh-cw"></i><span class="text-sm">Opname</span></a>
+            <a href="laporan_penyesuaian.html" class="flex items-center gap-3 px-3 py-3 rounded-xl active-nav"><i data-lucide="clipboard-list"></i><span class="text-sm">Log Opname</span></a>
+        </nav>
+    </aside>
 
-<script>
-    async function fetchLogPenyesuaian() {
-        const { data } = await _supabase.from('riwayat_penyesuaian').select('*, bahan(nama_bahan, satuan)').order('created_at', { ascending: false });
-        document.getElementById('penyesuaian-body').innerHTML = data.map(i => `
-            <tr class="border-b border-slate-50">
-                <td class="p-6 text-slate-400">${new Date(i.created_at).toLocaleDateString('id-ID')}</td>
-                <td class="p-6 font-bold">${i.bahan.nama_bahan}</td>
-                <td class="p-6 font-black text-rose-500">${i.stok_fisik} ${i.bahan.satuan}</td>
-                <td class="p-6 italic text-slate-500">"${i.keterangan}"</td>
-            </tr>
-        `).join('');
-    }
-    window.onload = fetchLogPenyesuaian;
-</script>
+    <main class="flex-1 overflow-y-auto">
+        <header class="bg-white border-b border-slate-200 p-6 flex justify-between items-center sticky top-0 z-10 no-print">
+            <div>
+                <h2 class="text-2xl font-black text-slate-900 tracking-tight">Audit Stok</h2>
+                <p class="text-sm text-slate-500 font-medium">Log koreksi dan penyesuaian fisik</p>
+            </div>
+            <div class="flex gap-3">
+                <button onclick="exportExcel()" class="bg-emerald-100 text-emerald-700 px-4 py-2 rounded-xl font-bold text-xs flex items-center gap-2 hover:bg-emerald-200">
+                    <i data-lucide="sheet" class="w-4 h-4"></i> Export Excel
+                </button>
+                <button onclick="window.print()" class="bg-slate-900 text-white px-4 py-2 rounded-xl font-bold text-xs flex items-center gap-2">
+                    <i data-lucide="printer" class="w-4 h-4"></i> PDF
+                </button>
+            </div>
+        </header>
+
+        <div class="p-8">
+            <div class="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
+                <table class="w-full text-left border-collapse" id="table-adj">
+                    <thead class="bg-slate-50 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                        <tr>
+                            <th class="p-6">Waktu</th>
+                            <th class="p-6">Bahan</th>
+                            <th class="p-6">Stok Akhir</th>
+                            <th class="p-6">Keterangan</th>
+                        </tr>
+                    </thead>
+                    <tbody id="adj-body" class="text-sm font-semibold">
+                        </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const SB_URL = "https://bkkpkfvcssdmgnncrrhu.supabase.co";
+        const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJra3BrZnZjc3NkbWdubmNycmh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA3OTQ4OTIsImV4cCI6MjA4NjM3MDg5Mn0.VeE2IZhQmTyKMMQI4Ukh0nt6YHR2zVs_nUnjtPt-GPQ";
+        const _supabase = supabase.createClient(SB_URL, SB_KEY);
+
+        async function loadData() {
+            const { data } = await _supabase.from('riwayat_penyesuaian').select('*, bahan(nama_bahan, satuan)').order('created_at', { ascending: false });
+            if(data) {
+                document.getElementById('adj-body').innerHTML = data.map(item => `
+                    <tr class="border-b border-slate-50">
+                        <td class="p-6 text-slate-400 font-medium">${new Date(item.created_at).toLocaleString('id-ID')}</td>
+                        <td class="p-6 text-slate-900 font-bold">${item.bahan?.nama_bahan}</td>
+                        <td class="p-6">${item.stok_fisik} ${item.bahan?.satuan}</td>
+                        <td class="p-6 italic text-slate-500">${item.keterangan || 'Penyesuaian Rutin'}</td>
+                    </tr>
+                `).join('');
+            }
+            lucide.createIcons();
+        }
+
+        function exportExcel() {
+            const table = document.getElementById("table-adj");
+            const wb = XLSX.utils.table_to_book(table, { sheet: "Log Penyesuaian" });
+            XLSX.writeFile(wb, "Laporan_Penyesuaian_Donuts.xlsx");
+        }
+
+        window.onload = loadData;
+    </script>
+</body>
+</html>
