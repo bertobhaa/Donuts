@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Laporan Penjualan Detail - Donuts POS</title>
+    <title>Laporan Pro - Donuts POS</title>
     <link rel="icon" href="data:;base64,iVBORw0KGgo=">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -15,79 +15,63 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        @media print { .no-print { display: none; } }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800">
 
     <div class="flex h-screen overflow-hidden">
-        <aside class="w-64 bg-white border-r border-slate-200 p-6 space-y-4">
+        <aside class="w-64 bg-white border-r border-slate-200 p-6 space-y-4 no-print">
             <h1 class="text-2xl font-black italic text-rose-500 mb-8">Donuts.</h1>
             <nav class="space-y-2">
-                <a href="index.html" class="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 font-bold text-slate-400">
-                    <i data-lucide="layout-grid"></i> Dashboard
-                </a>
-                <a href="laporan.html" class="flex items-center gap-3 p-3 rounded-xl bg-rose-50 text-rose-500 font-bold">
-                    <i data-lucide="file-text"></i> Laporan
-                </a>
+                <a href="index.html" class="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 font-bold text-slate-400"><i data-lucide="layout-grid"></i> Dashboard</a>
+                <a href="kasir.html" class="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 font-bold text-slate-400"><i data-lucide="shopping-cart"></i> Kasir</a>
+                <a href="laporan.html" class="flex items-center gap-3 p-3 rounded-xl bg-rose-50 text-rose-500 font-bold"><i data-lucide="file-text"></i> Laporan</a>
             </nav>
         </aside>
 
         <main class="flex-1 overflow-y-auto p-8">
-            <header class="flex justify-between items-end mb-8">
+            <header class="flex justify-between items-end mb-8 no-print">
                 <div>
-                    <h2 class="text-3xl font-black tracking-tighter">Laporan Penjualan</h2>
-                    <p class="text-slate-500">Detail profitabilitas per transaksi</p>
+                    <h2 class="text-3xl font-black tracking-tighter">Detail Penjualan</h2>
+                    <p class="text-slate-500 text-sm">Audit transaksi & performa margin</p>
                 </div>
-                
                 <div class="flex gap-3">
-                    <button onclick="exportExcel()" class="bg-emerald-500 text-white px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-emerald-600 transition-all shadow-lg shadow-emerald-100">
-                        <i data-lucide="file-spreadsheet" class="w-4 h-4"></i> Excel
-                    </button>
-                    <button onclick="exportPDF()" class="bg-rose-500 text-white px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-rose-600 transition-all shadow-lg shadow-rose-100">
-                        <i data-lucide="file-down" class="w-4 h-4"></i> PDF
-                    </button>
+                    <button onclick="exportExcel()" class="bg-emerald-500 text-white px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-emerald-600 transition-all shadow-lg shadow-emerald-100 text-sm"><i data-lucide="file-spreadsheet" class="w-4 h-4"></i> Excel</button>
+                    <button onclick="exportPDF()" class="bg-slate-900 text-white px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-slate-800 transition-all shadow-lg shadow-slate-200 text-sm"><i data-lucide="printer" class="w-4 h-4"></i> Cetak PDF Laporan</button>
                 </div>
             </header>
 
-            <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 mb-8 flex flex-wrap gap-6 items-end">
-                <div class="space-y-2">
-                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Mulai Tanggal</label>
-                    <input type="date" id="filter-start" class="block w-full bg-slate-50 border-none rounded-xl p-3 font-bold text-sm focus:ring-2 focus:ring-rose-500/20">
+            <div class="bg-white p-6 rounded-[2rem] border border-slate-100 mb-8 flex flex-wrap gap-4 items-end no-print">
+                <div class="flex-1 min-w-[200px] space-y-2">
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Rentang Tanggal</label>
+                    <div class="flex gap-2">
+                        <input type="date" id="filter-start" class="w-full bg-slate-50 border-none rounded-xl p-3 text-sm font-bold">
+                        <input type="date" id="filter-end" class="w-full bg-slate-50 border-none rounded-xl p-3 text-sm font-bold">
+                    </div>
                 </div>
-                <div class="space-y-2">
-                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Sampai Tanggal</label>
-                    <input type="date" id="filter-end" class="block w-full bg-slate-50 border-none rounded-xl p-3 font-bold text-sm focus:ring-2 focus:ring-rose-500/20">
-                </div>
-                <button onclick="fetchLaporan()" class="bg-slate-900 text-white px-8 py-3 rounded-xl font-black hover:bg-slate-800 transition-all">
-                    Terapkan Filter
-                </button>
+                <button onclick="fetchLaporan()" class="bg-rose-500 text-white px-8 py-3 rounded-xl font-black hover:bg-rose-600 transition-all">Filter</button>
             </div>
 
-            <div class="bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden">
+            <div class="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
                 <table class="w-full text-left border-collapse" id="table-laporan">
                     <thead>
                         <tr class="bg-slate-50 text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                            <th class="p-5 border-b">Tanggal</th>
-                            <th class="p-5 border-b">Detail Item</th>
-                            <th class="p-5 border-b text-right">Harga Jual</th>
-                            <th class="p-5 border-b text-right text-rose-400">Total HPP</th>
-                            <th class="p-5 border-b text-right text-emerald-500">Margin/Laba</th>
+                            <th class="p-5">Waktu</th>
+                            <th class="p-5">Metode</th>
+                            <th class="p-5">Items</th>
+                            <th class="p-5 text-right">Penjualan</th>
+                            <th class="p-5 text-right">Margin</th>
+                            <th class="p-5 text-center no-print">Aksi</th>
                         </tr>
                     </thead>
-                    <tbody id="laporan-body" class="text-sm font-medium">
-                        </tbody>
-                    <tfoot>
-                        <tr class="bg-slate-900 text-white font-black">
-                            <td class="p-5 rounded-bl-[2rem]" colspan="2">TOTAL KESELURUHAN</td>
-                            <td class="p-5 text-right" id="footer-jual">Rp 0</td>
-                            <td class="p-5 text-right" id="footer-hpp">Rp 0</td>
-                            <td class="p-5 text-right text-emerald-400 rounded-br-[2rem]" id="footer-margin">Rp 0</td>
-                        </tr>
-                    </tfoot>
+                    <tbody id="laporan-body" class="text-sm font-semibold"></tbody>
                 </table>
             </div>
         </main>
     </div>
+
+    <div id="print-area" class="hidden font-mono p-4 text-[10px] w-[300px]"></div>
 
     <script>
         const SB_URL = "https://bkkpkfvcssdmgnncrrhu.supabase.co";
@@ -95,127 +79,147 @@
         const _supabase = supabase.createClient(SB_URL, SB_KEY);
 
         let reportData = [];
+        let summary = { jual: 0, hpp: 0, margin: 0, disc: 0, ppn: 0, cash: 0, transfer: 0 };
 
         async function fetchLaporan() {
             const start = document.getElementById('filter-start').value;
             const end = document.getElementById('filter-end').value;
             const body = document.getElementById('laporan-body');
-            body.innerHTML = '<tr><td colspan="5" class="p-10 text-center opacity-50 italic">Memuat data...</td></tr>';
+            body.innerHTML = '<tr><td colspan="6" class="p-10 text-center opacity-50 italic">Sinkronisasi data...</td></tr>';
 
             try {
-                // 1. Ambil Lookup HPP (Sama seperti dashboard)
-                const { data: produkData } = await _supabase.from('produk').select('id, resep(jumlah_dibutuhkan, bahan(harga_beli_per_gram))');
+                // Get HPP Lookup
+                const { data: pData } = await _supabase.from('produk').select('id, resep(jumlah_dibutuhkan, bahan(harga_beli_per_gram))');
                 const hppLookup = {};
-                produkData?.forEach(p => {
-                    let modal = 0;
-                    p.resep?.forEach(r => modal += (r.jumlah_dibutuhkan * (r.bahan?.harga_beli_per_gram || 0)));
-                    hppLookup[p.id] = modal;
+                pData?.forEach(p => {
+                    let m = 0; p.resep?.forEach(r => m += (r.jumlah_dibutuhkan * (r.bahan?.harga_beli_per_gram || 0)));
+                    hppLookup[p.id] = m;
                 });
 
-                // 2. Ambil Transaksi
-                let query = _supabase.from('transaksi').select('*').order('created_at', { ascending: false });
-                if (start) query = query.gte('created_at', start + 'T00:00:00');
-                if (end) query = query.lte('created_at', end + 'T23:59:59');
+                // Get Bank Methods
+                const { data: bData } = await _supabase.from('bank_payment').select('id, nama_metode');
+                const bankLookup = {}; bData?.forEach(b => bankLookup[b.id] = b.nama_metode);
 
-                const { data: trx, error } = await query;
+                // Get Transactions
+                let q = _supabase.from('transaksi').select('*').order('created_at', { ascending: false });
+                if (start) q = q.gte('created_at', start + 'T00:00:00');
+                if (end) q = q.lte('created_at', end + 'T23:59:59');
+
+                const { data: trx, error } = await q;
                 if (error) throw error;
+
+                // Reset Summary
+                summary = { jual: 0, hpp: 0, margin: 0, disc: 0, ppn: 0, cash: 0, transfer: 0 };
 
                 reportData = trx.map(t => {
                     const items = Array.isArray(t.items) ? t.items : JSON.parse(t.items || "[]");
-                    let totalHPPTrx = 0;
-                    items.forEach(item => {
-                        totalHPPTrx += (hppLookup[item.id] || 0) * item.qty;
-                    });
+                    let tHpp = 0;
+                    items.forEach(i => tHpp += (hppLookup[i.id] || 0) * i.qty);
 
-                    return {
-                        tanggal: new Date(t.created_at).toLocaleString('id-ID'),
-                        detail: t.detail_item,
-                        jual: t.total_harga,
-                        hpp: totalHPPTrx,
-                        margin: t.total_harga - totalHPPTrx
-                    };
+                    const ppn = t.total_harga * 0.11; // Contoh PPN 11%
+                    summary.jual += t.total_harga;
+                    summary.hpp += tHpp;
+                    summary.margin += (t.total_harga - tHpp);
+                    summary.disc += (t.diskon_nominal || 0);
+                    summary.ppn += ppn;
+
+                    const mtd = bankLookup[t.bank_id] || 'Cash';
+                    if(mtd.toLowerCase().includes('cash')) summary.cash += t.total_harga; 
+                    else summary.transfer += t.total_harga;
+
+                    return { ...t, items, calculatedHpp: tHpp, metode: mtd, ppn: ppn };
                 });
 
                 renderTable();
-            } catch (e) {
-                alert("Gagal memuat laporan: " + e.message);
-            }
+            } catch (e) { alert(e.message); }
         }
 
         function renderTable() {
             const body = document.getElementById('laporan-body');
-            let tJual = 0, tHpp = 0, tMargin = 0;
-
-            body.innerHTML = reportData.map(d => {
-                tJual += d.jual; tHpp += d.hpp; tMargin += d.margin;
-                return `
-                    <tr class="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
-                        <td class="p-5 text-slate-500 text-xs">${d.tanggal}</td>
-                        <td class="p-5 font-bold">${d.detail}</td>
-                        <td class="p-5 text-right font-bold">Rp ${d.jual.toLocaleString()}</td>
-                        <td class="p-5 text-right text-rose-500">Rp ${d.hpp.toLocaleString()}</td>
-                        <td class="p-5 text-right text-emerald-600 font-black">Rp ${d.margin.toLocaleString()}</td>
-                    </tr>
-                `;
-            }).join('');
-
-            document.getElementById('footer-jual').innerText = "Rp " + tJual.toLocaleString();
-            document.getElementById('footer-hpp').innerText = "Rp " + tHpp.toLocaleString();
-            document.getElementById('footer-margin').innerText = "Rp " + tMargin.toLocaleString();
+            body.innerHTML = reportData.map((d, idx) => `
+                <tr class="border-b border-slate-50 hover:bg-slate-50 transition-colors">
+                    <td class="p-5 text-slate-400 text-xs">${new Date(d.created_at).toLocaleString('id-ID')}</td>
+                    <td class="p-5"><span class="px-3 py-1 bg-slate-100 rounded-full text-[10px] uppercase font-black">${d.metode}</span></td>
+                    <td class="p-5 font-bold">${d.detail_item}</td>
+                    <td class="p-5 text-right font-black">Rp ${d.total_harga.toLocaleString()}</td>
+                    <td class="p-5 text-right text-emerald-600 font-black">Rp ${(d.total_harga - d.calculatedHpp).toLocaleString()}</td>
+                    <td class="p-5 text-center no-print">
+                        <div class="flex justify-center gap-2">
+                            <button onclick="reprint(${idx})" class="p-2 bg-slate-100 rounded-lg hover:bg-rose-50 hover:text-rose-500 transition-all"><i data-lucide="printer" class="w-4 h-4"></i></button>
+                            <button onclick="voidTrx(${d.id})" class="p-2 bg-slate-100 rounded-lg hover:bg-red-50 hover:text-red-500 transition-all"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+            lucide.createIcons();
         }
 
-        // FUNGSI EKSPOR EXCEL
-        function exportExcel() {
-            const worksheet = XLSX.utils.json_to_sheet(reportData.map(d => ({
-                "Tanggal": d.tanggal,
-                "Detail Pesanan": d.detail,
-                "Harga Jual": d.jual,
-                "HPP Bahan Baku": d.hpp,
-                "Margin Laba": d.margin
-            })));
-            const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, "Laporan Penjualan");
-            XLSX.writeFile(workbook, `Laporan_Donuts_${new Date().getTime()}.xlsx`);
+        async function voidTrx(id) {
+            if(!confirm("Batalkan transaksi ini? Stok tidak akan kembali otomatis via UI ini (perlu manual/trigger database).")) return;
+            const { error } = await _supabase.from('transaksi').delete().eq('id', id);
+            if(!error) fetchLaporan();
         }
 
-        // FUNGSI EKSPOR PDF
+        function reprint(idx) {
+            const d = reportData[idx];
+            const area = document.getElementById('print-area');
+            area.innerHTML = `
+                <div style="text-align:center"><b>DONUTS POS</b><br>${d.tanggal || ''}</div>
+                <hr>
+                ${d.items.map(i => `<div>${i.qty}x ${i.nama} <span style="float:right">${(i.qty*i.harga).toLocaleString()}</span></div>`).join('')}
+                <hr>
+                <div>TOTAL <span style="float:right">Rp ${d.total_harga.toLocaleString()}</span></div>
+                <div style="text-align:center; margin-top:10px">DUPLICATE RECEIPT</div>
+            `;
+            window.print();
+        }
+
         function exportPDF() {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
             
-            doc.text("Laporan Detail Penjualan Donuts", 14, 15);
-            doc.setFontSize(10);
-            doc.text(`Periode: ${document.getElementById('filter-start').value || '-'} s/d ${document.getElementById('filter-end').value || '-'}`, 14, 22);
+            doc.setFontSize(18); doc.text("LAPORAN PENJUALAN DETAIL", 14, 20);
+            doc.setFontSize(10); doc.text(`Dicetak pada: ${new Date().toLocaleString()}`, 14, 28);
 
-            const tableColumn = ["Tanggal", "Detail", "Jual", "HPP", "Margin"];
-            const tableRows = reportData.map(d => [
-                d.tanggal, 
-                d.detail, 
-                d.jual.toLocaleString(), 
-                d.hpp.toLocaleString(), 
-                d.margin.toLocaleString()
-            ]);
-
+            // Ringkasan Section
             doc.autoTable({
-                head: [tableColumn],
-                body: tableRows,
-                startY: 30,
-                theme: 'striped',
+                startY: 35,
+                body: [
+                    ["Total Penjualan Kotor", "Rp " + summary.jual.toLocaleString()],
+                    ["Total Diskon Diberikan", "- Rp " + summary.disc.toLocaleString()],
+                    ["Estimasi PPN (11%)", "Rp " + summary.ppn.toLocaleString()],
+                    ["Total HPP (Bahan Baku)", "Rp " + summary.hpp.toLocaleString()],
+                    ["GRAND TOTAL NETTO", "Rp " + (summary.jual - summary.disc).toLocaleString()],
+                    ["TOTAL LABA BERSIH", "Rp " + summary.margin.toLocaleString()],
+                ],
+                theme: 'plain', styles: { fontStyle: 'bold' }
+            });
+
+            // Payment Summary
+            doc.text("Rincian Metode Pembayaran:", 14, doc.lastAutoTable.finalY + 10);
+            doc.autoTable({
+                startY: doc.lastAutoTable.finalY + 12,
+                head: [["Cash/Tunai", "Transfer/Bank"]],
+                body: [["Rp "+summary.cash.toLocaleString(), "Rp "+summary.transfer.toLocaleString()]],
+                headStyles: { fillColor: [51, 65, 85] }
+            });
+
+            // Detail Table
+            doc.autoTable({
+                startY: doc.lastAutoTable.finalY + 15,
+                head: [["Tanggal", "Metode", "Item", "Total Jual", "Margin"]],
+                body: reportData.map(d => [d.created_at.split('T')[0], d.metode, d.detail_item, d.total_harga.toLocaleString(), (d.total_harga - d.calculatedHpp).toLocaleString()]),
                 headStyles: { fillColor: [225, 29, 72] }
             });
 
-            doc.save(`Laporan_Donuts_${new Date().getTime()}.pdf`);
+            doc.save("Laporan_Detail_Donuts.pdf");
         }
 
-        // Set default filter ke bulan ini
+        // Init
         const now = new Date();
-        document.getElementById('filter-start').value = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+        document.getElementById('filter-start').value = now.toISOString().split('T')[0];
         document.getElementById('filter-end').value = now.toISOString().split('T')[0];
-
-        window.onload = () => {
-            fetchLaporan();
-            lucide.createIcons();
-        };
+        window.onload = () => { fetchLaporan(); lucide.createIcons(); };
     </script>
 </body>
 </html>
