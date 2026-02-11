@@ -3,87 +3,99 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Laporan Pembelian - Donuts POS</title>
+    <title>Donuts | Riwayat Pembelian</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .sidebar-item:hover { background-color: #fff1f2; color: #e11d48; }
+        .active-nav { background-color: #ffe4e6; color: #e11d48; font-weight: 700; }
     </style>
 </head>
-<body class="bg-slate-50 flex h-screen overflow-hidden text-slate-800">
+<body class="bg-slate-50 flex overflow-hidden h-screen text-slate-800">
 
     <aside class="w-64 bg-white border-r border-slate-200 flex flex-col h-full z-20">
         <div class="p-6">
-            <h1 class="text-xl font-bold text-rose-500 italic">Donuts Inventory.</h1>
+            <h1 class="text-2xl font-black italic text-rose-500 tracking-tighter">Donuts.</h1>
         </div>
-        <nav class="flex-1 px-4 space-y-1">
-            <a href="index.html" class="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-slate-50 text-slate-600 font-semibold"><i data-lucide="layout-grid"></i> Dashboard</a>
-            <div class="pt-4 pb-2 px-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Laporan Stok</div>
-            <a href="laporan_pembelian.html" class="flex items-center gap-3 px-3 py-3 rounded-xl bg-emerald-50 text-emerald-600 font-bold"><i data-lucide="file-text"></i> Riwayat Pembelian</a>
-            <a href="laporan_penyesuaian.html" class="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-slate-50 text-slate-600 font-semibold"><i data-lucide="file-warning"></i> Riwayat Penyesuaian</a>
+        <nav class="flex-1 px-4 space-y-1 overflow-y-auto">
+            <a href="index.html" class="flex items-center gap-3 px-3 py-3 rounded-xl sidebar-item text-slate-600 font-medium"><i data-lucide="layout-dashboard" class="w-5 h-5"></i><span class="text-sm">Dashboard</span></a>
+            <div class="pt-4 pb-2 px-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">Inventori</div>
+            <a href="pembelian.html" class="flex items-center gap-3 px-3 py-3 rounded-xl sidebar-item text-slate-600 font-medium"><i data-lucide="shopping-bag" class="w-5 h-5"></i><span class="text-sm">Pembelian</span></a>
+            <a href="penyesuaian.html" class="flex items-center gap-3 px-3 py-3 rounded-xl sidebar-item text-slate-600 font-medium"><i data-lucide="refresh-cw" class="w-5 h-5"></i><span class="text-sm">Opname</span></a>
+            <a href="laporan_pembelian.html" class="flex items-center gap-3 px-3 py-3 rounded-xl active-nav"><i data-lucide="file-text" class="w-5 h-5"></i><span class="text-sm font-semibold">Log Belanja</span></a>
         </nav>
     </aside>
 
-    <main class="flex-1 overflow-y-auto p-8">
-        <header class="flex justify-between items-end mb-8">
+    <main class="flex-1 overflow-y-auto">
+        <header class="bg-white border-b border-slate-200 p-6 flex justify-between items-center sticky top-0 z-10">
             <div>
-                <h2 class="text-3xl font-black tracking-tighter">Riwayat Pembelian</h2>
-                <p class="text-slate-500 text-sm">Daftar semua stok bahan baku yang masuk</p>
+                <h2 class="text-2xl font-black text-slate-900 tracking-tight">Log Pembelian Bahan</h2>
+                <p class="text-sm text-slate-500 font-medium">Histori pengadaan barang dari supplier</p>
             </div>
-            <div class="flex gap-3">
-                <input type="date" id="filter-tgl" class="p-3 bg-white border border-slate-200 rounded-xl font-bold text-xs outline-none focus:ring-2 focus:ring-emerald-500">
-                <button onclick="fetchLogPembelian()" class="bg-emerald-500 text-white px-5 py-3 rounded-xl font-bold text-xs hover:bg-emerald-600 transition shadow-lg shadow-emerald-100">Cari Data</button>
+            <div class="bg-rose-500 text-white px-6 py-2 rounded-2xl font-bold">
+                Total Belanja: <span id="grand-total">Rp 0</span>
             </div>
         </header>
 
-        <div class="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
-            <table class="w-full text-left">
-                <thead class="bg-slate-50 text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                    <tr>
-                        <th class="p-6">Waktu</th>
-                        <th class="p-6">Bahan Baku</th>
-                        <th class="p-6">Supplier</th>
-                        <th class="p-6">Qty Masuk</th>
-                        <th class="p-6 text-right">Total Bayar</th>
-                    </tr>
-                </thead>
-                <tbody id="pembelian-body" class="text-sm font-semibold"></tbody>
-                <tfoot class="bg-slate-900 text-white font-bold">
-                    <tr>
-                        <td colspan="4" class="p-6 text-right uppercase text-[10px] tracking-widest">Total Belanja Periode Ini</td>
-                        <td class="p-6 text-right text-lg" id="grand-total-beli">Rp 0</td>
-                    </tr>
-                </tfoot>
-            </table>
+        <div class="p-8">
+            <div class="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
+                <table class="w-full text-left border-collapse">
+                    <thead class="bg-slate-50 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                        <tr>
+                            <th class="p-6">Tanggal</th>
+                            <th class="p-6">Bahan</th>
+                            <th class="p-6">Supplier</th>
+                            <th class="p-6">Jumlah</th>
+                            <th class="p-6">Total Harga</th>
+                            <th class="p-6">HPP Satuan</th>
+                        </tr>
+                    </thead>
+                    <tbody id="pembelian-body" class="text-sm font-semibold">
+                        </tbody>
+                </table>
+            </div>
         </div>
     </main>
 
     <script>
-        // Supabase Init...
-        async function fetchLogPembelian() {
-            const tgl = document.getElementById('filter-tgl').value;
-            let query = _supabase.from('riwayat_pembelian').select('*, bahan(nama_bahan, satuan)').order('created_at', { ascending: false });
-            
-            if(tgl) { query = query.gte('created_at', tgl).lte('created_at', tgl + 'T23:59:59'); }
+        const SB_URL = "https://bkkpkfvcssdmgnncrrhu.supabase.co";
+        const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJra3BrZnZjc3NkbWdubmNycmh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA3OTQ4OTIsImV4cCI6MjA4NjM3MDg5Mn0.VeE2IZhQmTyKMMQI4Ukh0nt6YHR2zVs_nUnjtPt-GPQ";
+        const _supabase = supabase.createClient(SB_URL, SB_KEY);
 
-            const { data, error } = await query;
-            let total = 0;
-            document.getElementById('pembelian-body').innerHTML = data.map(i => {
-                total += i.total_harga;
-                return `
-                <tr class="border-b border-slate-50">
-                    <td class="p-6 text-slate-400">${new Date(i.created_at).toLocaleString('id-ID')}</td>
-                    <td class="p-6 font-bold text-slate-800">${i.bahan.nama_bahan}</td>
-                    <td class="p-6">${i.supplier || '-'}</td>
-                    <td class="p-6"><span class="px-3 py-1 bg-emerald-50 text-emerald-600 rounded-full text-xs">+ ${i.jumlah} ${i.bahan.satuan}</span></td>
-                    <td class="p-6 text-right font-black">Rp ${Number(i.total_harga).toLocaleString()}</td>
-                </tr>`;
-            }).join('');
-            document.getElementById('grand-total-beli').innerText = `Rp ${total.toLocaleString()}`;
+        async function loadLaporan() {
+            const { data, error } = await _supabase
+                .from('riwayat_pembelian')
+                .select('*, bahan(nama_bahan, satuan)')
+                .order('created_at', { ascending: false });
+
+            let grandTotal = 0;
+            const container = document.getElementById('pembelian-body');
+
+            if (data) {
+                container.innerHTML = data.map(item => {
+                    grandTotal += item.total_harga;
+                    const tgl = new Date(item.created_at).toLocaleDateString('id-ID', { day:'2-digit', month:'short', year:'numeric' });
+                    const hpp = item.total_harga / item.jumlah;
+                    
+                    return `
+                        <tr class="border-b border-slate-50 hover:bg-slate-50/50">
+                            <td class="p-6 text-slate-400 font-medium">${tgl}</td>
+                            <td class="p-6 text-slate-800 font-extrabold">${item.bahan?.nama_bahan}</td>
+                            <td class="p-6 text-slate-600">${item.supplier || '-'}</td>
+                            <td class="p-6">${item.jumlah} <small class="text-slate-400">${item.bahan?.satuan}</small></td>
+                            <td class="p-6 text-rose-600">Rp ${item.total_harga.toLocaleString()}</td>
+                            <td class="p-6 text-slate-400 text-xs italic">@ Rp ${hpp.toLocaleString()}</td>
+                        </tr>
+                    `;
+                }).join('');
+                document.getElementById('grand-total').innerText = "Rp " + grandTotal.toLocaleString();
+            }
+            lucide.createIcons();
         }
-        window.onload = () => { fetchLogPembelian(); lucide.createIcons(); };
+        window.onload = loadLaporan;
     </script>
 </body>
 </html>
