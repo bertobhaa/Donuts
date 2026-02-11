@@ -8,37 +8,70 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .card-shadow { box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05); }
     </style>
 </head>
 <body class="bg-slate-50 flex h-screen overflow-hidden text-slate-800">
-    <main class="flex-1 p-12 overflow-y-auto">
-        <div class="max-w-xl mx-auto">
-            <a href="index.html" class="inline-flex items-center gap-2 text-slate-400 hover:text-rose-500 mb-8 transition-all">
-                <i data-lucide="arrow-left" class="w-4 h-4"></i> Kembali ke Dashboard
-            </a>
-            <h2 class="text-3xl font-black mb-2">Konfigurasi Toko</h2>
-            <p class="text-slate-500 mb-10">Atur pajak pemerintah dan diskon promo hari ini.</p>
 
-            <div class="space-y-6">
-                <div class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm flex items-center justify-between">
-                    <div class="flex items-center gap-4">
-                        <div class="bg-blue-50 p-3 rounded-2xl text-blue-500"><i data-lucide="percent"></i></div>
-                        <div><p class="font-bold">Pajak PPN</p><p class="text-xs text-slate-400">Standar 11%</p></div>
+    <main class="flex-1 p-8 md:p-12 overflow-y-auto">
+        <div class="max-w-4xl mx-auto">
+            <div class="mb-10">
+                <a href="index.html" class="inline-flex items-center gap-2 text-slate-400 hover:text-rose-500 mb-6 transition-all font-bold text-sm">
+                    <i data-lucide="arrow-left" class="w-4 h-4"></i> Kembali ke Dashboard
+                </a>
+                <h2 class="text-3xl font-black tracking-tight">Konfigurasi Sistem</h2>
+                <p class="text-slate-500">Kelola biaya layanan, diskon, dan metode pembayaran toko.</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                
+                <div class="space-y-6">
+                    <h3 class="text-lg font-bold flex items-center gap-2 px-2">
+                        <i data-lucide="percent" class="w-5 h-5 text-rose-500"></i> Pajak & Diskon
+                    </h3>
+                    
+                    <div class="bg-white p-6 rounded-[2.5rem] border border-slate-100 card-shadow space-y-4">
+                        <div class="flex items-center justify-between p-4 bg-slate-50 rounded-2xl">
+                            <div>
+                                <p class="font-bold text-sm">PPN (%)</p>
+                                <p class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Pajak Pertambahan Nilai</p>
+                            </div>
+                            <input type="number" id="ppn" class="w-20 bg-white border border-slate-200 p-2 rounded-xl text-center font-bold focus:ring-2 focus:ring-rose-500 outline-none">
+                        </div>
+
+                        <div class="flex items-center justify-between p-4 bg-slate-50 rounded-2xl">
+                            <div>
+                                <p class="font-bold text-sm">Diskon (%)</p>
+                                <p class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Potongan Harga Global</p>
+                            </div>
+                            <input type="number" id="diskon" class="w-20 bg-white border border-slate-200 p-2 rounded-xl text-center font-bold focus:ring-2 focus:ring-rose-500 outline-none">
+                        </div>
+
+                        <button onclick="saveSettings()" id="btn-save-settings" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-bold hover:bg-rose-600 transition-all shadow-lg shadow-slate-200">Simpan Biaya</button>
                     </div>
-                    <input type="number" id="ppn" class="w-24 bg-slate-50 border p-3 rounded-xl text-center font-bold outline-none focus:border-blue-500">
                 </div>
 
-                <div class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm flex items-center justify-between">
-                    <div class="flex items-center gap-4">
-                        <div class="bg-rose-50 p-3 rounded-2xl text-rose-500"><i data-lucide="tag"></i></div>
-                        <div><p class="font-bold">Diskon Promo</p><p class="text-xs text-slate-400">Potongan Global (%)</p></div>
+                <div class="space-y-6">
+                    <h3 class="text-lg font-bold flex items-center gap-2 px-2">
+                        <i data-lucide="credit-card" class="w-5 h-5 text-blue-500"></i> Metode Pembayaran
+                    </h3>
+
+                    <div class="bg-white p-6 rounded-[2.5rem] border border-slate-100 card-shadow">
+                        <div class="flex gap-2 mb-6">
+                            <input type="text" id="new-bank" placeholder="Contoh: QRIS, ShopeePay" class="flex-1 bg-slate-50 border border-slate-100 p-4 rounded-2xl text-sm font-medium focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all">
+                            <button onclick="addBank()" class="bg-blue-500 text-white p-4 rounded-2xl hover:bg-blue-600 transition-all shadow-lg shadow-blue-100">
+                                <i data-lucide="plus"></i>
+                            </button>
+                        </div>
+
+                        <div id="bank-list" class="space-y-3">
+                            <p class="text-center text-slate-400 text-sm py-4 italic">Memuat bank...</p>
+                        </div>
                     </div>
-                    <input type="number" id="diskon" class="w-24 bg-slate-50 border p-3 rounded-xl text-center font-bold outline-none focus:border-rose-500">
                 </div>
 
-                <button onclick="save()" id="btn-save" class="w-full bg-slate-900 text-white py-5 rounded-[2rem] font-bold shadow-xl hover:bg-rose-600 transition-all">Simpan Perubahan</button>
             </div>
         </div>
     </main>
@@ -48,24 +81,81 @@
         const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJra3BrZnZjc3NkbWdubmNycmh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA3OTQ4OTIsImV4cCI6MjA4NjM3MDg5Mn0.VeE2IZhQmTyKMMQI4Ukh0nt6YHR2zVs_nUnjtPt-GPQ";
         const _supabase = supabase.createClient(SB_URL, SB_KEY);
 
-        async function load() {
-            const { data } = await _supabase.from('settings').select('*');
-            data.forEach(s => {
-                if(s.key === 'ppn') document.getElementById('ppn').value = s.value;
-                if(s.key === 'diskon_global') document.getElementById('diskon').value = s.value;
-            });
+        async function init() {
+            await loadSettings();
+            await loadBanks();
             lucide.createIcons();
         }
 
-        async function save() {
-            const btn = document.getElementById('btn-save');
-            btn.innerText = "Menyimpan...";
-            await _supabase.from('settings').update({ value: document.getElementById('ppn').value }).eq('key', 'ppn');
-            await _supabase.from('settings').update({ value: document.getElementById('diskon').value }).eq('key', 'diskon_global');
-            alert("Berhasil diperbarui!");
-            location.reload();
+        // --- FUNGSI SETTINGS ---
+        async function loadSettings() {
+            const { data } = await _supabase.from('settings').select('*');
+            if (data) {
+                data.forEach(s => {
+                    if(s.key === 'ppn') document.getElementById('ppn').value = s.value;
+                    if(s.key === 'diskon_global') document.getElementById('diskon').value = s.value;
+                });
+            }
         }
-        load();
+
+        async function saveSettings() {
+            const btn = document.getElementById('btn-save-settings');
+            btn.innerText = "Menyimpan...";
+            const ppn = document.getElementById('ppn').value;
+            const diskon = document.getElementById('diskon').value;
+
+            await _supabase.from('settings').update({ value: ppn }).eq('key', 'ppn');
+            await _supabase.from('settings').update({ value: diskon }).eq('key', 'diskon_global');
+            
+            alert("Pengaturan biaya berhasil disimpan!");
+            btn.innerText = "Simpan Biaya";
+        }
+
+        // --- FUNGSI METODE PEMBAYARAN ---
+        async function loadBanks() {
+            const { data } = await _supabase.from('bank_payment').select('*').order('id', { ascending: true });
+            const container = document.getElementById('bank-list');
+            container.innerHTML = '';
+
+            if (data && data.length > 0) {
+                data.forEach(b => {
+                    container.innerHTML += `
+                        <div class="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-transparent hover:border-slate-200 transition-all group">
+                            <div class="flex items-center gap-3">
+                                <div class="w-2 h-2 rounded-full ${b.aktif ? 'bg-green-500' : 'bg-slate-300'}"></div>
+                                <span class="font-bold text-slate-700 text-sm">${b.nama_metode}</span>
+                            </div>
+                            <button onclick="deleteBank(${b.id})" class="text-slate-300 hover:text-rose-500 transition-all p-1">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    `;
+                });
+            } else {
+                container.innerHTML = '<p class="text-center text-slate-400 text-xs py-4">Belum ada metode pembayaran.</p>';
+            }
+            lucide.createIcons();
+        }
+
+        async function addBank() {
+            const input = document.getElementById('new-bank');
+            if (!input.value) return alert("Masukkan nama metode pembayaran!");
+
+            const { error } = await _supabase.from('bank_payment').insert([{ nama_metode: input.value, aktif: true }]);
+            if (error) alert("Gagal menambah data!");
+            
+            input.value = '';
+            await loadBanks();
+        }
+
+        async function deleteBank(id) {
+            if (confirm("Hapus metode pembayaran ini?")) {
+                await _supabase.from('bank_payment').delete().eq('id', id);
+                await loadBanks();
+            }
+        }
+
+        init();
     </script>
 </body>
 </html>
