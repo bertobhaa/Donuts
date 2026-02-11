@@ -3,76 +3,81 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Penyesuaian Stok - Donuts POS</title>
+    <title>Donuts | Stock Opname</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .sidebar-item:hover { background-color: #fff1f2; color: #e11d48; }
+        .active-nav { background-color: #ffe4e6; color: #e11d48; font-weight: 700; }
     </style>
 </head>
-<body class="bg-slate-50 flex h-screen overflow-hidden text-slate-800">
+<body class="bg-slate-50 flex overflow-hidden h-screen text-slate-800">
 
     <aside class="w-64 bg-white border-r border-slate-200 flex flex-col h-full z-20">
         <div class="p-6">
-            <div class="flex items-center gap-3">
-                <div class="bg-rose-500 p-2 rounded-xl shadow-lg shadow-rose-200"><span class="text-white text-xl">📦</span></div>
-                <h1 class="text-xl font-bold text-slate-800 tracking-tight">Inventory.</h1>
-            </div>
+            <h1 class="text-2xl font-black italic text-rose-500 tracking-tighter">Donuts.</h1>
         </div>
         <nav class="flex-1 px-4 space-y-1 overflow-y-auto">
-            <a href="index.html" class="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-slate-50 text-slate-600 transition-all font-semibold"><i data-lucide="layout-dashboard" class="w-5 h-5"></i> Dashboard</a>
-            <div class="pt-4 pb-2 px-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Manajemen Stok</div>
-            <a href="pembelian.html" class="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-slate-50 text-slate-600 font-semibold"><i data-lucide="shopping-bag" class="w-5 h-5"></i> Pembelian (Masuk)</a>
-            <a href="penyesuaian.html" class="flex items-center gap-3 px-3 py-3 rounded-xl bg-rose-50 text-rose-600 font-bold"><i data-lucide="refresh-cw" class="w-5 h-5"></i> Penyesuaian (Opname)</a>
-            <div class="pt-4 pb-2 px-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Laporan</div>
-            <a href="laporan_penyesuaian.html" class="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-slate-50 text-slate-600 font-semibold"><i data-lucide="file-check" class="w-5 h-5"></i> Riwayat Penyesuaian</a>
+            <a href="index.html" class="flex items-center gap-3 px-3 py-3 rounded-xl sidebar-item text-slate-600 font-medium"><i data-lucide="layout-dashboard"></i><span class="text-sm">Dashboard</span></a>
+            <div class="pt-4 pb-2 px-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">Inventori</div>
+            <a href="pembelian.html" class="flex items-center gap-3 px-3 py-3 rounded-xl sidebar-item text-slate-600 font-medium"><i data-lucide="shopping-bag"></i><span class="text-sm">Pembelian</span></a>
+            <a href="penyesuaian.html" class="flex items-center gap-3 px-3 py-3 rounded-xl active-nav"><i data-lucide="refresh-cw"></i><span class="text-sm font-semibold">Opname</span></a>
         </nav>
     </aside>
 
-    <main class="flex-1 overflow-y-auto p-8">
-        <header class="mb-8">
-            <h2 class="text-3xl font-black tracking-tighter">Stock Opname</h2>
-            <p class="text-slate-500 text-sm">Sesuaikan stok sistem dengan stok fisik di rak</p>
+    <main class="flex-1 overflow-y-auto">
+        <header class="bg-white border-b border-slate-200 p-6 flex justify-between items-center sticky top-0 z-10">
+            <div>
+                <h2 class="text-2xl font-black text-slate-900 tracking-tight">Penyesuaian Stok</h2>
+                <p class="text-sm text-slate-500 font-medium">Sinkronisasi stok sistem dengan fisik di rak</p>
+            </div>
         </header>
 
-        <div class="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
-            <table class="w-full text-left">
-                <thead class="bg-slate-50 text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                    <tr>
-                        <th class="p-6">Nama Bahan</th>
-                        <th class="p-6">Stok Sistem</th>
-                        <th class="p-6">Stok Fisik Aktil</th>
-                        <th class="p-6">Alasan</th>
-                        <th class="p-6 text-center">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody id="adj-body"></tbody>
-            </table>
+        <div class="p-8">
+            <div class="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
+                <table class="w-full text-left border-collapse">
+                    <thead class="bg-slate-50 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                        <tr>
+                            <th class="p-6">Bahan Baku</th>
+                            <th class="p-6">Stok Sistem</th>
+                            <th class="p-6">Stok Fisik Aktil</th>
+                            <th class="p-6">Keterangan</th>
+                            <th class="p-6 text-center">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="adj-body" class="text-sm font-semibold">
+                        </tbody>
+                </table>
+            </div>
         </div>
     </main>
 
     <script>
-        // Logika Load Bahan & Update
+        const SB_URL = "https://bkkpkfvcssdmgnncrrhu.supabase.co";
+        const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJra3BrZnZjc3NkbWdubmNycmh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA3OTQ4OTIsImV4cCI6MjA4NjM3MDg5Mn0.VeE2IZhQmTyKMMQI4Ukh0nt6YHR2zVs_nUnjtPt-GPQ";
+        const _supabase = supabase.createClient(SB_URL, SB_KEY);
+
         async function loadBahan() {
             const { data } = await _supabase.from('bahan').select('*').order('nama_bahan');
             document.getElementById('adj-body').innerHTML = data.map(b => `
-                <tr class="border-b border-slate-50">
+                <tr class="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
                     <td class="p-6 font-bold text-slate-700">${b.nama_bahan}</td>
                     <td class="p-6 text-slate-400">${b.stok_gram} ${b.satuan}</td>
                     <td class="p-6">
-                        <input type="number" id="fisik-${b.id}" placeholder="Input Stok Fisik" class="p-3 bg-slate-50 rounded-xl font-bold w-40 border-none focus:ring-2 focus:ring-rose-500">
+                        <input type="number" id="fisik-${b.id}" placeholder="0" class="w-32 p-3 bg-slate-50 border-none rounded-xl font-bold focus:ring-2 focus:ring-rose-500">
                     </td>
                     <td class="p-6">
-                        <select id="ket-${b.id}" class="p-3 bg-slate-50 rounded-xl text-xs font-bold border-none outline-none">
+                        <select id="ket-${b.id}" class="bg-slate-50 p-3 rounded-xl text-xs font-bold border-none outline-none">
                             <option>Rusak/Expire</option>
                             <option>Barang Hilang</option>
                             <option>Salah Input</option>
                         </select>
                     </td>
                     <td class="p-6 text-center">
-                        <button onclick="prosesAdj(${b.id})" class="bg-slate-900 text-white px-5 py-3 rounded-xl font-black text-xs hover:bg-rose-500 transition-all">Update Stok</button>
+                        <button onclick="prosesAdj(${b.id})" class="bg-slate-900 text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-rose-500 transition-all shadow-lg shadow-slate-200">Update</button>
                     </td>
                 </tr>
             `).join('');
@@ -81,21 +86,17 @@
 
         async function prosesAdj(id) {
             const fisik = document.getElementById(`fisik-${id}`).value;
-            const ket = document.getElementById(`ket-${id}`).value;
             if(!fisik) return alert("Isi stok fisik!");
 
-            // Update stok fisik
             await _supabase.from('bahan').update({ stok_gram: parseFloat(fisik) }).eq('id', id);
-            
-            // Catat log
             await _supabase.from('riwayat_penyesuaian').insert([{
-                bahan_id: id, stok_fisik: fisik, keterangan: ket
+                bahan_id: id, stok_fisik: fisik, keterangan: document.getElementById(`ket-${id}`).value
             }]);
 
-            alert("Penyesuaian stok berhasil!");
+            alert("Berhasil disesuaikan!");
             loadBahan();
         }
-        loadBahan();
+        window.onload = loadBahan;
     </script>
 </body>
 </html>
