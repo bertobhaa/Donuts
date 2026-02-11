@@ -13,8 +13,8 @@
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
         .sidebar-item:hover { background-color: #fff1f2; color: #e11d48; }
         .active-nav { background-color: #ffe4e6; color: #e11d48; font-weight: 700; }
-        #master-data-sub, #inv-sub { transition: all 0.3s ease-in-out; }
         .hidden { display: none !important; }
+        #master-sub, #inv-sub { transition: all 0.3s ease-in-out; }
     </style>
 </head>
 <body class="bg-slate-50 flex overflow-hidden h-screen text-slate-800">
@@ -38,35 +38,59 @@
             </a>
             
             <div id="admin-section" class="hidden">
-                <div class="pt-4 pb-2 px-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">Inventori</div>
+                <div class="pt-4 pb-2 px-2 text-[10px] font-black text-slate-400 uppercase tracking-widest text-rose-500">Gudang & Laporan</div>
+                
+                <a href="laporan.html" class="flex items-center gap-3 px-3 py-3 rounded-xl sidebar-item text-slate-600 transition-all font-medium">
+                    <i data-lucide="file-bar-chart-2" class="w-5 h-5"></i>
+                    <span class="text-sm">Laporan Detail</span>
+                </a>
+
                 <div>
-                    <button onclick="toggleMenu('inv-sub', 'chevron-inv')" class="w-full flex items-center justify-between px-3 py-3 rounded-xl text-slate-600 hover:bg-slate-50 transition-all">
+                    <button onclick="toggleMenu('inv-sub', 'chevron-inv')" class="w-full flex items-center justify-between px-3 py-3 rounded-xl text-slate-600 hover:bg-slate-50 transition-all font-medium">
                         <div class="flex items-center gap-3">
                             <i data-lucide="box" class="w-5 h-5"></i>
-                            <span class="text-sm font-semibold">Stok & Gudang</span>
+                            <span class="text-sm">Stok & Gudang</span>
                         </div>
                         <i data-lucide="chevron-down" id="chevron-inv" class="w-4 h-4 transition-transform"></i>
                     </button>
                     <div id="inv-sub" class="mt-1 ml-4 border-l-2 pl-2 space-y-1 overflow-hidden max-h-0 opacity-0">
                         <a href="pembelian.html" class="block px-3 py-2 rounded-lg text-sm text-slate-500 hover:text-rose-600">Pembelian</a>
-                        <a href="laporan_inventori.html" class="block px-3 py-2 rounded-lg text-sm text-slate-500 hover:text-rose-600">Laporan Stok</a>
+                        <a href="penyesuaian.html" class="block px-3 py-2 rounded-lg text-sm text-slate-500 hover:text-rose-600">Opname</a>
+                        <a href="laporan_pembelian.html" class="block px-3 py-2 rounded-lg text-sm text-slate-500 hover:text-rose-600">Laporan Belanja</a>
+                        <a href="laporan_penyesuaian.html" class="block px-3 py-2 rounded-lg text-sm text-slate-500 hover:text-rose-600">Laporan Opname</a>
+                        <a href="laporan_inventori.html" class="block px-3 py-2 rounded-lg text-sm text-slate-500 hover:text-rose-600">Nilai Stok</a>
                     </div>
                 </div>
-                
+
                 <div class="pt-4 pb-2 px-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">Data Master</div>
-                <a href="produk.html" class="flex items-center gap-3 px-3 py-3 rounded-xl sidebar-item text-slate-600 transition-all font-medium">
-                    <i data-lucide="database" class="w-5 h-5"></i>
-                    <span class="text-sm">Produk & Resep</span>
+                <div>
+                    <button onclick="toggleMenu('master-sub', 'chevron-master')" class="w-full flex items-center justify-between px-3 py-3 rounded-xl text-slate-600 hover:bg-slate-50 transition-all font-medium">
+                        <div class="flex items-center gap-3">
+                            <i data-lucide="database" class="w-5 h-5"></i>
+                            <span class="text-sm">Manajemen Data</span>
+                        </div>
+                        <i data-lucide="chevron-down" id="chevron-master" class="w-4 h-4 transition-transform"></i>
+                    </button>
+                    <div id="master-sub" class="mt-1 ml-4 border-l-2 pl-2 space-y-1 overflow-hidden max-h-0 opacity-0">
+                        <a href="produk.html" class="block px-3 py-2 rounded-lg text-sm text-slate-500 hover:text-rose-600">Produk</a>
+                        <a href="bahan.html" class="block px-3 py-2 rounded-lg text-sm text-slate-500 hover:text-rose-600">Bahan Baku</a>
+                        <a href="resep.html" class="block px-3 py-2 rounded-lg text-sm text-slate-500 hover:text-rose-600">Resep</a>
+                    </div>
+                </div>
+
+                <a href="pengaturan.html" class="flex items-center gap-3 px-3 py-3 rounded-xl sidebar-item text-slate-600 transition-all font-medium">
+                    <i data-lucide="settings" class="w-5 h-5"></i>
+                    <span class="text-sm">Pengaturan</span>
                 </a>
             </div>
         </nav>
 
-        <div class="p-4 border-t border-slate-100">
+        <div class="p-4 border-t border-slate-100 bg-slate-50/50">
             <div class="flex items-center gap-3 px-2 mb-4">
-                <div class="w-10 h-10 rounded-full bg-rose-500 flex items-center justify-center text-white font-bold" id="user-initial">-</div>
+                <div class="w-10 h-10 rounded-full bg-rose-500 flex items-center justify-center text-white font-bold shadow-lg" id="user-initial">U</div>
                 <div class="overflow-hidden">
-                    <p class="text-xs font-black text-slate-900 truncate" id="user-email">User</p>
-                    <p class="text-[10px] font-bold text-rose-500 uppercase" id="user-role">Kasir</p>
+                    <p class="text-[11px] font-black text-slate-900 truncate" id="user-email">Email...</p>
+                    <p class="text-[9px] font-bold text-rose-500 uppercase tracking-tighter" id="user-role">Role</p>
                 </div>
             </div>
             <button onclick="handleLogout()" class="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-slate-500 hover:bg-rose-500 hover:text-white transition-all group font-bold text-sm">
@@ -107,11 +131,11 @@
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
                 <div class="space-y-4">
-                    <h3 class="text-lg font-extrabold flex items-center gap-2 px-2"><i data-lucide="award" class="text-yellow-500"></i> Donut Terlaris</h3>
+                    <h3 class="text-lg font-extrabold px-2 flex items-center gap-2"><i data-lucide="award" class="text-yellow-500"></i> Donut Terlaris</h3>
                     <div id="produk-list-analysis" class="bg-white rounded-[2.5rem] border p-6 space-y-3 min-h-[200px]"></div>
                 </div>
                 <div class="space-y-4">
-                    <h3 class="text-lg font-extrabold flex items-center gap-2 px-2"><i data-lucide="alert-triangle" class="text-orange-500"></i> Stok Kritis</h3>
+                    <h3 class="text-lg font-extrabold px-2 flex items-center gap-2"><i data-lucide="alert-triangle" class="text-orange-500"></i> Stok Kritis</h3>
                     <div id="bahan-kritis-list" class="bg-white rounded-[2.5rem] border p-6 space-y-3 min-h-[200px]"></div>
                 </div>
             </div>
@@ -123,44 +147,29 @@
         const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJra3BrZnZjc3NkbWdubmNycmh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA3OTQ4OTIsImV4cCI6MjA4NjM3MDg5Mn0.VeE2IZhQmTyKMMQI4Ukh0nt6YHR2zVs_nUnjtPt-GPQ";
         const _supabase = supabase.createClient(SB_URL, SB_KEY);
 
-        // --- SISTEM KEAMANAN & CEK LOGIN ---
         async function checkAuth() {
             const { data: { session } } = await _supabase.auth.getSession();
-            
-            if (!session) {
-                window.location.href = "login.html";
-                return;
-            }
+            if (!session) { window.location.href = "login.html"; return; }
 
-            // Ambil Role dari tabel profil
             const { data: profile } = await _supabase.from('profil').select('*').eq('id', session.user.id).single();
             const role = profile?.role || 'kasir';
 
-            // Update UI Profil
             document.getElementById('user-email').innerText = session.user.email;
             document.getElementById('user-initial').innerText = session.user.email[0].toUpperCase();
             document.getElementById('user-role').innerText = role.toUpperCase();
 
-            // Tampilkan menu jika admin
             if (role === 'admin') {
                 document.getElementById('admin-section').classList.remove('hidden');
             }
-
             initDashboard();
         }
 
-        async function handleLogout() {
-            await _supabase.auth.signOut();
-            window.location.href = "login.html";
-        }
-
-        // --- LOGIKA DASHBOARD ---
         async function initDashboard() {
             try {
                 const startOfDay = new Date();
                 startOfDay.setHours(0,0,0,0);
 
-                // 1. Data Produk (Kolom 'nama')
+                // 1. Data Produk (Penting: Kolom 'nama')
                 const { data: pData } = await _supabase.from('produk').select(`id, nama, resep(jumlah_dibutuhkan, bahan(harga_beli_per_gram))`);
                 const hppLookup = {};
                 pData?.forEach(p => {
@@ -169,12 +178,12 @@
                     hppLookup[p.id] = cost;
                 });
 
-                // 2. Transaksi
+                // 2. Transaksi Hari Ini
                 const { data: trx } = await _supabase.from('transaksi').select('*').gte('created_at', startOfDay.toISOString());
                 let omzet = 0, hppTotal = 0, qty = 0, ringkasan = {};
 
                 trx?.forEach(t => {
-                    omzet += t.total_harga;
+                    omzet += (t.total_harga || 0);
                     const items = typeof t.items === 'string' ? JSON.parse(t.items) : t.items;
                     items.forEach(it => {
                         qty += it.qty;
@@ -189,42 +198,47 @@
                 document.getElementById('total-laba').innerText = formatIDR(omzet - hppTotal);
                 document.getElementById('qty-keluar').innerText = qty + " Pcs";
 
-                // 3. Render Top 3 Terlaris
+                // Terlaris
                 const sorted = Object.values(ringkasan).sort((a,b) => b.q - a.q).slice(0,3);
                 document.getElementById('produk-list-analysis').innerHTML = sorted.map(i => `
                     <div class="flex justify-between items-center p-4 bg-slate-50 rounded-2xl border border-slate-100">
                         <span class="font-bold text-slate-700">${i.nama}</span>
                         <span class="bg-rose-500 text-white px-4 py-1 rounded-full text-xs font-black">${i.q} Pcs</span>
                     </div>
-                `).join('') || '<p class="text-center py-10 text-slate-400 italic">Belum ada transaksi</p>';
+                `).join('') || '<p class="text-center py-10 text-slate-400 italic">Belum ada jualan</p>';
 
-                // 4. Stok Kritis
+                // Stok Kritis
                 const { data: kritis } = await _supabase.from('bahan').select('*').lt('stok_gram', 1000).limit(3);
                 document.getElementById('bahan-kritis-list').innerHTML = kritis?.map(b => `
                     <div class="flex justify-between items-center p-4 bg-orange-50 rounded-2xl border border-orange-100">
                         <span class="font-bold text-orange-900">${b.nama_bahan}</span>
                         <span class="font-black text-orange-600">${b.stok_gram} <small>${b.satuan}</small></span>
                     </div>
-                `).join('') || '<p class="text-emerald-500 text-center py-10 font-bold italic">Semua stok aman ✓</p>';
+                `).join('') || '<p class="text-emerald-500 text-center py-10 font-bold italic">Stok aman ✓</p>';
 
                 lucide.createIcons();
             } catch (e) { console.error(e); }
         }
 
-        // --- HELPER FUNCTIONS ---
-        function formatIDR(v) { return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(v); }
-        
         function toggleMenu(id, iconId) {
             const el = document.getElementById(id);
             const icon = document.getElementById(iconId);
-            const isOpen = el.classList.contains('max-h-40');
-            el.classList.toggle('max-h-40', !isOpen);
-            el.classList.toggle('max-h-0', isOpen);
-            el.classList.toggle('opacity-100', !isOpen);
-            el.classList.toggle('opacity-0', isOpen);
-            icon.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
+            const isOpen = !el.classList.contains('max-h-0');
+            
+            if (!isOpen) {
+                el.classList.remove('max-h-0', 'opacity-0');
+                el.classList.add('max-h-96', 'opacity-100', 'mt-2', 'mb-2');
+                icon.style.transform = 'rotate(180deg)';
+            } else {
+                el.classList.add('max-h-0', 'opacity-0');
+                el.classList.remove('max-h-96', 'opacity-100', 'mt-2', 'mb-2');
+                icon.style.transform = 'rotate(0deg)';
+            }
         }
 
+        function formatIDR(v) { return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(v); }
+        async function handleLogout() { await _supabase.auth.signOut(); window.location.href = "login.html"; }
+        
         setInterval(() => { document.getElementById('jam-digital').innerText = new Date().toLocaleTimeString('id-ID'); }, 1000);
         document.getElementById('tanggal-hari-ini').innerText = new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
