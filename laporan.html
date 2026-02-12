@@ -175,42 +175,58 @@
             XLSX.writeFile(wb, "Laporan_Donuts.xlsx");
         }
 
-        function exportPDF() {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-            
-            doc.setFontSize(18); doc.text("LAPORAN PENJUALAN DETAIL", 14, 20);
-            doc.setFontSize(10); doc.text(`Dicetak pada: ${new Date().toLocaleString()}`, 14, 28);
+       function exportPDF() {
+    if (reportData.length === 0) return alert("Data kosong!");
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    
+    // Header
+    doc.setFontSize(18); doc.setTextColor(225, 29, 72);
+    doc.text("LAPORAN PENJUALAN DETAIL", 14, 20);
+    doc.setFontSize(10); doc.setTextColor(100);
+    doc.text(`Periode: ${document.getElementById('filter-start').value} - ${document.getElementById('filter-end').value}`, 14, 28);
 
-            doc.autoTable({
-                startY: 35,
-                body: [
-                    ["Total Penjualan Kotor", "Rp " + (summary.jual || 0).toLocaleString()],
-                    ["Total Diskon", "- Rp " + (summary.disc || 0).toLocaleString()],
-                    ["Total Pajak (PPN)", "Rp " + (summary.ppn || 0).toLocaleString()],
-                    ["Total HPP", "Rp " + (summary.hpp || 0).toLocaleString()],
-                    ["GRAND TOTAL NETTO", "Rp " + (summary.netto || 0).toLocaleString()],
-                    ["TOTAL LABA BERSIH", "Rp " + (summary.margin || 0).toLocaleString()],
-                ],
-                theme: 'plain', styles: { fontStyle: 'bold' }
-            });
+    // TABEL RINGKASAN (Summary)
+    doc.autoTable({
+        startY: 35,
+        body: [
+            ["Total Penjualan Kotor", "Rp " + (summary.jual || 0).toLocaleString()],
+            ["Total Diskon", "- Rp " + (summary.disc || 0).toLocaleString()],
+            ["Total Pajak (PPN)", "Rp " + (summary.ppn || 0).toLocaleString()],
+            ["Total HPP", "Rp " + (summary.hpp || 0).toLocaleString()],
+            // PERBAIKAN: Memastikan summary.netto terisi
+            ["GRAND TOTAL NETTO", "Rp " + (summary.netto || 0).toLocaleString()],
+            ["TOTAL LABA BERSIH", "Rp " + (summary.margin || 0).toLocaleString()],
+        ],
+        theme: 'plain', 
+        styles: { fontStyle: 'bold', fontSize: 10 },
+        columnStyles: { 1: { halign: 'right' } }
+    });
 
-            doc.autoTable({
-                startY: doc.lastAutoTable.finalY + 10,
-                head: [["Tgl", "Nota", "Metode", "Diskon", "Total Akhir", "Margin"]],
-                body: reportData.map(d => [
-                    d.created_at.split('T')[0], 
-                    `#${d.id}`, 
-                    d.metode, 
-                    (d.d_nom || 0).toLocaleString(), 
-                    (d.t_akhir || 0).toLocaleString(), 
-                    (d.t_harga - d.calculatedHpp - d.d_nom).toLocaleString()
-                ]),
-                headStyles: { fillColor: [225, 29, 72] }
-            });
-
-            doc.save("Laporan_Detail_Donuts.pdf");
+    // TABEL DETAIL TRANSAKSI
+    doc.autoTable({
+        startY: doc.lastAutoTable.finalY + 10,
+        head: [["Tgl", "Nota", "Metode", "Diskon", "Total Akhir", "Margin"]],
+        body: reportData.map(d => [
+            d.created_at.split('T')[0], 
+            `#${d.id}`, 
+            d.metode, 
+            (d.d_nom || 0).toLocaleString(), 
+            // PERBAIKAN: Memanggil d.t_akhir (hasil mapping fetchLaporan)
+            (d.t_akhir || 0).toLocaleString(), 
+            (d.t_harga - d.calculatedHpp - d.d_nom).toLocaleString()
+        ]),
+        headStyles: { fillColor: [225, 29, 72] },
+        styles: { fontSize: 9 },
+        columnStyles: { 
+            3: { halign: 'right' }, 
+            4: { halign: 'right' }, 
+            5: { halign: 'right' } 
         }
+    });
+
+    doc.save(`Laporan_Donuts_Final_${Date.now()}.pdf`);
+}
 
         async function voidTrx(id) {
             if(!confirm("Hapus transaksi ini?")) return;
