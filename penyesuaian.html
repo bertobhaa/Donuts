@@ -12,6 +12,8 @@
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
         .sidebar-item:hover { background-color: #fff1f2; color: #e11d48; }
         .active-nav { background-color: #ffe4e6; color: #e11d48; font-weight: 700; }
+        /* Animasi halus saat baris disembunyikan */
+        .row-hidden { display: none; }
     </style>
 </head>
 <body class="bg-slate-50 flex overflow-hidden h-screen text-slate-800">
@@ -34,6 +36,11 @@
                 <h2 class="text-2xl font-black text-slate-900 tracking-tight">Koreksi Stok</h2>
                 <p class="text-sm text-slate-500 font-medium">Sesuaikan atau tambah stok bahan tanpa transaksi beli</p>
             </div>
+            <div class="relative w-72">
+                <i data-lucide="search" class="w-4 h-4 absolute left-4 top-3.5 text-slate-400"></i>
+                <input type="text" id="search-bahan" onkeyup="filterBahan()" placeholder="Cari bahan baku..." 
+                    class="w-full bg-slate-50 border border-slate-200 rounded-2xl py-3 pl-10 pr-4 outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 font-bold text-xs transition-all">
+            </div>
         </header>
 
         <div class="p-8">
@@ -52,6 +59,10 @@
                     <tbody id="adj-body" class="text-sm font-semibold">
                         </tbody>
                 </table>
+                <div id="no-results" class="hidden p-20 text-center flex flex-col items-center">
+                    <i data-lucide="package-search" class="w-12 h-12 text-slate-300 mb-4"></i>
+                    <p class="text-slate-400 font-bold">Bahan tidak ditemukan...</p>
+                </div>
             </div>
         </div>
     </main>
@@ -63,10 +74,12 @@
 
         async function loadBahan() {
             const { data } = await _supabase.from('bahan').select('*').order('nama_bahan');
-            document.getElementById('adj-body').innerHTML = data.map(b => `
-                <tr class="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
+            const tbody = document.getElementById('adj-body');
+            
+            tbody.innerHTML = data.map(b => `
+                <tr class="border-b border-slate-50 hover:bg-slate-50/50 transition-colors row-item" data-nama="${b.nama_bahan.toLowerCase()}">
                     <td class="p-6 font-bold text-slate-700">${b.nama_bahan}</td>
-                    <td class="p-6 text-slate-400">${b.stok_gram} ${b.satuan}</td>
+                    <td class="p-6 text-slate-400">${b.stok_gram.toLocaleString()} ${b.satuan}</td>
                     <td class="p-6">
                         <select id="mode-${b.id}" class="bg-slate-100 p-2 rounded-lg text-xs font-bold border-none outline-none focus:ring-2 focus:ring-rose-500">
                             <option value="set">Ganti Ke (Opname)</option>
@@ -90,6 +103,33 @@
                 </tr>
             `).join('');
             lucide.createIcons();
+            filterBahan(); // Jalankan filter jika ada teks tersisa di input search
+        }
+
+        // FUNGSI FILTER BAHAN
+        function filterBahan() {
+            const input = document.getElementById('search-bahan');
+            const filter = input.value.toLowerCase();
+            const rows = document.querySelectorAll('.row-item');
+            let hasVisibleRow = false;
+
+            rows.forEach(row => {
+                const namaBahan = row.getAttribute('data-nama');
+                if (namaBahan.includes(filter)) {
+                    row.classList.remove('row-hidden');
+                    hasVisibleRow = true;
+                } else {
+                    row.classList.add('row-hidden');
+                }
+            });
+
+            // Tampilkan pesan jika tidak ada hasil
+            const noResults = document.getElementById('no-results');
+            if (hasVisibleRow) {
+                noResults.classList.add('hidden');
+            } else {
+                noResults.classList.remove('hidden');
+            }
         }
 
         async function prosesAdj(id, stokLama) {
@@ -101,23 +141,21 @@
 
             let stokBaru;
             if (mode === "add") {
-                stokBaru = stokLama + val; // Menambah stok
+                stokBaru = stokLama + val;
             } else {
-                stokBaru = val; // Mengganti stok (Opname)
+                stokBaru = val;
             }
 
-            // 1. Update Tabel Bahan
             const { error } = await _supabase.from('bahan').update({ stok_gram: stokBaru }).eq('id', id);
 
             if(!error) {
-                // 2. Log Riwayat Penyesuaian
                 await _supabase.from('riwayat_penyesuaian').insert([{
                     bahan_id: id,
                     stok_fisik: stokBaru,
                     keterangan: `${mode === 'add' ? '[TAMBAH] ' : '[OPNAME] '} ${ket}`
                 }]);
 
-                alert(`Stok berhasil diupdate menjadi ${stokBaru}!`);
+                alert(`Stok berhasil diupdate!`);
                 loadBahan();
             } else {
                 alert("Gagal memproses data.");
