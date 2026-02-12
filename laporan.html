@@ -166,7 +166,7 @@
                 "Subtotal": d.t_harga,
                 "Diskon": d.d_nom,
                 "Pajak": d.ppn_fix,
-                "Total Akhir": d.t_akhir,
+                "Total Akhir": d.total_harga,
                 "Margin": d.t_harga - d.calculatedHpp - d.d_nom
             }));
             const ws = XLSX.utils.json_to_sheet(dataSheet);
@@ -190,7 +190,7 @@
             ["Total Pajak (PPN)", "Rp " + (summary.ppn || 0).toLocaleString()],
             ["Total HPP", "Rp " + (summary.hpp || 0).toLocaleString()],
             // MEMPERBAIKI GRAND TOTAL NETTO
-            ["GRAND TOTAL NETTO", "Rp " + (summary.netto || 0).toLocaleString()], 
+            ["GRAND TOTAL NETTO", "Rp " + (summary.jual || 0).toLocaleString()], 
             ["TOTAL LABA BERSIH", "Rp " + (summary.margin || 0).toLocaleString()],
         ],
         theme: 'plain', 
@@ -207,7 +207,7 @@
             d.metode, 
             (d.d_nom || 0).toLocaleString(), 
             // MEMPERBAIKI TOTAL AKHIR DI TABEL: Gunakan properti yang sesuai (t_akhir)
-            (d.t_akhir || 0).toLocaleString(), 
+            (d.total_harga || 0).toLocaleString(), 
             (d.t_harga - d.calculatedHpp - d.d_nom).toLocaleString()
         ]),
         headStyles: { fillColor: [225, 29, 72] }
