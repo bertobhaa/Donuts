@@ -17,7 +17,7 @@
         .custom-scroll::-webkit-scrollbar { width: 6px; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         
-        /* High Contrast Focus */
+        /* High Contrast Focus & Clarity */
         input:focus, select:focus {
             background-color: white !important;
             border: 2px solid #f43f5e !important;
@@ -26,10 +26,12 @@
 
         .product-card {
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border-width: 2px;
         }
         .product-card:hover {
             transform: translateY(-5px);
             border-color: #f43f5e;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
         }
     </style>
 </head>
@@ -64,15 +66,15 @@
     <main class="flex-1 overflow-y-auto bg-slate-50">
         <header class="bg-white/90 backdrop-blur-md border-b border-slate-200 p-6 flex justify-between items-center sticky top-0 z-10">
             <div>
-                <h2 class="text-2xl font-black italic tracking-tight">Menu & Recipes.</h2>
-                <p class="text-xs text-slate-500 font-bold uppercase tracking-wider">Inventory Management System</p>
+                <h2 class="text-2xl font-black italic tracking-tight">Menu Inventory.</h2>
+                <p class="text-xs text-slate-500 font-bold uppercase tracking-wider">Product & Recipe Management</p>
             </div>
             <div class="flex gap-3">
-                <button onclick="exportExcel()" class="bg-slate-100 text-slate-700 px-4 py-2 rounded-xl font-bold text-xs flex items-center gap-2 hover:bg-slate-200 transition-all border border-slate-200">
-                    <i data-lucide="file-down" class="w-4 h-4"></i> Export Excel
+                <button onclick="exportExcel()" class="bg-slate-100 text-slate-700 px-4 py-2 rounded-xl font-bold text-xs flex items-center gap-2 hover:bg-slate-200 border border-slate-200">
+                    <i data-lucide="file-down" class="w-4 h-4"></i> Export
                 </button>
                 <button onclick="bukaModal()" class="bg-rose-500 text-white px-6 py-2 rounded-xl font-black text-sm flex items-center gap-2 hover:bg-rose-600 transition shadow-xl shadow-rose-100 active:scale-95">
-                    <i data-lucide="plus" class="w-4 h-4"></i> Add New Menu
+                    <i data-lucide="plus" class="w-4 h-4"></i> Tambah Menu
                 </button>
             </div>
         </header>
@@ -80,7 +82,7 @@
         <div class="p-8">
             <div class="mb-8 relative max-w-md">
                 <i data-lucide="search" class="absolute left-4 top-3.5 text-slate-400 w-5 h-5"></i>
-                <input type="text" id="cari-produk" onkeyup="filterTabel()" placeholder="Search variants..." class="w-full bg-white border-2 border-slate-100 rounded-2xl p-3.5 pl-12 focus:ring-0 outline-none font-bold shadow-sm text-sm">
+                <input type="text" id="cari-produk" onkeyup="filterTabel()" placeholder="Cari varian donat..." class="w-full bg-white border-2 border-slate-100 rounded-2xl p-3.5 pl-12 focus:ring-0 outline-none font-bold shadow-sm text-sm">
             </div>
 
             <div id="produk-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -90,61 +92,68 @@
 
     <div id="modal-produk" class="fixed inset-0 bg-slate-900/70 backdrop-blur-md z-[100] hidden flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-4xl p-8 rounded-[2.5rem] shadow-2xl flex flex-col max-h-[92vh]">
-            <div class="flex justify-between items-center mb-8 border-b border-slate-100 pb-4">
+            <div class="flex justify-between items-center mb-6 border-b border-slate-100 pb-4">
                 <div>
-                    <h3 id="modal-title" class="text-2xl font-black italic text-slate-800">Menu Composition.</h3>
-                    <p class="text-xs text-slate-400 font-bold uppercase">Detail produk & komposisi HPP</p>
+                    <h3 id="modal-title" class="text-2xl font-black italic text-slate-800">Setup Menu.</h3>
+                    <p class="text-xs text-slate-400 font-bold">Lengkapi detail produk dan komposisi bahan</p>
                 </div>
-                <button onclick="tutupModal()" class="bg-slate-100 p-2 rounded-full text-slate-400 hover:text-rose-500 hover:bg-rose-50 transition-all"><i data-lucide="x"></i></button>
+                <button onclick="tutupModal()" class="text-slate-400 hover:text-rose-500"><i data-lucide="x"></i></button>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 overflow-y-auto custom-scroll pr-4">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 overflow-y-auto custom-scroll pr-2">
                 <div class="space-y-6">
-                    <div class="space-y-2">
-                        <label class="text-[10px] font-black text-rose-500 uppercase tracking-widest">General Information</label>
+                    <div class="space-y-4">
+                        <label class="text-[10px] font-black text-rose-500 uppercase tracking-widest">Detail Produk</label>
                         <input type="hidden" id="p-id"> 
-                        <input type="text" id="p-nama" placeholder="Variant Name (e.g. Tiramisu Blast)" class="w-full p-4 bg-slate-50 rounded-2xl outline-none font-extrabold border-2 border-transparent">
+                        <input type="text" id="p-nama" placeholder="Nama Varian" class="w-full p-4 bg-slate-50 rounded-2xl outline-none font-extrabold border-2 border-transparent">
+                        
                         <div class="grid grid-cols-2 gap-4">
-                            <div class="space-y-1">
-                                <label class="text-[9px] font-bold text-slate-400 px-1">SELLING PRICE (RP)</label>
-                                <input type="number" id="p-harga" placeholder="0" class="w-full p-4 bg-slate-50 rounded-2xl outline-none font-black border-2 border-transparent">
-                            </div>
-                            <div class="space-y-1">
-                                <label class="text-[9px] font-bold text-slate-400 px-1">INITIAL STOCK</label>
-                                <input type="number" id="p-stok" placeholder="0" class="w-full p-4 bg-slate-50 rounded-2xl outline-none font-black border-2 border-transparent">
+                            <input type="number" id="p-harga" placeholder="Harga Jual" class="w-full p-4 bg-slate-50 rounded-2xl outline-none font-black border-2 border-transparent">
+                            <input type="number" id="p-stok" placeholder="Stok" class="w-full p-4 bg-slate-50 rounded-2xl outline-none font-black border-2 border-transparent">
+                        </div>
+
+                        <div class="space-y-2">
+                            <label class="text-[10px] font-bold text-slate-400 px-1">FOTO PRODUK</label>
+                            <div class="flex gap-4 items-center bg-slate-50 p-4 rounded-2xl border-2 border-dashed border-slate-200">
+                                <div class="w-20 h-20 bg-white rounded-xl overflow-hidden border border-slate-200 flex-shrink-0">
+                                    <img id="img-preview" src="https://via.placeholder.com/150" class="w-full h-full object-cover">
+                                </div>
+                                <div class="flex-1">
+                                    <input type="file" id="p-file" accept="image/*" class="text-xs font-bold cursor-pointer w-full">
+                                    <p class="text-[9px] text-slate-400 mt-2 italic">*Upload langsung ke Supabase Storage</p>
+                                </div>
+                                <input type="hidden" id="p-image">
                             </div>
                         </div>
-                        <input type="text" id="p-image" placeholder="Image URL (Unsplash/Link)" class="w-full p-4 bg-slate-50 rounded-2xl outline-none text-xs font-bold border-2 border-transparent">
                     </div>
                 </div>
 
                 <div class="space-y-4">
-                    <label class="text-[10px] font-black text-blue-500 uppercase tracking-widest">Recipe & Costing</label>
+                    <label class="text-[10px] font-black text-blue-500 uppercase tracking-widest">Komposisi Resep (HPP)</label>
                     <div class="flex gap-2">
                         <select id="select-bahan" class="flex-1 p-4 bg-slate-50 rounded-2xl font-bold text-xs outline-none border-2 border-transparent"></select>
-                        <input type="number" id="gram-pakai" placeholder="Qty" class="w-24 p-4 bg-slate-50 rounded-2xl font-black outline-none border-2 border-transparent text-center">
-                        <button onclick="tambahBahanKeList()" class="bg-slate-900 text-white px-5 rounded-2xl hover:bg-blue-600 transition-all shadow-lg"><i data-lucide="plus"></i></button>
+                        <input type="number" id="gram-pakai" placeholder="Qty" class="w-20 p-4 bg-slate-50 rounded-2xl font-black outline-none border-2 border-transparent text-center">
+                        <button onclick="tambahBahanKeList()" class="bg-slate-900 text-white px-5 rounded-2xl hover:bg-blue-600 shadow-lg"><i data-lucide="plus"></i></button>
                     </div>
                     
-                    <div id="temp-resep-list" class="space-y-2 min-h-[180px] max-h-[300px] overflow-y-auto custom-scroll border-2 border-dashed border-slate-200 rounded-[2rem] p-4 bg-slate-50/30">
-                        </div>
+                    <div id="temp-resep-list" class="space-y-2 min-h-[150px] max-h-[250px] overflow-y-auto custom-scroll border-2 border-dashed border-slate-100 rounded-[2rem] p-4 bg-slate-50/50"></div>
 
                     <div class="bg-slate-900 p-6 rounded-[2rem] text-white flex justify-between items-center shadow-xl shadow-slate-200">
                         <div>
-                            <p class="text-[10px] font-bold opacity-60 uppercase tracking-widest">COGS / HPP per Pcs</p>
+                            <p class="text-[10px] font-bold opacity-60 uppercase tracking-widest">Total Modal (HPP)</p>
                             <p class="text-2xl font-black text-emerald-400" id="estimasi-hpp">Rp 0</p>
                         </div>
                         <div class="text-right">
-                            <p class="text-[10px] font-bold opacity-60 uppercase tracking-widest">Margin</p>
-                            <p class="text-xs font-bold" id="label-margin">0%</p>
+                            <p class="text-[10px] font-bold opacity-60 uppercase tracking-widest">Estimasi Margin</p>
+                            <p class="text-sm font-bold" id="label-margin">0%</p>
                         </div>
                     </div>
                 </div>
             </div>
 
             <div class="mt-8 flex gap-4">
-                <button onclick="tutupModal()" class="flex-1 py-4 font-bold text-slate-400 hover:bg-slate-100 rounded-2xl transition-all">Discard Changes</button>
-                <button id="btn-save" onclick="simpanProdukLengkap()" class="flex-[2] bg-rose-500 text-white py-4 rounded-2xl font-black shadow-xl shadow-rose-200 hover:bg-rose-600 transition-all uppercase tracking-widest active:scale-95">Save Menu variant</button>
+                <button onclick="tutupModal()" class="flex-1 py-4 font-bold text-slate-400 hover:bg-slate-50 rounded-2xl transition">Batal</button>
+                <button id="btn-save" onclick="simpanProdukLengkap()" class="flex-[2] bg-rose-500 text-white py-4 rounded-2xl font-black shadow-xl shadow-rose-200 hover:bg-rose-600 transition-all uppercase tracking-widest">Simpan Data</button>
             </div>
         </div>
     </div>
@@ -163,8 +172,6 @@
             masterBahan = bahan || [];
             document.getElementById('select-bahan').innerHTML = masterBahan.map(b => `<option value="${b.id}">${b.nama_bahan} (${b.satuan})</option>`).join('');
             loadProduk();
-            
-            // Hitung margin real-time saat input harga berubah
             document.getElementById('p-harga').addEventListener('input', hitungHppDanMargin);
         }
 
@@ -177,27 +184,27 @@
         function renderGrid(data) {
             const grid = document.getElementById('produk-list');
             grid.innerHTML = data.map(p => {
-                const stokLow = p.stok <= 10;
+                const isLow = p.stok <= 10;
                 return `
-                <div class="product-card bg-white rounded-[2rem] border-2 border-slate-100 overflow-hidden shadow-sm flex flex-col">
-                    <div class="h-44 bg-slate-100 relative">
-                        <img src="${p.image_url || 'https://images.unsplash.com/photo-1551024601-bec78aea704b?q=80&w=300'}" class="w-full h-full object-cover">
-                        <div class="absolute bottom-4 left-4 bg-white/95 backdrop-blur px-3 py-1 rounded-lg shadow-sm border border-slate-100">
-                            <p class="text-[11px] font-black text-slate-900">Rp ${Number(p.harga).toLocaleString('id-ID')}</p>
+                <div class="product-card bg-white rounded-[2rem] border-slate-100 overflow-hidden shadow-sm flex flex-col">
+                    <div class="h-44 bg-slate-100 relative overflow-hidden">
+                        <img src="${p.image_url || 'https://via.placeholder.com/300'}" class="w-full h-full object-cover">
+                        <div class="absolute top-4 right-4 bg-slate-900 text-white px-3 py-1 rounded-lg text-[10px] font-black shadow-lg">
+                            Rp ${Number(p.harga).toLocaleString()}
                         </div>
                     </div>
                     <div class="p-5 flex-1 flex flex-col">
                         <div class="flex justify-between items-start mb-4">
                             <h4 class="font-black text-slate-800 leading-tight">${p.nama}</h4>
-                            <span class="text-[10px] font-black uppercase ${stokLow ? 'text-rose-500 bg-rose-50' : 'text-emerald-500 bg-emerald-50'} px-2 py-1 rounded-md">
+                            <span class="text-[10px] font-black ${isLow ? 'text-rose-500 bg-rose-50' : 'text-emerald-500 bg-emerald-50'} px-2 py-1 rounded-md">
                                 ${p.stok} Pcs
                             </span>
                         </div>
-                        <div class="mt-auto flex gap-2 pt-4 border-t border-slate-50">
-                            <button onclick="bukaModalEdit(${p.id})" class="flex-1 bg-slate-50 hover:bg-blue-600 text-slate-400 hover:text-white py-2.5 rounded-xl font-bold text-[11px] transition-all flex items-center justify-center gap-2 border border-slate-100">
+                        <div class="mt-auto flex gap-2 pt-4 border-t border-slate-100">
+                            <button onclick="bukaModalEdit(${p.id})" class="flex-1 bg-slate-50 hover:bg-blue-600 text-slate-600 hover:text-white py-2 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-2">
                                 <i data-lucide="edit-3" class="w-3.5 h-3.5"></i> Edit
                             </button>
-                            <button onclick="hapusProduk(${p.id})" class="flex-1 bg-slate-50 hover:bg-rose-600 text-slate-400 hover:text-white py-2.5 rounded-xl font-bold text-[11px] transition-all flex items-center justify-center gap-2 border border-slate-100">
+                            <button onclick="hapusProduk(${p.id})" class="flex-1 bg-slate-50 hover:bg-rose-600 text-slate-400 hover:text-white py-2 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-2">
                                 <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Hapus
                             </button>
                         </div>
@@ -207,12 +214,32 @@
             lucide.createIcons();
         }
 
-        function filterTabel() {
-            const keyword = document.getElementById('cari-produk').value.toLowerCase();
-            const filtered = allProduk.filter(p => p.nama.toLowerCase().includes(keyword));
-            renderGrid(filtered);
+        // --- Fitur Upload Gambar ---
+        document.getElementById('p-file').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = e => document.getElementById('img-preview').src = e.target.result;
+                reader.readAsDataURL(file);
+            }
+        });
+
+        async function uploadKeSupabase(file) {
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${Date.now()}.${fileExt}`;
+            const filePath = `produk/${fileName}`;
+
+            const { data, error } = await _supabase.storage
+                .from('images')
+                .upload(filePath, file);
+
+            if (error) throw error;
+
+            const { data: { publicUrl } } = _supabase.storage.from('images').getPublicUrl(filePath);
+            return publicUrl;
         }
 
+        // --- Logika HPP & Resep ---
         function tambahBahanKeList() {
             const id = document.getElementById('select-bahan').value;
             const qty = parseFloat(document.getElementById('gram-pakai').value);
@@ -220,14 +247,7 @@
             if(!qty || !bahan) return;
 
             const cost = (bahan.harga_beli_per_gram || 0) * qty;
-            resepTemp.push({ 
-                id: bahan.id, 
-                nama_bahan: bahan.nama_bahan, 
-                satuan: bahan.satuan, 
-                harga_beli_per_gram: bahan.harga_beli_per_gram, 
-                qty_resep: qty, 
-                cost_resep: cost 
-            });
+            resepTemp.push({ id: bahan.id, nama_bahan: bahan.nama_bahan, satuan: bahan.satuan, harga_beli_per_gram: bahan.harga_beli_per_gram, qty_resep: qty, cost_resep: cost });
             renderTempResep();
             document.getElementById('gram-pakai').value = '';
         }
@@ -235,17 +255,14 @@
         function renderTempResep() {
             const container = document.getElementById('temp-resep-list');
             container.innerHTML = resepTemp.map((item, index) => `
-                <div class="flex justify-between items-center bg-white p-4 rounded-2xl border-2 border-slate-50 shadow-sm animate-in fade-in slide-in-from-right-2">
+                <div class="flex justify-between items-center bg-white p-3 rounded-xl border border-slate-100 mb-2">
                     <div>
-                        <p class="text-[11px] font-black text-slate-900">${item.nama_bahan}</p>
-                        <p class="text-[10px] text-slate-400 font-bold uppercase">${item.qty_resep} ${item.satuan} • Cost: Rp ${Math.round(item.cost_resep).toLocaleString()}</p>
+                        <p class="text-xs font-black text-slate-800">${item.nama_bahan}</p>
+                        <p class="text-[10px] text-slate-400 font-bold">${item.qty_resep} ${item.satuan} • Rp ${Math.round(item.cost_resep).toLocaleString()}</p>
                     </div>
-                    <button onclick="resepTemp.splice(${index}, 1); renderTempResep()" class="text-slate-300 hover:text-rose-600 transition-colors p-1">
-                        <i data-lucide="trash-2" class="w-4 h-4"></i>
-                    </button>
+                    <button onclick="resepTemp.splice(${index}, 1); renderTempResep()" class="text-slate-300 hover:text-rose-500 transition-colors"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                 </div>
-            `).join('') || `<div class="flex flex-col items-center justify-center h-full opacity-20"><i data-lucide="cookie" class="w-10 h-10 mb-2"></i><p class="text-[10px] font-bold">NO INGREDIENTS ADDED</p></div>`;
-            
+            `).join('') || `<p class="text-center text-slate-300 text-[10px] font-bold mt-10">BELUM ADA BAHAN</p>`;
             hitungHppDanMargin();
             lucide.createIcons();
         }
@@ -253,33 +270,35 @@
         function hitungHppDanMargin() {
             const totalHpp = resepTemp.reduce((a, b) => a + b.cost_resep, 0);
             const hargaJual = parseFloat(document.getElementById('p-harga').value) || 0;
-            
             document.getElementById('estimasi-hpp').innerText = `Rp ${Math.round(totalHpp).toLocaleString('id-ID')}`;
-            
             if(hargaJual > 0) {
                 const margin = ((hargaJual - totalHpp) / hargaJual) * 100;
-                const marginLabel = document.getElementById('label-margin');
-                marginLabel.innerText = `${margin.toFixed(1)}%`;
-                marginLabel.className = margin < 30 ? 'text-xs font-bold text-rose-400' : 'text-xs font-bold text-emerald-400';
+                document.getElementById('label-margin').innerText = `${margin.toFixed(1)}%`;
             }
         }
 
+        // --- Save & Edit ---
         async function simpanProdukLengkap() {
             const id = document.getElementById('p-id').value;
             const btn = document.getElementById('btn-save');
-            const payload = { 
-                nama: document.getElementById('p-nama').value, 
-                harga: document.getElementById('p-harga').value, 
-                stok: document.getElementById('p-stok').value || 0, 
-                image_url: document.getElementById('p-image').value 
-            };
+            const fileInput = document.getElementById('p-file');
+            let imageUrl = document.getElementById('p-image').value;
 
-            if(!payload.nama || !payload.harga) return alert("Nama dan Harga wajib diisi!");
+            if(!document.getElementById('p-nama').value) return alert("Nama produk wajib diisi!");
 
-            btn.innerText = "Saving Data...";
+            btn.innerText = "Processing...";
             btn.disabled = true;
 
             try {
+                if (fileInput.files.length > 0) imageUrl = await uploadKeSupabase(fileInput.files[0]);
+
+                const payload = { 
+                    nama: document.getElementById('p-nama').value, 
+                    harga: document.getElementById('p-harga').value, 
+                    stok: document.getElementById('p-stok').value || 0, 
+                    image_url: imageUrl 
+                };
+
                 let resultId = id;
                 if(id) {
                     await _supabase.from('produk').update(payload).eq('id', id);
@@ -299,7 +318,7 @@
             } catch (err) {
                 alert("Error: " + err.message);
             } finally {
-                btn.innerText = "Save Menu variant";
+                btn.innerText = "Simpan Data";
                 btn.disabled = false;
             }
         }
@@ -312,27 +331,38 @@
             document.getElementById('p-harga').value = p.harga;
             document.getElementById('p-stok').value = p.stok;
             document.getElementById('p-image').value = p.image_url;
+            document.getElementById('img-preview').src = p.image_url || 'https://via.placeholder.com/150';
 
             const { data: resep } = await _supabase.from('resep').select('*, bahan(*)').eq('produk_id', id);
-            if(resep) {
-                resepTemp = resep.map(r => ({
-                    id: r.bahan_id,
-                    nama_bahan: r.bahan.nama_bahan,
-                    satuan: r.bahan.satuan,
-                    harga_beli_per_gram: r.bahan.harga_beli_per_gram,
-                    qty_resep: r.jumlah_dibutuhkan,
-                    cost_resep: r.jumlah_dibutuhkan * (r.bahan.harga_beli_per_gram || 0)
-                }));
-            }
+            resepTemp = resep ? resep.map(r => ({
+                id: r.bahan_id,
+                nama_bahan: r.bahan.nama_bahan,
+                satuan: r.bahan.satuan,
+                harga_beli_per_gram: r.bahan.harga_beli_per_gram,
+                qty_resep: r.jumlah_dibutuhkan,
+                cost_resep: r.jumlah_dibutuhkan * (r.bahan.harga_beli_per_gram || 0)
+            })) : [];
             renderTempResep();
         }
 
+        function filterTabel() {
+            const kw = document.getElementById('cari-produk').value.toLowerCase();
+            renderGrid(allProduk.filter(p => p.nama.toLowerCase().includes(kw)));
+        }
+
         async function hapusProduk(id) {
-            if(confirm('Hapus produk dan data resep terkait?')) {
+            if(confirm('Hapus produk ini?')) {
                 await _supabase.from('resep').delete().eq('produk_id', id);
                 await _supabase.from('produk').delete().eq('id', id);
                 loadProduk();
             }
+        }
+
+        function exportExcel() {
+            const ws = XLSX.utils.json_to_sheet(allProduk);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Produk");
+            XLSX.writeFile(wb, "Data_Produk_Donuts.xlsx");
         }
 
         function bukaModal() { 
@@ -342,18 +372,11 @@
             document.getElementById('p-harga').value = '';
             document.getElementById('p-stok').value = '0';
             document.getElementById('p-image').value = '';
-            resepTemp = []; 
-            renderTempResep();
+            document.getElementById('p-file').value = '';
+            document.getElementById('img-preview').src = 'https://via.placeholder.com/150';
+            resepTemp = []; renderTempResep();
         }
-        
         function tutupModal() { document.getElementById('modal-produk').classList.add('hidden'); }
-
-        function exportExcel() {
-            const worksheet = XLSX.utils.json_to_sheet(allProduk);
-            const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, "Inventory");
-            XLSX.writeFile(workbook, "Donuts_Product_Data.xlsx");
-        }
 
         init();
     </script>
