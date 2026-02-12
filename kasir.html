@@ -190,43 +190,52 @@
             lucide.createIcons();
         }
 
-        async function prosesCheckout() {
-            const btn = document.getElementById('btn-bayar');
-            const sub = cart.reduce((a, b) => a + (b.harga * b.qty), 0);
-            const ppnNominal = sub * ppnRate;
-            const discNominal = sub * discRate;
-            const total = sub + ppnNominal - discNominal;
-            const bankId = document.getElementById('select-bank').value;
+       async function prosesCheckout() {
+    const btn = document.getElementById('btn-bayar');
+    const sub = cart.reduce((a, b) => a + (b.harga * b.qty), 0);
+    const ppnNominal = sub * ppnRate;
+    const discNominal = sub * discRate;
+    const total = sub + ppnNominal - discNominal;
+    const bankId = document.getElementById('select-bank').value;
 
-            btn.innerText = "Processing...";
-            btn.disabled = true;
+    btn.innerText = "Processing...";
+    btn.disabled = true;
 
-            try {
-                const { data: trx, error: errTrx } = await _supabase.from('transaksi').insert([{
-                    total_harga: total,
-                    total_qty: cart.reduce((a, b) => a + b.qty, 0),
-                    diskon_nominal: discNominal,
-                    bank_id: bankId,
-                    detail_item: cart.map(i => `${i.qty}x ${i.nama}`).join(', '),
-                    items: cart
-                }]).select().single();
+    try {
+        // PERBAIKAN DI SINI: Menambahkan pajak_nominal dan total_akhir
+        const { data: trx, error: errTrx } = await _supabase.from('transaksi').insert([{
+            total_harga: sub,             // Nilai kotor (sebelum pajak/diskon)
+            pajak_nominal: ppnNominal,    // BARU: Mencatat nominal pajak ke DB
+            diskon_nominal: discNominal,
+            total_akhir: total,           // BARU: Total bersih yang dibayar
+            total_qty: cart.reduce((a, b) => a + b.qty, 0),
+            bank_id: bankId,
+            detail_item: cart.map(i => `${i.qty}x ${i.nama}`).join(', '),
+            items: cart
+        }]).select().single();
 
-                if(errTrx) throw errTrx;
+        if(errTrx) throw errTrx;
 
-                for (const item of cart) {
-                    await _supabase.rpc('proses_pengurangan_stok', {
-                        produk_id_input: item.id,
-                        qty_beli: item.qty
-                    });
-                }
-                showReceipt(trx, sub, ppnNominal, discNominal, total);
-            } catch (e) {
-                alert("Kesalahan: " + e.message);
-                btn.disabled = false;
-                btn.innerText = "Complete Payment";
-            }
+        // Proses pengurangan stok (tetap sama)
+        for (const item of cart) {
+            await _supabase.rpc('proses_pengurangan_stok', {
+                produk_id_input: item.id,
+                qty_beli: item.qty
+            });
         }
+        
+        showReceipt(trx, sub, ppnNominal, discNominal, total);
+        
+        // Opsional: Kosongkan keranjang setelah berhasil
+        cart = [];
+        renderCart();
 
+    } catch (e) {
+        alert("Kesalahan: " + e.message);
+        btn.disabled = false;
+        btn.innerText = "Complete Payment";
+    }
+}
         function showReceipt(trx, sub, ppn, disc, total) {
             const area = document.getElementById('print-area');
             const bankText = document.getElementById('select-bank').options[document.getElementById('select-bank').selectedIndex].text;
