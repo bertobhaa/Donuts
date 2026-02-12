@@ -7,6 +7,10 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+    
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
@@ -49,15 +53,25 @@
     <main class="flex-1 overflow-y-auto bg-slate-50">
         <header class="bg-white/80 backdrop-blur-md border-b border-slate-200 p-6 flex justify-between items-center sticky top-0 z-10">
             <div>
-                <h2 class="text-2xl font-bold">Master Resep</h2>
-                <p class="text-sm text-slate-500">Lihat komposisi bahan baku untuk setiap menu.</p>
+                <h2 class="text-2xl font-bold">Master Resep & Analisa HPP</h2>
+                <p class="text-sm text-slate-500">Pantau modal dan harga jual per menu.</p>
             </div>
-            <a href="produk.html" class="bg-slate-900 text-white px-6 py-3 rounded-2xl font-bold text-sm flex items-center gap-2 hover:bg-slate-800 transition">
-                <i data-lucide="edit-3" class="w-4 h-4"></i> Atur Resep di Produk
-            </a>
+            <div class="flex gap-3">
+                <button onclick="exportExcel()" class="bg-emerald-600 text-white px-4 py-2 rounded-xl font-bold text-xs flex items-center gap-2 hover:bg-emerald-700 transition">
+                    <i data-lucide="file-spreadsheet" class="w-4 h-4"></i> Excel
+                </button>
+                <button onclick="exportPDF()" class="bg-rose-600 text-white px-4 py-2 rounded-xl font-bold text-xs flex items-center gap-2 hover:bg-rose-700 transition">
+                    <i data-lucide="file-text" class="w-4 h-4"></i> PDF
+                </button>
+            </div>
         </header>
 
         <div class="p-8">
+            <div class="mb-8 relative max-w-md">
+                <i data-lucide="search" class="w-5 h-5 absolute left-4 top-3.5 text-slate-400"></i>
+                <input type="text" id="search-input" onkeyup="filterResep()" placeholder="Cari produk berdasarkan nama..." class="w-full bg-white border border-slate-200 rounded-2xl py-3.5 pl-12 pr-4 outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-all shadow-sm">
+            </div>
+
             <div id="resep-container" class="grid grid-cols-1 md:grid-cols-2 gap-8">
                 </div>
         </div>
@@ -68,56 +82,72 @@
         const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJra3BrZnZjc3NkbWdubmNycmh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA3OTQ4OTIsImV4cCI6MjA4NjM3MDg5Mn0.VeE2IZhQmTyKMMQI4Ukh0nt6YHR2zVs_nUnjtPt-GPQ";
         const _supabase = supabase.createClient(SB_URL, SB_KEY);
 
+        let masterData = [];
+
         async function loadResepMaster() {
-            // Kita ambil data produk dan join dengan resep serta bahan
-            const { data: produkWithResep, error } = await _supabase
+            const { data, error } = await _supabase
                 .from('produk')
                 .select(`
-                    id,
-                    nama,
-                    image_url,
+                    id, nama, image_url, harga,
                     resep (
-                        id,
-                        jumlah_dibutuhkan,
-                        bahan (
-                            nama_bahan,
-                            satuan
-                        )
+                        id, jumlah_dibutuhkan,
+                        bahan ( nama_bahan, satuan, harga_beli )
                     )
                 `);
 
             if (error) return console.error(error);
+            masterData = data;
+            renderResep(masterData);
+        }
 
+        function renderResep(data) {
             const container = document.getElementById('resep-container');
             container.innerHTML = '';
 
-            produkWithResep.forEach(p => {
-                if (p.resep.length === 0) return; // Lewati jika produk tidak punya resep
+            data.forEach(p => {
+                if (p.resep.length === 0) return;
 
-                let resepHtml = p.resep.map(r => `
-                    <div class="flex justify-between items-center py-2 border-b border-slate-50 last:border-0">
-                        <span class="text-sm font-medium text-slate-600">${r.bahan.nama_bahan}</span>
-                        <span class="text-sm font-bold text-slate-900">${r.jumlah_dibutuhkan} ${r.bahan.satuan}</span>
+                let totalHPP = 0;
+                let resepHtml = p.resep.map(r => {
+                    // Hitung HPP per bahan: (jumlah dibutuhkan * harga beli bahan)
+                    const costPerBahan = r.jumlah_dibutuhkan * (r.bahan.harga_beli || 0);
+                    totalHPP += costPerBahan;
+                    
+                    return `
+                    <div class="flex justify-between items-center py-2 border-b border-slate-100 last:border-0">
+                        <div>
+                            <p class="text-sm font-medium text-slate-700">${r.bahan.nama_bahan}</p>
+                            <p class="text-[10px] text-slate-400">${r.jumlah_dibutuhkan} ${r.bahan.satuan}</p>
+                        </div>
+                        <span class="text-xs font-semibold text-slate-600">Rp ${costPerBahan.toLocaleString()}</span>
                     </div>
-                `).join('');
+                    `;
+                }).join('');
+
+                const margin = p.harga - totalHPP;
+                const marginPercent = ((margin / p.harga) * 100).toFixed(1);
 
                 container.innerHTML += `
-                    <div class="bg-white rounded-[2.5rem] p-6 shadow-sm border border-slate-100 flex flex-col sm:flex-row gap-6">
-                        <div class="w-24 h-24 bg-slate-50 rounded-3xl overflow-hidden flex-shrink-0">
-                            <img src="${p.image_url || 'https://images.unsplash.com/photo-1551024601-bec78aea704b?q=80&w=200'}" class="w-full h-full object-cover">
-                        </div>
-                        <div class="flex-1">
-                            <div class="flex justify-between items-start mb-4">
-                                <div>
-                                    <h3 class="font-black text-lg text-slate-800">${p.nama}</h3>
-                                    <p class="text-[10px] text-rose-500 font-bold uppercase tracking-widest">Komposisi Resep</p>
-                                </div>
-                                <button onclick="hapusSeluruhResep(${p.id})" class="p-2 text-slate-300 hover:text-rose-500 transition-colors">
-                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
-                                </button>
+                    <div class="bg-white rounded-[2.5rem] p-6 shadow-sm border border-slate-100 flex flex-col gap-6 card-resep" data-name="${p.nama.toLowerCase()}">
+                        <div class="flex gap-4">
+                            <div class="w-20 h-20 bg-slate-100 rounded-3xl overflow-hidden flex-shrink-0">
+                                <img src="${p.image_url || 'https://images.unsplash.com/photo-1551024601-bec78aea704b?q=80&w=200'}" class="w-full h-full object-cover">
                             </div>
-                            <div class="bg-slate-50/50 rounded-2xl p-4">
-                                ${resepHtml}
+                            <div class="flex-1">
+                                <h3 class="font-black text-lg text-slate-800">${p.nama}</h3>
+                                <div class="flex gap-2 mt-1">
+                                    <span class="text-[10px] bg-slate-100 px-2 py-0.5 rounded-md font-bold text-slate-500">HPP: Rp ${totalHPP.toLocaleString()}</span>
+                                    <span class="text-[10px] bg-rose-50 px-2 py-0.5 rounded-md font-bold text-rose-500">JUAL: Rp ${p.harga.toLocaleString()}</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-slate-50/80 rounded-3xl p-4">
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">Komposisi & Estimasi Biaya</p>
+                            ${resepHtml}
+                            <div class="mt-4 pt-3 border-t-2 border-dashed border-slate-200 flex justify-between items-center">
+                                <span class="text-xs font-bold text-slate-500 text-rose-500">Estimasi Margin (${marginPercent}%)</span>
+                                <span class="text-sm font-black text-emerald-600">Rp ${margin.toLocaleString()}</span>
                             </div>
                         </div>
                     </div>
@@ -126,20 +156,54 @@
             lucide.createIcons();
         }
 
-        async function hapusSeluruhResep(produkId) {
-            if(confirm('Hapus seluruh resep untuk produk ini? Stok bahan tidak akan terpotong otomatis lagi untuk menu ini.')) {
-                const { error } = await _supabase
-                    .from('resep')
-                    .delete()
-                    .eq('produk_id', produkId);
-                
-                if(error) alert(error.message);
-                loadResepMaster();
-            }
+        function filterResep() {
+            const query = document.getElementById('search-input').value.toLowerCase();
+            const cards = document.querySelectorAll('.card-resep');
+            cards.forEach(card => {
+                const name = card.getAttribute('data-name');
+                card.style.display = name.includes(query) ? 'flex' : 'none';
+            });
+        }
+
+        // --- EXPORT FUNCTIONS ---
+        function exportExcel() {
+            const exportData = masterData.filter(p => p.resep.length > 0).map(p => {
+                let hpp = p.resep.reduce((sum, r) => sum + (r.jumlah_dibutuhkan * r.bahan.harga_beli), 0);
+                return {
+                    "Nama Produk": p.nama,
+                    "Harga Jual": p.harga,
+                    "Total HPP": hpp,
+                    "Margin Rp": p.harga - hpp,
+                    "Margin %": (((p.harga - hpp) / p.harga) * 100).toFixed(2) + "%"
+                };
+            });
+            const ws = XLSX.utils.json_to_sheet(exportData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Laporan HPP");
+            XLSX.writeFile(wb, "Laporan_HPP_Donuts.xlsx");
+        }
+
+        function exportPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            doc.text("Laporan Analisa HPP & Resep", 14, 15);
+            
+            const rows = masterData.filter(p => p.resep.length > 0).map(p => {
+                let hpp = p.resep.reduce((sum, r) => sum + (r.jumlah_dibutuhkan * r.bahan.harga_beli), 0);
+                return [p.nama, `Rp ${p.harga.toLocaleString()}`, `Rp ${hpp.toLocaleString()}`, `Rp ${(p.harga - hpp).toLocaleString()}`, `${(((p.harga - hpp) / p.harga) * 100).toFixed(1)}%` ];
+            });
+
+            doc.autoTable({
+                head: [['Produk', 'Harga Jual', 'Total HPP', 'Margin (Rp)', 'Margin (%)']],
+                body: rows,
+                startY: 25,
+                theme: 'striped',
+                headStyles: { fillColor: [225, 29, 72] }
+            });
+            doc.save("Laporan_HPP_Donuts.pdf");
         }
 
         loadResepMaster();
-        lucide.createIcons();
     </script>
 </body>
 </html>
