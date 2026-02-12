@@ -74,167 +74,187 @@
 
     <div id="print-area" class="hidden font-mono p-4 text-[10px] w-[300px]"></div>
 
-    <script>
-        const SB_URL = "https://bkkpkfvcssdmgnncrrhu.supabase.co";
-        const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJra3BrZnZjc3NkbWdubmNycmh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA3OTQ4OTIsImV4cCI6MjA4NjM3MDg5Mn0.VeE2IZhQmTyKMMQI4Ukh0nt6YHR2zVs_nUnjtPt-GPQ";
-        const _supabase = supabase.createClient(SB_URL, SB_KEY);
+   <script>
+    const SB_URL = "https://bkkpkfvcssdmgnncrrhu.supabase.co";
+    const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJra3BrZnZjc3NkbWdubmNycmh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA3OTQ4OTIsImV4cCI6MjA4NjM3MDg5Mn0.VeE2IZhQmTyKMMQI4Ukh0nt6YHR2zVs_nUnjtPt-GPQ";
+    const _supabase = supabase.createClient(SB_URL, SB_KEY);
 
-        let reportData = [];
-        let summary = { jual: 0, hpp: 0, margin: 0, disc: 0, ppn: 0, cash: 0, transfer: 0, netto: 0 };
+    let reportData = [];
+    let summary = { bruto: 0, hpp: 0, margin: 0, disc: 0, ppn: 0, netto: 0 };
 
-        async function fetchLaporan() {
-            const start = document.getElementById('filter-start').value;
-            const end = document.getElementById('filter-end').value;
-            const body = document.getElementById('laporan-body');
-            body.innerHTML = '<tr><td colspan="7" class="p-10 text-center opacity-50 italic">Sinkronisasi data...</td></tr>';
+    async function fetchLaporan() {
+        const start = document.getElementById('filter-start').value;
+        const end = document.getElementById('filter-end').value;
+        const body = document.getElementById('laporan-body');
+        body.innerHTML = '<tr><td colspan="7" class="p-10 text-center opacity-50 italic">Sinkronisasi data...</td></tr>';
 
-            try {
-                const { data: pData } = await _supabase.from('produk').select('id, resep(jumlah_dibutuhkan, bahan(harga_beli_per_gram))');
-                const hppLookup = {};
-                pData?.forEach(p => {
-                    let m = 0; p.resep?.forEach(r => m += ((r.jumlah_dibutuhkan || 0) * (r.bahan?.harga_beli_per_gram || 0)));
-                    hppLookup[p.id] = m;
-                });
+        try {
+            const { data: pData } = await _supabase.from('produk').select('id, resep(jumlah_dibutuhkan, bahan(harga_beli_per_gram))');
+            const hppLookup = {};
+            pData?.forEach(p => {
+                let m = 0; p.resep?.forEach(r => m += ((r.jumlah_dibutuhkan || 0) * (r.bahan?.harga_beli_per_gram || 0)));
+                hppLookup[p.id] = m;
+            });
 
-                const { data: bData } = await _supabase.from('bank_payment').select('id, nama_metode');
-                const bankLookup = {}; bData?.forEach(b => bankLookup[b.id] = b.nama_metode);
+            const { data: bData } = await _supabase.from('bank_payment').select('id, nama_metode');
+            const bankLookup = {}; bData?.forEach(b => bankLookup[b.id] = b.nama_metode);
 
-                let q = _supabase.from('transaksi').select('*').order('created_at', { ascending: false });
-                if (start) q = q.gte('created_at', start + 'T00:00:00');
-                if (end) q = q.lte('created_at', end + 'T23:59:59');
+            let q = _supabase.from('transaksi').select('*').order('created_at', { ascending: false });
+            if (start) q = q.gte('created_at', start + 'T00:00:00');
+            if (end) q = q.lte('created_at', end + 'T23:59:59');
 
-                const { data: trx, error } = await q;
-                if (error) throw error;
+            const { data: trx, error } = await q;
+            if (error) throw error;
 
-                summary = { jual: 0, hpp: 0, margin: 0, disc: 0, ppn: 0, cash: 0, transfer: 0, netto: 0 };
+            // Reset Summary
+            summary = { bruto: 0, hpp: 0, margin: 0, disc: 0, ppn: 0, netto: 0 };
 
-                reportData = trx.map(t => {
-                    const items = Array.isArray(t.items) ? t.items : JSON.parse(t.items || "[]");
-                    let tHpp = 0;
-                    items.forEach(i => tHpp += (hppLookup[i.id] || 0) * (i.qty || 0));
+            reportData = trx.map(t => {
+                const items = Array.isArray(t.items) ? t.items : JSON.parse(t.items || "[]");
+                let tHpp = 0;
+                items.forEach(i => tHpp += (hppLookup[i.id] || 0) * (i.qty || 0));
 
-                    const taxVal = t.pajak_nominal || 0;
-                    const discVal = t.diskon_nominal || 0;
-                    const totalJual = t.total_harga || 0;
-                    const totalAkhir = t.total_harga || 0;
+                const netto = t.total_harga || 0; // Netto (Final)
+                const discVal = t.diskon_nominal || 0;
+                const taxVal = t.pajak_nominal || 0;
+                
+                // Hitung mundur: Bruto = Netto + Diskon - Pajak
+                const bruto = netto + discVal - taxVal;
 
-                    summary.jual += totalJual;
-                    summary.hpp += tHpp;
-                    summary.ppn += taxVal;
-                    summary.disc += discVal;
-                    summary.netto += totalAkhir;
-                    summary.margin += (totalJual - tHpp - discVal);
+                summary.bruto += bruto;
+                summary.hpp += tHpp;
+                summary.ppn += taxVal;
+                summary.disc += discVal;
+                summary.netto += netto;
+                summary.margin += (netto - tHpp); // Laba Bersih = Netto - Modal Bahan
 
-                    const mtd = bankLookup[t.bank_id] || 'Cash';
-                    if(mtd.toLowerCase().includes('cash')) summary.cash += totalAkhir; 
-                    else summary.transfer += totalAkhir;
+                return { 
+                    ...t, 
+                    calculatedHpp: tHpp, 
+                    metode: bankLookup[t.bank_id] || 'Cash',
+                    v_bruto: bruto,
+                    v_netto: netto
+                };
+            });
 
-                    return { ...t, items, calculatedHpp: tHpp, metode: mtd, ppn_fix: taxVal, t_akhir: totalAkhir, t_harga: totalJual, d_nom: discVal };
-                });
-
-                renderTable();
-            } catch (e) { alert(e.message); }
+            renderTable();
+        } catch (e) { 
+            alert(e.message); 
+            body.innerHTML = '<tr><td colspan="7" class="p-10 text-center text-red-500">Gagal memuat data</td></tr>';
         }
+    }
 
-        function renderTable() {
-            const body = document.getElementById('laporan-body');
-            body.innerHTML = reportData.map((d, idx) => `
-                <tr class="border-b border-slate-50 hover:bg-slate-50 transition-colors">
-                    <td class="p-5 text-slate-400 text-xs">${new Date(d.created_at).toLocaleString('id-ID')}</td>
-                    <td class="p-5"><span class="px-3 py-1 bg-slate-100 rounded-full text-[10px] uppercase font-black">${d.metode}</span></td>
-                    <td class="p-5 font-bold italic text-rose-500">#${d.id}</td>
-                    <td class="p-5 text-right text-slate-400">Rp ${(d.d_nom || 0).toLocaleString()}</td>
-                    <td class="p-5 text-right font-black">Rp ${(d.t_akhir || 0).toLocaleString()}</td>
-                    <td class="p-5 text-right text-emerald-600 font-black">Rp ${(d.t_harga - d.calculatedHpp - d.d_nom).toLocaleString()}</td>
-                    <td class="p-5 text-center no-print">
-                        <div class="flex justify-center gap-2">
-                            <button onclick="reprint(${idx})" class="p-2 bg-slate-100 rounded-lg hover:bg-rose-50 hover:text-rose-500 transition-all"><i data-lucide="printer" class="w-4 h-4"></i></button>
-                            <button onclick="voidTrx(${d.id})" class="p-2 bg-slate-100 rounded-lg hover:bg-red-50 hover:text-red-500 transition-all"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-                        </div>
-                    </td>
-                </tr>
-            `).join('');
-            lucide.createIcons();
+    function renderTable() {
+        const body = document.getElementById('laporan-body');
+        if (reportData.length === 0) {
+            body.innerHTML = '<tr><td colspan="7" class="p-10 text-center opacity-30">TIDAK ADA TRANSAKSI</td></tr>';
+            return;
         }
+        body.innerHTML = reportData.map((d, idx) => `
+            <tr class="border-b border-slate-50 hover:bg-slate-50 transition-colors">
+                <td class="p-5 text-slate-400 text-xs">${new Date(d.created_at).toLocaleString('id-ID')}</td>
+                <td class="p-5"><span class="px-3 py-1 bg-slate-100 rounded-full text-[10px] uppercase font-black">${d.metode}</span></td>
+                <td class="p-5 font-bold italic text-rose-500">#${d.id}</td>
+                <td class="p-5 text-right text-slate-400">Rp ${(d.diskon_nominal || 0).toLocaleString()}</td>
+                <td class="p-5 text-right font-black">Rp ${(d.v_netto).toLocaleString()}</td>
+                <td class="p-5 text-right text-emerald-600 font-black">Rp ${(d.v_netto - d.calculatedHpp).toLocaleString()}</td>
+                <td class="p-5 text-center no-print">
+                    <div class="flex justify-center gap-2">
+                        <button onclick="reprint(${idx})" class="p-2 bg-slate-100 rounded-lg hover:bg-rose-500 hover:text-white transition-all"><i data-lucide="printer" class="w-4 h-4"></i></button>
+                        <button onclick="voidTrx(${d.id})" class="p-2 bg-slate-100 rounded-lg hover:bg-red-600 hover:text-white transition-all"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                    </div>
+                </td>
+            </tr>
+        `).join('');
+        lucide.createIcons();
+    }
 
-        function exportExcel() {
-            if (reportData.length === 0) return alert("Filter data terlebih dahulu!");
-            const dataSheet = reportData.map(d => ({
-                "Waktu": new Date(d.created_at).toLocaleString('id-ID'),
-                "Nota": `#${d.id}`,
-                "Metode": d.metode,
-                "Subtotal": d.t_harga,
-                "Diskon": d.d_nom,
-                "Pajak": d.ppn_fix,
-                "Total Akhir": d.total_harga,
-                "Margin": d.t_harga - d.calculatedHpp - d.d_nom
-            }));
-            const ws = XLSX.utils.json_to_sheet(dataSheet);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Sales");
-            XLSX.writeFile(wb, "Laporan_Donuts.xlsx");
-        }
+    function exportPDF() {
+        if (reportData.length === 0) return alert("Filter data terlebih dahulu!");
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        
+        doc.setFontSize(18); doc.setTextColor(225, 29, 72);
+        doc.text("LAPORAN PENJUALAN DONUTS", 14, 20);
+        
+        // Ringkasan Sesuai Asumsi Anda
+        doc.autoTable({
+            startY: 30,
+            body: [
+                ["Total Penjualan Kotor (Bruto)", "Rp " + summary.bruto.toLocaleString()],
+                ["Total Diskon", "- Rp " + summary.disc.toLocaleString()],
+                ["Total PPN (Pajak)", "Rp " + summary.ppn.toLocaleString()],
+                ["Total HPP (Modal Bahan)", "- Rp " + summary.hpp.toLocaleString()],
+                ["------------------------------------", "-----------------------"],
+                ["GRAND TOTAL NETTO (Diterima)", "Rp " + summary.netto.toLocaleString()],
+                ["ESTIMASI LABA BERSIH", "Rp " + summary.margin.toLocaleString()]
+            ],
+            theme: 'plain', styles: { fontStyle: 'bold', fontSize: 10 }
+        });
 
-     function exportPDF() {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-    
-    // ... (kode header tetap sama)
+        doc.autoTable({
+            startY: doc.lastAutoTable.finalY + 10,
+            head: [["Tgl", "Nota", "Metode", "Diskon", "Netto", "Laba"]],
+            body: reportData.map(d => [
+                d.created_at.split('T')[0], 
+                `#${d.id}`, 
+                d.metode, 
+                (d.diskon_nominal || 0).toLocaleString(), 
+                d.v_netto.toLocaleString(), 
+                (d.v_netto - d.calculatedHpp).toLocaleString()
+            ]),
+            headStyles: { fillColor: [225, 29, 72] }
+        });
 
-    // TABEL RINGKASAN (Summary)
-    doc.autoTable({
-        startY: 35,
-        body: [
-            ["Total Penjualan Kotor", "Rp " + (summary.jual || 0).toLocaleString()],
-            ["Total Diskon", "- Rp " + (summary.disc || 0).toLocaleString()],
-            ["Total Pajak (PPN)", "Rp " + (summary.ppn || 0).toLocaleString()],
-            ["Total HPP", "Rp " + (summary.hpp || 0).toLocaleString()],
-            // MEMPERBAIKI GRAND TOTAL NETTO
-            ["GRAND TOTAL NETTO", "Rp " + (summary.jual || 0).toLocaleString()], 
-            ["TOTAL LABA BERSIH", "Rp " + (summary.margin || 0).toLocaleString()],
-        ],
-        theme: 'plain', 
-        styles: { fontStyle: 'bold' }
-    });
+        doc.save(`Laporan_Donuts_${Date.now()}.pdf`);
+    }
 
-    // TABEL DETAIL (Transactions)
-    doc.autoTable({
-        startY: doc.lastAutoTable.finalY + 10,
-        head: [["Tgl", "Nota", "Metode", "Diskon", "Total Akhir", "Margin"]],
-        body: reportData.map(d => [
-            d.created_at.split('T')[0], 
-            `#${d.id}`, 
-            d.metode, 
-            (d.d_nom || 0).toLocaleString(), 
-            // MEMPERBAIKI TOTAL AKHIR DI TABEL: Gunakan properti yang sesuai (t_akhir)
-            (d.total_harga || 0).toLocaleString(), 
-            (d.t_harga - d.calculatedHpp - d.d_nom).toLocaleString()
-        ]),
-        headStyles: { fillColor: [225, 29, 72] }
-    });
+    // Fungsi lainnya (exportExcel, voidTrx, reprint) tetap sama...
+    function exportExcel() {
+        if (reportData.length === 0) return alert("Filter data terlebih dahulu!");
+        const dataSheet = reportData.map(d => ({
+            "Waktu": new Date(d.created_at).toLocaleString('id-ID'),
+            "Nota": `#${d.id}`,
+            "Metode": d.metode,
+            "Netto": d.v_netto,
+            "Diskon": d.diskon_nominal,
+            "Pajak": d.pajak_nominal,
+            "Laba": d.v_netto - d.calculatedHpp
+        }));
+        const ws = XLSX.utils.json_to_sheet(dataSheet);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Sales");
+        XLSX.writeFile(wb, "Laporan_Donuts.xlsx");
+    }
 
-    doc.save(`Laporan_Detail_Donuts.pdf`);
-}
-        async function voidTrx(id) {
-            if(!confirm("Hapus transaksi ini?")) return;
-            try {
-                const { error } = await _supabase.from('transaksi').delete().eq('id', id);
-                if(error) throw error;
-                fetchLaporan();
-            } catch (e) { alert(e.message); }
-        }
+    async function voidTrx(id) {
+        if(!confirm("Hapus transaksi ini permanen?")) return;
+        try {
+            const { error } = await _supabase.from('transaksi').delete().eq('id', id);
+            if(error) throw error;
+            fetchLaporan();
+        } catch (e) { alert(e.message); }
+    }
 
-        function reprint(idx) {
-            const d = reportData[idx];
-            const area = document.getElementById('print-area');
-            area.innerHTML = `<div style="text-align:center"><b>DONUTS POS</b><br>#${d.id}</div><hr>...`;
-            window.print();
-        }
+    function reprint(idx) {
+        const d = reportData[idx];
+        const area = document.getElementById('print-area');
+        area.innerHTML = `
+            <div style="text-align:center; font-family:monospace;">
+                <h3>DONUTS POS</h3>
+                <p>#${d.id} | ${new Date(d.created_at).toLocaleString()}</p>
+                <hr>
+                <p>Total Netto: Rp ${d.v_netto.toLocaleString()}</p>
+                <p>Metode: ${d.metode}</p>
+            </div>
+        `;
+        window.print();
+    }
 
-        const now = new Date();
-        document.getElementById('filter-start').value = now.toISOString().split('T')[0];
-        document.getElementById('filter-end').value = now.toISOString().split('T')[0];
-        window.onload = () => { fetchLaporan(); lucide.createIcons(); };
-    </script>
+    const now = new Date();
+    document.getElementById('filter-start').value = now.toISOString().split('T')[0];
+    document.getElementById('filter-end').value = now.toISOString().split('T')[0];
+    window.onload = () => { fetchLaporan(); };
+</script>
 </body>
 </html>
