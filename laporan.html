@@ -4,14 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Laporan Pro - Donuts POS</title>
-    <link rel="icon" href="data:;base64,iVBORw0KGgo=">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
-    
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
@@ -37,8 +35,8 @@
                     <p class="text-slate-500 text-sm">Audit transaksi & performa margin</p>
                 </div>
                 <div class="flex gap-3">
-                    <button onclick="exportExcel()" class="bg-emerald-500 text-white px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-emerald-600 transition-all shadow-lg shadow-emerald-100 text-sm"><i data-lucide="file-spreadsheet" class="w-4 h-4"></i> Excel</button>
-                    <button onclick="exportPDF()" class="bg-slate-900 text-white px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-slate-800 transition-all shadow-lg shadow-slate-200 text-sm"><i data-lucide="printer" class="w-4 h-4"></i> Cetak PDF Laporan</button>
+                    <button onclick="exportExcel()" class="bg-emerald-500 text-white px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-emerald-600 shadow-lg text-sm"><i data-lucide="file-spreadsheet" class="w-4 h-4"></i> Excel</button>
+                    <button onclick="exportPDF()" class="bg-slate-900 text-white px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-slate-800 shadow-lg text-sm"><i data-lucide="printer" class="w-4 h-4"></i> Cetak PDF Laporan</button>
                 </div>
             </header>
 
@@ -60,6 +58,7 @@
                             <th class="p-5">Waktu</th>
                             <th class="p-5">Metode</th>
                             <th class="p-5">Items</th>
+                            <th class="p-5 text-right">Pajak</th>
                             <th class="p-5 text-right">Penjualan</th>
                             <th class="p-5 text-right">Margin</th>
                             <th class="p-5 text-center no-print">Aksi</th>
@@ -71,24 +70,21 @@
         </main>
     </div>
 
-    <div id="print-area" class="hidden font-mono p-4 text-[10px] w-[300px]"></div>
-
     <script>
         const SB_URL = "https://bkkpkfvcssdmgnncrrhu.supabase.co";
         const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJra3BrZnZjc3NkbWdubmNycmh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA3OTQ4OTIsImV4cCI6MjA4NjM3MDg5Mn0.VeE2IZhQmTyKMMQI4Ukh0nt6YHR2zVs_nUnjtPt-GPQ";
         const _supabase = supabase.createClient(SB_URL, SB_KEY);
 
         let reportData = [];
-        let summary = { jual: 0, hpp: 0, margin: 0, disc: 0, ppn: 0, cash: 0, transfer: 0 };
+        let summary = { jual: 0, hpp: 0, margin: 0, disc: 0, ppn: 0, cash: 0, transfer: 0, netto: 0 };
 
         async function fetchLaporan() {
             const start = document.getElementById('filter-start').value;
             const end = document.getElementById('filter-end').value;
             const body = document.getElementById('laporan-body');
-            body.innerHTML = '<tr><td colspan="6" class="p-10 text-center opacity-50 italic">Sinkronisasi data...</td></tr>';
+            body.innerHTML = '<tr><td colspan="7" class="p-10 text-center opacity-50 italic">Sinkronisasi data...</td></tr>';
 
             try {
-                // Get HPP Lookup
                 const { data: pData } = await _supabase.from('produk').select('id, resep(jumlah_dibutuhkan, bahan(harga_beli_per_gram))');
                 const hppLookup = {};
                 pData?.forEach(p => {
@@ -96,11 +92,9 @@
                     hppLookup[p.id] = m;
                 });
 
-                // Get Bank Methods
                 const { data: bData } = await _supabase.from('bank_payment').select('id, nama_metode');
                 const bankLookup = {}; bData?.forEach(b => bankLookup[b.id] = b.nama_metode);
 
-                // Get Transactions
                 let q = _supabase.from('transaksi').select('*').order('created_at', { ascending: false });
                 if (start) q = q.gte('created_at', start + 'T00:00:00');
                 if (end) q = q.lte('created_at', end + 'T23:59:59');
@@ -108,26 +102,29 @@
                 const { data: trx, error } = await q;
                 if (error) throw error;
 
-                // Reset Summary
-                summary = { jual: 0, hpp: 0, margin: 0, disc: 0, ppn: 0, cash: 0, transfer: 0 };
+                summary = { jual: 0, hpp: 0, margin: 0, disc: 0, ppn: 0, cash: 0, transfer: 0, netto: 0 };
 
                 reportData = trx.map(t => {
                     const items = Array.isArray(t.items) ? t.items : JSON.parse(t.items || "[]");
                     let tHpp = 0;
                     items.forEach(i => tHpp += (hppLookup[i.id] || 0) * i.qty);
 
-                    const ppn = t.total_harga * 0.11; // Contoh PPN 11%
+                    // MENGGUNAKAN pajak_nominal DARI DATABASE
+                    const taxVal = t.pajak_nominal || 0; 
+                    const diskonVal = t.diskon_nominal || 0;
+
                     summary.jual += t.total_harga;
                     summary.hpp += tHpp;
-                    summary.margin += (t.total_harga - tHpp);
-                    summary.disc += (t.diskon_nominal || 0);
-                    summary.ppn += ppn;
+                    summary.ppn += taxVal;
+                    summary.disc += diskonVal;
+                    summary.netto += t.total_akhir;
+                    summary.margin += (t.total_harga - tHpp - diskonVal);
 
                     const mtd = bankLookup[t.bank_id] || 'Cash';
-                    if(mtd.toLowerCase().includes('cash')) summary.cash += t.total_harga; 
-                    else summary.transfer += t.total_harga;
+                    if(mtd.toLowerCase().includes('cash')) summary.cash += t.total_akhir; 
+                    else summary.transfer += t.total_akhir;
 
-                    return { ...t, items, calculatedHpp: tHpp, metode: mtd, ppn: ppn };
+                    return { ...t, items, calculatedHpp: tHpp, metode: mtd, ppn_fix: taxVal };
                 });
 
                 renderTable();
@@ -141,95 +138,69 @@
                     <td class="p-5 text-slate-400 text-xs">${new Date(d.created_at).toLocaleString('id-ID')}</td>
                     <td class="p-5"><span class="px-3 py-1 bg-slate-100 rounded-full text-[10px] uppercase font-black">${d.metode}</span></td>
                     <td class="p-5 font-bold">${d.detail_item}</td>
-                    <td class="p-5 text-right font-black">Rp ${d.total_harga.toLocaleString()}</td>
-                    <td class="p-5 text-right text-emerald-600 font-black">Rp ${(d.total_harga - d.calculatedHpp).toLocaleString()}</td>
+                    <td class="p-5 text-right text-rose-400">Rp ${d.ppn_fix.toLocaleString()}</td>
+                    <td class="p-5 text-right font-black">Rp ${d.total_akhir.toLocaleString()}</td>
+                    <td class="p-5 text-right text-emerald-600 font-black">Rp ${(d.total_harga - d.calculatedHpp - (d.diskon_nominal || 0)).toLocaleString()}</td>
                     <td class="p-5 text-center no-print">
-                        <div class="flex justify-center gap-2">
-                            <button onclick="reprint(${idx})" class="p-2 bg-slate-100 rounded-lg hover:bg-rose-50 hover:text-rose-500 transition-all"><i data-lucide="printer" class="w-4 h-4"></i></button>
-                            <button onclick="voidTrx(${d.id})" class="p-2 bg-slate-100 rounded-lg hover:bg-red-50 hover:text-red-500 transition-all"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-                        </div>
+                        <button onclick="voidTrx(${d.id})" class="p-2 bg-slate-100 rounded-lg hover:bg-red-50 hover:text-red-500 transition-all"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                     </td>
                 </tr>
             `).join('');
             lucide.createIcons();
         }
 
-       async function voidTrx(id) {
-    const yakin = confirm("⚠️ PERINGATAN: Membatalkan transaksi ini akan menghapus data penjualan dan MENGEMBALIKAN STOK produk & bahan baku secara otomatis. Lanjutkan?");
-    
-    if(!yakin) return;
-
-    try {
-        const { error } = await _supabase
-            .from('transaksi')
-            .delete()
-            .eq('id', id);
-
-        if(error) throw error;
-
-        alert("Transaksi berhasil dibatalkan. Stok telah diperbarui.");
-        fetchLaporan(); // Refresh tabel
-    } catch (e) {
-        alert("Gagal melakukan void: " + e.message);
-    }
-}
-
-        function reprint(idx) {
-            const d = reportData[idx];
-            const area = document.getElementById('print-area');
-            area.innerHTML = `
-                <div style="text-align:center"><b>DONUTS POS</b><br>${d.tanggal || ''}</div>
-                <hr>
-                ${d.items.map(i => `<div>${i.qty}x ${i.nama} <span style="float:right">${(i.qty*i.harga).toLocaleString()}</span></div>`).join('')}
-                <hr>
-                <div>TOTAL <span style="float:right">Rp ${d.total_harga.toLocaleString()}</span></div>
-                <div style="text-align:center; margin-top:10px">DUPLICATE RECEIPT</div>
-            `;
-            window.print();
+        function exportExcel() {
+            if (reportData.length === 0) return alert("Pilih tanggal dan filter dulu!");
+            const dataExport = reportData.map(d => ({
+                "Waktu": new Date(d.created_at).toLocaleString('id-ID'),
+                "Metode": d.metode,
+                "Items": d.detail_item,
+                "Subtotal": d.total_harga,
+                "Diskon": d.diskon_nominal,
+                "Pajak (PPN)": d.ppn_fix,
+                "Total Akhir": d.total_akhir,
+                "Laba Bersih": d.total_harga - d.calculatedHpp - (d.diskon_nominal || 0)
+            }));
+            const ws = XLSX.utils.json_to_sheet(dataExport);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Sales");
+            XLSX.writeFile(wb, "Laporan_Donuts_POS.xlsx");
         }
 
         function exportPDF() {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
-            
             doc.setFontSize(18); doc.text("LAPORAN PENJUALAN DETAIL", 14, 20);
-            doc.setFontSize(10); doc.text(`Dicetak pada: ${new Date().toLocaleString()}`, 14, 28);
-
-            // Ringkasan Section
+            
             doc.autoTable({
-                startY: 35,
+                startY: 30,
                 body: [
                     ["Total Penjualan Kotor", "Rp " + summary.jual.toLocaleString()],
-                    ["Total Diskon Diberikan", "- Rp " + summary.disc.toLocaleString()],
-                    ["Estimasi PPN (11%)", "Rp " + summary.ppn.toLocaleString()],
-                    ["Total HPP (Bahan Baku)", "Rp " + summary.hpp.toLocaleString()],
-                    ["GRAND TOTAL NETTO", "Rp " + (summary.jual - summary.disc).toLocaleString()],
-                    ["TOTAL LABA BERSIH", "Rp " + summary.margin.toLocaleString()],
+                    ["Total Diskon", "- Rp " + summary.disc.toLocaleString()],
+                    ["Total Pajak (Pajak Nominal)", "Rp " + summary.ppn.toLocaleString()],
+                    ["Total HPP", "Rp " + summary.hpp.toLocaleString()],
+                    ["GRAND TOTAL NETTO", "Rp " + summary.netto.toLocaleString()],
+                    ["ESTIMASI LABA BERSIH", "Rp " + summary.margin.toLocaleString()],
                 ],
                 theme: 'plain', styles: { fontStyle: 'bold' }
             });
 
-            // Payment Summary
-            doc.text("Rincian Metode Pembayaran:", 14, doc.lastAutoTable.finalY + 10);
             doc.autoTable({
-                startY: doc.lastAutoTable.finalY + 12,
-                head: [["Cash/Tunai", "Transfer/Bank"]],
-                body: [["Rp "+summary.cash.toLocaleString(), "Rp "+summary.transfer.toLocaleString()]],
-                headStyles: { fillColor: [51, 65, 85] }
-            });
-
-            // Detail Table
-            doc.autoTable({
-                startY: doc.lastAutoTable.finalY + 15,
-                head: [["Tanggal", "Metode", "Item", "Total Jual", "Margin"]],
-                body: reportData.map(d => [d.created_at.split('T')[0], d.metode, d.detail_item, d.total_harga.toLocaleString(), (d.total_harga - d.calculatedHpp).toLocaleString()]),
+                startY: doc.lastAutoTable.finalY + 10,
+                head: [["Tanggal", "Metode", "Total Jual", "Pajak", "Netto"]],
+                body: reportData.map(d => [d.created_at.split('T')[0], d.metode, d.total_harga.toLocaleString(), d.ppn_fix.toLocaleString(), d.total_akhir.toLocaleString()]),
                 headStyles: { fillColor: [225, 29, 72] }
             });
 
             doc.save("Laporan_Detail_Donuts.pdf");
         }
 
-        // Init
+        async function voidTrx(id) {
+            if(!confirm("Batalkan transaksi ini?")) return;
+            const { error } = await _supabase.from('transaksi').delete().eq('id', id);
+            if(!error) { alert("Berhasil dihapus"); fetchLaporan(); }
+        }
+
         const now = new Date();
         document.getElementById('filter-start').value = now.toISOString().split('T')[0];
         document.getElementById('filter-end').value = now.toISOString().split('T')[0];
