@@ -207,7 +207,7 @@
             total_harga: sub,             // Nilai kotor (sebelum pajak/diskon)
             pajak_nominal: ppnNominal,    // BARU: Mencatat nominal pajak ke DB
             diskon_nominal: discNominal,
-            total_akhir: total,           // BARU: Total bersih yang dibayar
+            total_harga: total,           // BARU: Total bersih yang dibayar
             total_qty: cart.reduce((a, b) => a + b.qty, 0),
             bank_id: bankId,
             detail_item: cart.map(i => `${i.qty}x ${i.nama}`).join(', '),
