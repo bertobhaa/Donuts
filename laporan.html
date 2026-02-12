@@ -14,58 +14,68 @@
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
         @media print { .no-print { display: none; } }
+        .custom-scroll::-webkit-scrollbar { width: 6px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800">
 
     <div class="flex h-screen overflow-hidden">
-        <aside class="w-64 bg-white border-r border-slate-200 p-6 space-y-4 no-print">
-            <h1 class="text-2xl font-black italic text-rose-500 mb-8">Donuts.</h1>
+        <aside class="w-64 bg-white border-r border-slate-200 p-6 space-y-4 no-print flex-shrink-0">
+            <div class="flex items-center gap-3 mb-8">
+                <div class="bg-rose-500 p-2 rounded-xl shadow-lg shadow-rose-100">
+                    <span class="text-white text-xl">🍩</span>
+                </div>
+                <h1 class="text-xl font-black italic tracking-tighter text-slate-900">Donuts.</h1>
+            </div>
             <nav class="space-y-2">
-                <a href="index.html" class="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 font-bold text-slate-400"><i data-lucide="layout-grid"></i> Dashboard</a>
-                <a href="kasir.html" class="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 font-bold text-slate-400"><i data-lucide="shopping-cart"></i> Kasir</a>
-                <a href="laporan.html" class="flex items-center gap-3 p-3 rounded-xl bg-rose-50 text-rose-500 font-bold"><i data-lucide="file-text"></i> Laporan</a>
+                <a href="index.html" class="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 font-bold text-slate-400 transition-all"><i data-lucide="layout-grid" class="w-5 h-5"></i> Dashboard</a>
+                <a href="kasir.html" class="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 font-bold text-slate-400 transition-all"><i data-lucide="shopping-cart" class="w-5 h-5"></i> Kasir</a>
+                <a href="laporan.html" class="flex items-center gap-3 p-3 rounded-xl bg-rose-50 text-rose-600 font-bold shadow-sm shadow-rose-100"><i data-lucide="file-text" class="w-5 h-5"></i> Laporan</a>
             </nav>
         </aside>
 
-        <main class="flex-1 overflow-y-auto p-8">
+        <main class="flex-1 overflow-y-auto p-8 custom-scroll">
             <header class="flex justify-between items-end mb-8 no-print">
                 <div>
-                    <h2 class="text-3xl font-black tracking-tighter">Detail Penjualan</h2>
-                    <p class="text-slate-500 text-sm">Audit transaksi & performa margin</p>
+                    <h2 class="text-3xl font-black tracking-tighter text-slate-900">Audit Penjualan.</h2>
+                    <p class="text-slate-500 text-sm font-medium uppercase tracking-widest text-[10px]">Transaction Logs & Performance</p>
                 </div>
                 <div class="flex gap-3">
-                    <button onclick="exportExcel()" class="bg-emerald-500 text-white px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-emerald-600 shadow-lg text-sm"><i data-lucide="file-spreadsheet" class="w-4 h-4"></i> Excel</button>
-                    <button onclick="exportPDF()" class="bg-slate-900 text-white px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-slate-800 shadow-lg text-sm"><i data-lucide="printer" class="w-4 h-4"></i> Cetak PDF Laporan</button>
+                    <button onclick="exportExcel()" class="bg-emerald-500 text-white px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-emerald-600 transition-all shadow-lg shadow-emerald-50 text-sm"><i data-lucide="file-spreadsheet" class="w-4 h-4"></i> Export Excel</button>
+                    <button onclick="exportPDF()" class="bg-slate-900 text-white px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-slate-800 transition-all shadow-lg shadow-slate-200 text-sm"><i data-lucide="printer" class="w-4 h-4"></i> Simpan PDF</button>
                 </div>
             </header>
 
-            <div class="bg-white p-6 rounded-[2rem] border border-slate-100 mb-8 flex flex-wrap gap-4 items-end no-print">
+            <div class="bg-white p-6 rounded-[2rem] border border-slate-100 mb-8 flex flex-wrap gap-4 items-end no-print shadow-sm">
                 <div class="flex-1 min-w-[200px] space-y-2">
-                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Rentang Tanggal</label>
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Periode Transaksi</label>
                     <div class="flex gap-2">
-                        <input type="date" id="filter-start" class="w-full bg-slate-50 border-none rounded-xl p-3 text-sm font-bold">
-                        <input type="date" id="filter-end" class="w-full bg-slate-50 border-none rounded-xl p-3 text-sm font-bold">
+                        <input type="date" id="filter-start" class="w-full bg-slate-50 border-2 border-slate-50 rounded-2xl p-3 text-sm font-bold focus:border-rose-500 focus:bg-white outline-none transition-all">
+                        <input type="date" id="filter-end" class="w-full bg-slate-50 border-2 border-slate-50 rounded-2xl p-3 text-sm font-bold focus:border-rose-500 focus:bg-white outline-none transition-all">
                     </div>
                 </div>
-                <button onclick="fetchLaporan()" class="bg-rose-500 text-white px-8 py-3 rounded-xl font-black hover:bg-rose-600 transition-all">Filter</button>
+                <button onclick="fetchLaporan()" class="bg-rose-500 text-white px-10 py-3.5 rounded-2xl font-black hover:bg-rose-600 transition-all shadow-lg shadow-rose-100 uppercase text-xs tracking-widest">Terapkan Filter</button>
             </div>
 
             <div class="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
-                <table class="w-full text-left border-collapse" id="table-laporan">
-                    <thead>
-                        <tr class="bg-slate-50 text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                            <th class="p-5">Waktu</th>
-                            <th class="p-5">Metode</th>
-                            <th class="p-5">Items</th>
-                            <th class="p-5 text-right">Pajak</th>
-                            <th class="p-5 text-right">Penjualan</th>
-                            <th class="p-5 text-right">Margin</th>
-                            <th class="p-5 text-center no-print">Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody id="laporan-body" class="text-sm font-semibold"></tbody>
-                </table>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-50/50 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">
+                                <th class="p-6">Waktu</th>
+                                <th class="p-6">Metode</th>
+                                <th class="p-6">Menu Items</th>
+                                <th class="p-6 text-right">Pajak</th>
+                                <th class="p-6 text-right">Total Akhir</th>
+                                <th class="p-6 text-right">Estimasi Laba</th>
+                                <th class="p-6 text-center no-print">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="laporan-body" class="text-sm font-semibold text-slate-700">
+                            </tbody>
+                    </table>
+                </div>
             </div>
         </main>
     </div>
@@ -82,19 +92,24 @@
             const start = document.getElementById('filter-start').value;
             const end = document.getElementById('filter-end').value;
             const body = document.getElementById('laporan-body');
-            body.innerHTML = '<tr><td colspan="7" class="p-10 text-center opacity-50 italic">Sinkronisasi data...</td></tr>';
+            body.innerHTML = '<tr><td colspan="7" class="p-20 text-center opacity-50 italic font-bold">Menarik data dari server...</td></tr>';
 
             try {
+                // 1. Get HPP Data for Margin Calculation
                 const { data: pData } = await _supabase.from('produk').select('id, resep(jumlah_dibutuhkan, bahan(harga_beli_per_gram))');
                 const hppLookup = {};
                 pData?.forEach(p => {
-                    let m = 0; p.resep?.forEach(r => m += (r.jumlah_dibutuhkan * (r.bahan?.harga_beli_per_gram || 0)));
+                    let m = 0; 
+                    p.resep?.forEach(r => m += ( (r.jumlah_dibutuhkan || 0) * (r.bahan?.harga_beli_per_gram || 0) ));
                     hppLookup[p.id] = m;
                 });
 
+                // 2. Get Payment Methods Name
                 const { data: bData } = await _supabase.from('bank_payment').select('id, nama_metode');
-                const bankLookup = {}; bData?.forEach(b => bankLookup[b.id] = b.nama_metode);
+                const bankLookup = {}; 
+                bData?.forEach(b => bankLookup[b.id] = b.nama_metode);
 
+                // 3. Get Transactions
                 let q = _supabase.from('transaksi').select('*').order('created_at', { ascending: false });
                 if (start) q = q.gte('created_at', start + 'T00:00:00');
                 if (end) q = q.lte('created_at', end + 'T23:59:59');
@@ -102,47 +117,73 @@
                 const { data: trx, error } = await q;
                 if (error) throw error;
 
+                // Reset Summary
                 summary = { jual: 0, hpp: 0, margin: 0, disc: 0, ppn: 0, cash: 0, transfer: 0, netto: 0 };
 
                 reportData = trx.map(t => {
                     const items = Array.isArray(t.items) ? t.items : JSON.parse(t.items || "[]");
                     let tHpp = 0;
-                    items.forEach(i => tHpp += (hppLookup[i.id] || 0) * i.qty);
+                    items.forEach(i => tHpp += (hppLookup[i.id] || 0) * (i.qty || 0));
 
-                    // MENGGUNAKAN pajak_nominal DARI DATABASE
+                    // AMBIL pajak_nominal & PROTEKSI NILAI UNDEFINED
                     const taxVal = t.pajak_nominal || 0; 
                     const diskonVal = t.diskon_nominal || 0;
+                    const totalHargaRaw = t.total_harga || 0;
+                    const totalAkhirRaw = t.total_akhir || 0;
 
-                    summary.jual += t.total_harga;
+                    summary.jual += totalHargaRaw;
                     summary.hpp += tHpp;
                     summary.ppn += taxVal;
                     summary.disc += diskonVal;
-                    summary.netto += t.total_akhir;
-                    summary.margin += (t.total_harga - tHpp - diskonVal);
+                    summary.netto += totalAkhirRaw;
+                    summary.margin += (totalHargaRaw - tHpp - diskonVal);
 
                     const mtd = bankLookup[t.bank_id] || 'Cash';
-                    if(mtd.toLowerCase().includes('cash')) summary.cash += t.total_akhir; 
-                    else summary.transfer += t.total_akhir;
+                    if(mtd.toLowerCase().includes('cash')) summary.cash += totalAkhirRaw; 
+                    else summary.transfer += totalAkhirRaw;
 
-                    return { ...t, items, calculatedHpp: tHpp, metode: mtd, ppn_fix: taxVal };
+                    return { ...t, items, calculatedHpp: tHpp, metode: mtd, ppn_fix: taxVal, t_harga: totalHargaRaw, t_akhir: totalAkhirRaw, d_nom: diskonVal };
                 });
 
                 renderTable();
-            } catch (e) { alert(e.message); }
+            } catch (e) { 
+                alert("Gagal memuat laporan: " + e.message); 
+                body.innerHTML = '';
+            }
         }
 
         function renderTable() {
             const body = document.getElementById('laporan-body');
+            if (reportData.length === 0) {
+                body.innerHTML = '<tr><td colspan="7" class="p-20 text-center opacity-30 font-bold">TIDAK ADA TRANSAKSI PADA PERIODE INI</td></tr>';
+                return;
+            }
+
             body.innerHTML = reportData.map((d, idx) => `
-                <tr class="border-b border-slate-50 hover:bg-slate-50 transition-colors">
-                    <td class="p-5 text-slate-400 text-xs">${new Date(d.created_at).toLocaleString('id-ID')}</td>
-                    <td class="p-5"><span class="px-3 py-1 bg-slate-100 rounded-full text-[10px] uppercase font-black">${d.metode}</span></td>
-                    <td class="p-5 font-bold">${d.detail_item}</td>
-                    <td class="p-5 text-right text-rose-400">Rp ${d.ppn_fix.toLocaleString()}</td>
-                    <td class="p-5 text-right font-black">Rp ${d.total_akhir.toLocaleString()}</td>
-                    <td class="p-5 text-right text-emerald-600 font-black">Rp ${(d.total_harga - d.calculatedHpp - (d.diskon_nominal || 0)).toLocaleString()}</td>
-                    <td class="p-5 text-center no-print">
-                        <button onclick="voidTrx(${d.id})" class="p-2 bg-slate-100 rounded-lg hover:bg-red-50 hover:text-red-500 transition-all"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                <tr class="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
+                    <td class="p-6 text-slate-400 text-[11px] font-bold uppercase tracking-tighter">
+                        ${new Date(d.created_at).toLocaleDateString('id-ID')} <br> 
+                        <span class="text-slate-300 font-medium">${new Date(d.created_at).toLocaleTimeString('id-ID')}</span>
+                    </td>
+                    <td class="p-6">
+                        <span class="px-3 py-1 bg-slate-100 text-slate-600 rounded-lg text-[10px] uppercase font-black tracking-widest">${d.metode}</span>
+                    </td>
+                    <td class="p-6 max-w-xs">
+                        <p class="truncate font-extrabold text-slate-800">${d.detail_item || '-'}</p>
+                    </td>
+                    <td class="p-6 text-right text-rose-500 font-bold">
+                        Rp ${(d.ppn_fix || 0).toLocaleString()}
+                    </td>
+                    <td class="p-6 text-right font-black text-slate-900">
+                        Rp ${(d.t_akhir || 0).toLocaleString()}
+                    </td>
+                    <td class="p-6 text-right text-emerald-600 font-black">
+                        Rp ${(d.t_harga - d.calculatedHpp - d.d_nom).toLocaleString()}
+                    </td>
+                    <td class="p-6 text-center no-print">
+                        <button onclick="voidTrx(${d.id})" class="p-2.5 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all" title="Hapus Transaksi">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
                     </td>
                 </tr>
             `).join('');
@@ -150,61 +191,90 @@
         }
 
         function exportExcel() {
-            if (reportData.length === 0) return alert("Pilih tanggal dan filter dulu!");
-            const dataExport = reportData.map(d => ({
-                "Waktu": new Date(d.created_at).toLocaleString('id-ID'),
-                "Metode": d.metode,
-                "Items": d.detail_item,
-                "Subtotal": d.total_harga,
-                "Diskon": d.diskon_nominal,
-                "Pajak (PPN)": d.ppn_fix,
-                "Total Akhir": d.total_akhir,
-                "Laba Bersih": d.total_harga - d.calculatedHpp - (d.diskon_nominal || 0)
-            }));
-            const ws = XLSX.utils.json_to_sheet(dataExport);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Sales");
-            XLSX.writeFile(wb, "Laporan_Donuts_POS.xlsx");
+            if (reportData.length === 0) return alert("Data kosong, silakan filter tanggal dulu.");
+            try {
+                const dataExport = reportData.map(d => ({
+                    "ID": d.id,
+                    "Waktu": new Date(d.created_at).toLocaleString('id-ID'),
+                    "Metode": d.metode,
+                    "Items": d.detail_item,
+                    "Subtotal": d.t_harga,
+                    "Diskon": d.d_nom,
+                    "Pajak (PPN)": d.ppn_fix, // Otomatis 0 jika di kasir diset 0
+                    "Total Akhir": d.t_akhir,
+                    "Estimasi Laba": d.t_harga - d.calculatedHpp - d.d_nom
+                }));
+
+                const ws = XLSX.utils.json_to_sheet(dataExport);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "Laporan Penjualan");
+                XLSX.writeFile(wb, `Laporan_Donuts_POS_${new Date().toISOString().split('T')[0]}.xlsx`);
+            } catch (err) { alert("Error Excel: " + err.message); }
         }
 
         function exportPDF() {
+            if (reportData.length === 0) return alert("Data kosong!");
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
-            doc.setFontSize(18); doc.text("LAPORAN PENJUALAN DETAIL", 14, 20);
+
+            doc.setFontSize(22); doc.setTextColor(225, 29, 72);
+            doc.text("Donuts. Sales Report", 14, 20);
             
+            doc.setFontSize(9); doc.setTextColor(100);
+            doc.text(`Periode: ${document.getElementById('filter-start').value} s/d ${document.getElementById('filter-end').value}`, 14, 28);
+            doc.text(`Dicetak: ${new Date().toLocaleString('id-ID')}`, 14, 33);
+
+            // Summary Table
             doc.autoTable({
-                startY: 30,
+                startY: 40,
                 body: [
-                    ["Total Penjualan Kotor", "Rp " + summary.jual.toLocaleString()],
-                    ["Total Diskon", "- Rp " + summary.disc.toLocaleString()],
-                    ["Total Pajak (Pajak Nominal)", "Rp " + summary.ppn.toLocaleString()],
-                    ["Total HPP", "Rp " + summary.hpp.toLocaleString()],
-                    ["GRAND TOTAL NETTO", "Rp " + summary.netto.toLocaleString()],
-                    ["ESTIMASI LABA BERSIH", "Rp " + summary.margin.toLocaleString()],
+                    ["Total Penjualan Kotor", "Rp " + (summary.jual || 0).toLocaleString()],
+                    ["Total Diskon", "- Rp " + (summary.disc || 0).toLocaleString()],
+                    ["Total PPN (Dinamis)", "Rp " + (summary.ppn || 0).toLocaleString()],
+                    ["Total HPP (Bahan)", "- Rp " + (summary.hpp || 0).toLocaleString()],
+                    ["GRAND TOTAL NETTO", "Rp " + (summary.netto || 0).toLocaleString()],
+                    ["ESTIMASI LABA BERSIH", "Rp " + (summary.margin || 0).toLocaleString()],
                 ],
-                theme: 'plain', styles: { fontStyle: 'bold' }
+                theme: 'plain', styles: { fontStyle: 'bold', fontSize: 10 }
             });
 
+            // Transactions Table
             doc.autoTable({
                 startY: doc.lastAutoTable.finalY + 10,
-                head: [["Tanggal", "Metode", "Total Jual", "Pajak", "Netto"]],
-                body: reportData.map(d => [d.created_at.split('T')[0], d.metode, d.total_harga.toLocaleString(), d.ppn_fix.toLocaleString(), d.total_akhir.toLocaleString()]),
-                headStyles: { fillColor: [225, 29, 72] }
+                head: [["Tgl", "Metode", "Total Jual", "Pajak", "Total Akhir"]],
+                body: reportData.map(d => [
+                    d.created_at.split('T')[0], 
+                    d.metode, 
+                    (d.t_harga || 0).toLocaleString(), 
+                    (d.ppn_fix || 0).toLocaleString(), 
+                    (d.t_akhir || 0).toLocaleString()
+                ]),
+                headStyles: { fillColor: [225, 29, 72] },
+                alternateRowStyles: { fillColor: [250, 250, 250] }
             });
 
-            doc.save("Laporan_Detail_Donuts.pdf");
+            doc.save("Laporan_Donuts_Detail.pdf");
         }
 
         async function voidTrx(id) {
-            if(!confirm("Batalkan transaksi ini?")) return;
-            const { error } = await _supabase.from('transaksi').delete().eq('id', id);
-            if(!error) { alert("Berhasil dihapus"); fetchLaporan(); }
+            if(!confirm("⚠️ PERINGATAN: Menghapus transaksi akan menghapus data permanen. Lanjutkan?")) return;
+            try {
+                const { error } = await _supabase.from('transaksi').delete().eq('id', id);
+                if(error) throw error;
+                fetchLaporan();
+            } catch (e) { alert("Gagal menghapus: " + e.message); }
         }
 
+        // Auto Load Hari Ini
         const now = new Date();
-        document.getElementById('filter-start').value = now.toISOString().split('T')[0];
-        document.getElementById('filter-end').value = now.toISOString().split('T')[0];
-        window.onload = () => { fetchLaporan(); lucide.createIcons(); };
+        const today = now.toISOString().split('T')[0];
+        document.getElementById('filter-start').value = today;
+        document.getElementById('filter-end').value = today;
+        
+        window.onload = () => { 
+            fetchLaporan(); 
+            lucide.createIcons(); 
+        };
     </script>
 </body>
 </html>
