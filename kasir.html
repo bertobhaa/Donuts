@@ -13,14 +13,12 @@
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         
-        /* Gaya Khusus Cetak Struk */
         @media print { 
             .no-print { display: none !important; } 
             #modal-struk { position: absolute; background: white; inset: 0; display: block; padding: 0; }
             #print-area { box-shadow: none; border: none; width: 100%; max-width: 100%; }
             body { background: white; }
         }
-
         .struk-font { font-family: 'Courier New', Courier, monospace; }
     </style>
 </head>
@@ -57,8 +55,7 @@
             </h3>
         </div>
 
-        <div id="cart-list" class="flex-1 overflow-y-auto p-8 space-y-4 hide-scrollbar">
-            </div>
+        <div id="cart-list" class="flex-1 overflow-y-auto p-8 space-y-4 hide-scrollbar"></div>
 
         <div class="p-8 bg-white border-t border-slate-100 space-y-4 shadow-[0_-20px_50px_rgba(0,0,0,0.04)]">
             <div class="grid grid-cols-2 gap-4">
@@ -67,14 +64,14 @@
                     <select id="select-bank" class="w-full bg-slate-50 border-none p-3 rounded-xl outline-none font-bold text-xs focus:ring-2 focus:ring-rose-500/20"></select>
                 </div>
                 <div>
-                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Tax (PPN 11%)</label>
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block" id="label-tax-info">Tax (PPN 0%)</label>
                     <div class="p-3 bg-slate-50 rounded-xl font-bold text-xs text-slate-500">Otomatis Terhitung</div>
                 </div>
             </div>
 
             <div class="space-y-2 pt-4 border-t border-dashed border-slate-200 text-sm font-bold">
                 <div class="flex justify-between text-slate-400"><span>Subtotal</span><span id="subtotal">Rp 0</span></div>
-                <div class="flex justify-between text-slate-400"><span>PPN (11%)</span><span id="ppn-label">Rp 0</span></div>
+                <div class="flex justify-between text-slate-400"><span id="ppn-text">PPN (0%)</span><span id="ppn-label">Rp 0</span></div>
                 <div class="flex justify-between text-rose-500"><span>Global Discount</span><span id="diskon-label">- Rp 0</span></div>
                 <div class="flex justify-between items-center pt-3">
                     <span class="font-black text-slate-800 uppercase tracking-tighter">Total Bill</span>
@@ -89,9 +86,7 @@
     </aside>
 
     <div id="modal-struk" class="fixed inset-0 bg-slate-900/90 backdrop-blur-md z-[100] hidden flex flex-col items-center justify-center p-4">
-        <div class="bg-white w-full max-w-[350px] p-8 rounded-[2rem] shadow-2xl struk-font text-[12px] text-slate-800" id="print-area">
-            </div>
-        
+        <div class="bg-white w-full max-w-[350px] p-8 rounded-[2rem] shadow-2xl struk-font text-[12px] text-slate-800" id="print-area"></div>
         <div class="flex flex-wrap justify-center gap-3 mt-8 no-print">
             <button onclick="window.print()" class="bg-white text-slate-900 px-6 py-4 rounded-2xl font-black shadow-xl hover:bg-slate-50 flex items-center gap-2">
                 <i data-lucide="printer" class="w-4 h-4"></i> Print Receipt
@@ -112,13 +107,22 @@
 
         let cart = [];
         let discRate = 0;
-        const PPN_RATE = 0.11; // 11%
+        let ppnRate = 0; // Sekarang dinamis dari DB
 
         async function init() {
             const { data: settings } = await _supabase.from('settings').select('*');
             if (settings) {
+                // Ambil Diskon
                 const disc = settings.find(s => s.key === 'diskon_global');
                 if(disc) discRate = disc.value / 100;
+
+                // Ambil PPN
+                const ppnSetting = settings.find(s => s.key === 'ppn');
+                if(ppnSetting) {
+                    ppnRate = ppnSetting.value / 100;
+                    document.getElementById('label-tax-info').innerText = `Tax (PPN ${ppnSetting.value}%)`;
+                    document.getElementById('ppn-text').innerText = `PPN (${ppnSetting.value}%)`;
+                }
             }
 
             const { data: produk } = await _supabase.from('produk').select('*').order('nama');
@@ -175,7 +179,7 @@
             `).join('');
 
             const sub = cart.reduce((a, b) => a + (b.harga * b.qty), 0);
-            const ppnNominal = sub * PPN_RATE;
+            const ppnNominal = sub * ppnRate;
             const discNominal = sub * discRate;
             const total = sub + ppnNominal - discNominal;
 
@@ -189,7 +193,7 @@
         async function prosesCheckout() {
             const btn = document.getElementById('btn-bayar');
             const sub = cart.reduce((a, b) => a + (b.harga * b.qty), 0);
-            const ppnNominal = sub * PPN_RATE;
+            const ppnNominal = sub * ppnRate;
             const discNominal = sub * discRate;
             const total = sub + ppnNominal - discNominal;
             const bankId = document.getElementById('select-bank').value;
@@ -227,7 +231,6 @@
             const area = document.getElementById('print-area');
             const bankText = document.getElementById('select-bank').options[document.getElementById('select-bank').selectedIndex].text;
             
-            // Layout Struk Modern
             area.innerHTML = `
                 <div class="text-center mb-6">
                     <h2 class="text-2xl font-black uppercase italic tracking-tighter">Donuts.</h2>
@@ -247,7 +250,7 @@
 
                 <div class="border-t border-dashed border-slate-400 pt-4 space-y-1">
                     <div class="flex justify-between"><span>Subtotal</span><span>${sub.toLocaleString()}</span></div>
-                    <div class="flex justify-between"><span>PPN (11%)</span><span>${ppn.toLocaleString()}</span></div>
+                    <div class="flex justify-between"><span>PPN (${ppnRate * 100}%)</span><span>${ppn.toLocaleString()}</span></div>
                     ${disc > 0 ? `<div class="flex justify-between text-rose-500"><span>Discount</span><span>-${disc.toLocaleString()}</span></div>` : ''}
                     <div class="flex justify-between text-lg font-black pt-3 border-t-2 border-slate-900 mt-2">
                         <span>TOTAL</span><span>Rp ${total.toLocaleString()}</span>
@@ -264,8 +267,6 @@
             `;
             
             document.getElementById('modal-struk').classList.remove('hidden');
-            
-            // Konfigurasi Tombol WhatsApp
             document.getElementById('btn-wa').onclick = () => {
                 const noHp = prompt("Masukkan nomor WhatsApp pelanggan (Contoh: 62812xxx):");
                 if (noHp) kirimWhatsApp(noHp, trx, sub, ppn, disc, total);
@@ -285,7 +286,7 @@
 
             pesan += `--------------------------%0A`;
             pesan += `Subtotal: ${sub.toLocaleString()}%0A`;
-            pesan += `PPN (11%): ${ppn.toLocaleString()}%0A`;
+            pesan += `PPN (${ppnRate * 100}%): ${ppn.toLocaleString()}%0A`;
             if(disc > 0) pesan += `Disc: -${disc.toLocaleString()}%0A`;
             pesan += `*TOTAL: Rp ${total.toLocaleString()}*%0A%0A`;
             pesan += `Terima kasih! 🍩`;
