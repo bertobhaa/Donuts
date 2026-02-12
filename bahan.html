@@ -84,7 +84,7 @@
                     <i data-lucide="search" class="w-5 h-5 absolute left-4 top-3.5 text-slate-400"></i>
                     <input type="text" id="search-input" onkeyup="filterBahan()" placeholder="Cari bahan baku..." class="w-full bg-white border border-slate-200 rounded-2xl py-3.5 pl-12 pr-4 outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 shadow-sm transition-all">
                 </div>
-                <div class="bg-emerald-50 px-6 py-3 rounded-2xl border border-emerald-100">
+                <div class="bg-emerald-50 px-6 py-3 rounded-2xl border border-emerald-100 flex flex-col items-end">
                     <p class="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Total Nilai Inventaris</p>
                     <p id="grand-total-display" class="text-lg font-black text-emerald-700">Rp 0</p>
                 </div>
@@ -97,7 +97,7 @@
                             <th class="p-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Nama Bahan Baku</th>
                             <th class="p-6 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Sisa Stok</th>
                             <th class="p-6 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Harga / Satuan</th>
-                            <th class="p-6 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Total Belanja</th>
+                            <th class="p-6 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Total Nilai Stok</th>
                             <th class="p-6 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Aksi</th>
                         </tr>
                     </thead>
@@ -119,7 +119,7 @@
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Jumlah Stok</label>
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Jumlah Stok Saat Ini</label>
                         <input type="number" id="stok-bahan" placeholder="1000" class="w-full bg-slate-50 border-none p-4 rounded-2xl outline-none focus:ring-2 focus:ring-rose-500 font-bold mt-1">
                     </div>
                     <div>
@@ -132,9 +132,9 @@
                     </div>
                 </div>
                 <div>
-                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Total Harga Belanja (Rp)</label>
-                    <input type="number" id="harga-total" placeholder="Contoh: 15000" class="w-full bg-slate-50 border-none p-4 rounded-2xl outline-none focus:ring-2 focus:ring-rose-500 font-bold mt-1">
-                    <p class="text-[10px] text-slate-400 mt-1 ml-1">*Sistem otomatis menghitung harga per gram/ml</p>
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Total Harga Beli (Rp)</label>
+                    <input type="number" id="harga-total" placeholder="Berapa total uang yang dikeluarkan?" class="w-full bg-slate-50 border-none p-4 rounded-2xl outline-none focus:ring-2 focus:ring-rose-500 font-bold mt-1">
+                    <p class="text-[10px] text-slate-400 mt-2 ml-1 leading-relaxed">*Masukkan total harga beli untuk jumlah stok di atas. Sistem akan menghitung harga per unit secara otomatis.</p>
                 </div>
                 <div class="flex gap-4 pt-6">
                     <button onclick="tutupModal()" class="flex-1 py-4 font-bold text-slate-400 hover:bg-slate-50 rounded-2xl transition">Batal</button>
@@ -150,6 +150,10 @@
         const _supabase = supabase.createClient(SB_URL, SB_KEY);
 
         let bahanData = [];
+
+        function formatRupiah(angka) {
+            return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(angka);
+        }
 
         async function loadBahan() {
             const { data } = await _supabase.from('bahan').select('*').order('nama_bahan');
@@ -176,9 +180,9 @@
                                 ${stok.toLocaleString()} <span class="text-[10px] opacity-50 uppercase">${b.satuan}</span>
                             </span>
                         </td>
-                        <td class="p-6 text-center text-slate-400">Rp ${hppSatuan.toLocaleString()} / ${b.satuan}</td>
-                        <td class="p-6 text-center text-emerald-600 font-black italic">
-                            Rp ${Math.round(totalBelanja).toLocaleString()}
+                        <td class="p-6 text-center text-slate-400 italic">Rp ${hppSatuan.toLocaleString('id-ID')} / ${b.satuan}</td>
+                        <td class="p-6 text-center text-emerald-600 font-black">
+                            ${formatRupiah(totalBelanja)}
                         </td>
                         <td class="p-6 text-center">
                             <div class="flex justify-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -190,7 +194,7 @@
                 `;
             });
 
-            document.getElementById('grand-total-display').innerText = `Rp ${Math.round(grandTotal).toLocaleString()}`;
+            document.getElementById('grand-total-display').innerText = formatRupiah(grandTotal);
             lucide.createIcons();
         }
 
@@ -203,13 +207,13 @@
             });
         }
 
-        // --- Export & Import Logic ---
+        // --- Export & Import ---
         function downloadTemplate() {
-            const template = [{ nama_bahan: 'Tepung Terigu', stok_gram: 1000, satuan: 'gram', harga_beli_per_gram: 15 }];
+            const template = [{ nama_bahan: 'Contoh Bahan', stok_gram: 1000, satuan: 'gram', harga_beli_per_gram: 10 }];
             const ws = XLSX.utils.json_to_sheet(template);
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "Template");
-            XLSX.writeFile(wb, "Template_Bahan_Donuts.xlsx");
+            XLSX.writeFile(wb, "Template_Bahan.xlsx");
         }
 
         async function importExcel(event) {
@@ -220,15 +224,15 @@
                 const workbook = XLSX.read(data, { type: 'array' });
                 const json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
                 const { error } = await _supabase.from('bahan').insert(json);
-                if(error) alert("Import Gagal: " + error.message);
-                else { alert("Import Berhasil!"); loadBahan(); }
+                if(error) alert("Gagal Import: " + error.message);
+                else { alert("Berhasil Import!"); loadBahan(); }
             };
             reader.readAsArrayBuffer(file);
         }
 
         function exportExcel() {
             const formatted = bahanData.map(b => ({
-                "Bahan": b.nama_bahan,
+                "Nama Bahan": b.nama_bahan,
                 "Stok": b.stok_gram,
                 "Satuan": b.satuan,
                 "Harga Satuan": b.harga_beli_per_gram,
@@ -236,35 +240,35 @@
             }));
             const ws = XLSX.utils.json_to_sheet(formatted);
             const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Inventaris");
-            XLSX.writeFile(wb, "Laporan_Stok_Donuts.xlsx");
+            XLSX.utils.book_append_sheet(wb, ws, "Stok");
+            XLSX.writeFile(wb, "Laporan_Bahan.xlsx");
         }
 
         function exportPDF() {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
-            doc.text("Laporan Nilai Inventaris Bahan Baku", 14, 15);
-            const rows = bahanData.map(b => [b.nama_bahan, b.stok_gram, b.satuan, b.harga_beli_per_gram, Math.round(b.stok_gram * b.harga_beli_per_gram)]);
+            doc.text("Laporan Inventaris Bahan Baku", 14, 15);
+            const rows = bahanData.map(b => [b.nama_bahan, b.stok_gram, b.satuan, b.harga_beli_per_gram.toFixed(2), Math.round(b.stok_gram * b.harga_beli_per_gram)]);
             doc.autoTable({
-                head: [['Bahan', 'Stok', 'Unit', 'Hrg Satuan', 'Total Nilai']],
+                head: [['Bahan', 'Stok', 'Unit', 'Harga Satuan', 'Total Nilai']],
                 body: rows,
                 startY: 20,
                 headStyles: { fillColor: [225, 29, 72] }
             });
-            doc.save("Laporan_Bahan_Donuts.pdf");
+            doc.save("Laporan_Bahan.pdf");
         }
 
-        // --- CRUD Logic ---
+        // --- CRUD ---
         async function simpanBahan() {
             const id = document.getElementById('b-id').value;
             const nama_bahan = document.getElementById('nama-bahan').value;
             const stok_gram = parseFloat(document.getElementById('stok-bahan').value);
             const satuan = document.getElementById('satuan-bahan').value;
-            const hargaTotal = parseFloat(document.getElementById('harga-total').value);
+            const hargaTotalInput = parseFloat(document.getElementById('harga-total').value);
 
-            if(!nama_bahan || isNaN(stok_gram) || isNaN(hargaTotal)) return alert("Mohon lengkapi data!");
+            if(!nama_bahan || isNaN(stok_gram) || isNaN(hargaTotalInput)) return alert("Isi semua data dengan benar!");
 
-            const harga_beli_per_gram = hargaTotal / stok_gram;
+            const harga_beli_per_gram = hargaTotalInput / stok_gram;
             const payload = { nama_bahan, stok_gram, satuan, harga_beli_per_gram };
 
             const { error } = id ? 
@@ -276,18 +280,23 @@
         }
 
         async function editBahan(id) {
-            bukaModal();
             const b = bahanData.find(x => x.id === id);
+            if(!b) return;
+            
+            bukaModal();
             document.getElementById('modal-title').innerText = "Edit Bahan.";
             document.getElementById('b-id').value = b.id;
             document.getElementById('nama-bahan').value = b.nama_bahan;
             document.getElementById('stok-bahan').value = b.stok_gram;
             document.getElementById('satuan-bahan').value = b.satuan;
-            document.getElementById('harga-total').value = Math.round(b.harga_beli_per_gram * b.stok_gram);
+            
+            // Kalkulasi ulang total harga untuk ditampilkan di input modal
+            const totalHargaAwal = Math.round(b.harga_beli_per_gram * b.stok_gram);
+            document.getElementById('harga-total').value = totalHargaAwal;
         }
 
         async function hapusBahan(id) {
-            if(confirm('Hapus bahan ini? Tindakan ini tidak bisa dibatalkan.')) {
+            if(confirm('Hapus bahan? Ini akan mempengaruhi resep yang ada.')) {
                 await _supabase.from('bahan').delete().eq('id', id);
                 loadBahan();
             }
@@ -295,6 +304,7 @@
 
         function bukaModal() { 
             document.getElementById('modal-bahan').classList.remove('hidden'); 
+            document.getElementById('modal-title').innerText = "Setup Bahan.";
             document.getElementById('b-id').value = '';
             document.getElementById('nama-bahan').value = '';
             document.getElementById('stok-bahan').value = '';
