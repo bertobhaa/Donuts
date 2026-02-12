@@ -7,11 +7,17 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
         .sidebar-item:hover { background-color: #fff1f2; color: #e11d48; }
         .active-nav { background-color: #ffe4e6; color: #e11d48; font-weight: 700; }
+        .scale-up-animation { animation: scaleUp 0.2s ease-out; }
+        @keyframes scaleUp { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
     </style>
 </head>
 <body class="bg-slate-50 flex h-screen overflow-hidden text-slate-800">
@@ -38,9 +44,9 @@
                     <i data-lucide="package" class="w-4 h-4"></i>
                     <span>Bahan Baku</span>
                 </a>
-                <a href="laporan.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-500 hover:text-rose-600 transition-all">
-                    <i data-lucide="bar-chart-3" class="w-4 h-4"></i>
-                    <span>Laporan HPP</span>
+                <a href="resep.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-500 hover:text-rose-600 transition-all">
+                    <i data-lucide="scroll-text" class="w-4 h-4"></i>
+                    <span class="text-sm">Resep</span>
                 </a>
             </div>
         </nav>
@@ -52,12 +58,32 @@
                 <h2 class="text-2xl font-bold italic text-slate-900">Inventory Management.</h2>
                 <p class="text-sm text-slate-500">Pantau stok bahan dan harga modal secara real-time.</p>
             </div>
-            <button onclick="bukaModal()" class="bg-slate-900 text-white px-6 py-3 rounded-2xl font-bold text-sm flex items-center gap-2 hover:bg-rose-600 transition shadow-lg shadow-slate-200">
-                <i data-lucide="plus" class="w-4 h-4"></i> Tambah Bahan
-            </button>
+            <div class="flex gap-2">
+                <button onclick="downloadTemplate()" class="bg-slate-100 text-slate-600 px-4 py-3 rounded-2xl font-bold text-xs flex items-center gap-2 hover:bg-slate-200 transition">
+                    <i data-lucide="download" class="w-4 h-4"></i> Template
+                </button>
+                <label class="bg-blue-50 text-blue-600 px-4 py-3 rounded-2xl font-bold text-xs flex items-center gap-2 hover:bg-blue-100 transition cursor-pointer">
+                    <i data-lucide="upload" class="w-4 h-4"></i> Import
+                    <input type="file" id="input-import" class="hidden" accept=".xlsx, .xls" onchange="importExcel(event)">
+                </label>
+                <button onclick="exportExcel()" class="bg-emerald-50 text-emerald-600 px-4 py-3 rounded-2xl font-bold text-xs flex items-center gap-2 hover:bg-emerald-100 transition">
+                    <i data-lucide="file-spreadsheet" class="w-4 h-4"></i> Excel
+                </button>
+                <button onclick="exportPDF()" class="bg-orange-50 text-orange-600 px-4 py-3 rounded-2xl font-bold text-xs flex items-center gap-2 hover:bg-orange-100 transition">
+                    <i data-lucide="file-text" class="w-4 h-4"></i> PDF
+                </button>
+                <button onclick="bukaModal()" class="bg-slate-900 text-white px-6 py-3 rounded-2xl font-bold text-sm flex items-center gap-2 hover:bg-rose-600 transition shadow-lg shadow-slate-200">
+                    <i data-lucide="plus" class="w-4 h-4"></i> Tambah Bahan
+                </button>
+            </div>
         </header>
 
         <div class="p-8">
+            <div class="mb-6 relative max-w-md">
+                <i data-lucide="search" class="w-5 h-5 absolute left-4 top-3.5 text-slate-400"></i>
+                <input type="text" id="search-input" onkeyup="filterBahan()" placeholder="Cari bahan baku..." class="w-full bg-white border border-slate-200 rounded-2xl py-3.5 pl-12 pr-4 outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 shadow-sm transition-all">
+            </div>
+
             <div class="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
                 <table class="w-full text-left border-collapse">
                     <thead>
@@ -69,7 +95,7 @@
                         </tr>
                     </thead>
                     <tbody id="bahan-table-body" class="text-sm font-bold text-slate-600">
-                        </tbody>
+                    </tbody>
                 </table>
             </div>
         </div>
@@ -102,7 +128,6 @@
                     <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Total Belanja (Rp)</label>
                     <input type="number" id="harga-total" placeholder="Contoh: 15000" class="w-full bg-slate-50 border-none p-4 rounded-2xl outline-none focus:ring-2 focus:ring-rose-500 font-bold mt-1">
                 </div>
-                
                 <div class="flex gap-4 pt-6">
                     <button onclick="tutupModal()" class="flex-1 py-4 font-bold text-slate-400 hover:bg-slate-50 rounded-2xl transition">Batal</button>
                     <button id="btn-simpan" onclick="simpanBahan()" class="flex-[2] bg-rose-500 text-white py-4 rounded-2xl font-black shadow-lg shadow-rose-200 hover:bg-rose-600 transition-all uppercase tracking-wider">Simpan</button>
@@ -116,22 +141,28 @@
         const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJra3BrZnZjc3NkbWdubmNycmh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA3OTQ4OTIsImV4cCI6MjA4NjM3MDg5Mn0.VeE2IZhQmTyKMMQI4Ukh0nt6YHR2zVs_nUnjtPt-GPQ";
         const _supabase = supabase.createClient(SB_URL, SB_KEY);
 
+        let bahanData = [];
+
         async function loadBahan() {
             const { data } = await _supabase.from('bahan').select('*').order('nama_bahan');
+            bahanData = data || [];
+            renderTable(bahanData);
+        }
+
+        function renderTable(data) {
             const tbody = document.getElementById('bahan-table-body');
             tbody.innerHTML = '';
-            
             data.forEach(b => {
                 const harga = b.harga_beli_per_gram || 0;
                 tbody.innerHTML += `
-                    <tr class="border-b border-slate-50 hover:bg-slate-50/50 transition-all group">
+                    <tr class="border-b border-slate-50 hover:bg-slate-50/50 transition-all group item-bahan" data-nama="${b.nama_bahan.toLowerCase()}">
                         <td class="p-6 text-slate-900 font-bold">${b.nama_bahan}</td>
                         <td class="p-6 text-center">
                             <span class="${b.stok_gram < 500 ? 'text-rose-500 bg-rose-50 px-4 py-1.5 rounded-full' : 'text-slate-600 bg-slate-100 px-4 py-1.5 rounded-full'}">
                                 ${b.stok_gram.toLocaleString()} <span class="text-[10px] opacity-50 uppercase">${b.satuan}</span>
                             </span>
                         </td>
-                        <td class="p-6 text-center text-slate-400">Rp ${parseFloat(harga).toFixed(2)} / ${b.satuan}</td>
+                        <td class="p-6 text-center text-slate-400">Rp ${parseFloat(harga).toLocaleString()} / ${b.satuan}</td>
                         <td class="p-6 text-center">
                             <div class="flex justify-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
                                 <button onclick="editBahan(${b.id})" class="bg-blue-50 text-blue-600 p-2 rounded-lg hover:bg-blue-600 hover:text-white transition-all"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
@@ -144,6 +175,68 @@
             lucide.createIcons();
         }
 
+        // --- Fitur Filter ---
+        function filterBahan() {
+            const val = document.getElementById('search-input').value.toLowerCase();
+            const items = document.querySelectorAll('.item-bahan');
+            items.forEach(item => {
+                const nama = item.getAttribute('data-nama');
+                item.style.display = nama.includes(val) ? 'table-row' : 'none';
+            });
+        }
+
+        // --- Fitur Export ---
+        function exportExcel() {
+            const ws = XLSX.utils.json_to_sheet(bahanData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Stok Bahan");
+            XLSX.writeFile(wb, "Laporan_Bahan_Donuts.xlsx");
+        }
+
+        function exportPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            doc.text("Daftar Inventaris Bahan Baku - Donuts", 14, 15);
+            const rows = bahanData.map(b => [b.nama_bahan, b.stok_gram, b.satuan, `Rp ${b.harga_beli_per_gram.toFixed(2)}`]);
+            doc.autoTable({
+                head: [['Bahan', 'Stok', 'Satuan', 'Harga/Unit']],
+                body: rows,
+                startY: 20,
+                theme: 'striped',
+                headStyles: { fillColor: [225, 29, 72] }
+            });
+            doc.save("Laporan_Bahan_Donuts.pdf");
+        }
+
+        // --- Fitur Import ---
+        function downloadTemplate() {
+            const template = [{ nama_bahan: 'Contoh Tepung', stok_gram: 1000, satuan: 'gram', harga_beli_per_gram: 15 }];
+            const ws = XLSX.utils.json_to_sheet(template);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Template");
+            XLSX.writeFile(wb, "Template_Bahan_Donuts.xlsx");
+        }
+
+        async function importExcel(event) {
+            const file = event.target.files[0];
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                const json = XLSX.utils.sheet_to_json(sheet);
+                
+                const { error } = await _supabase.from('bahan').insert(json);
+                if(error) alert("Error saat import: " + error.message);
+                else {
+                    alert("Berhasil mengimpor " + json.length + " data!");
+                    loadBahan();
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        // --- Fungsi CRUD Bawaan ---
         async function simpanBahan() {
             const id = document.getElementById('b-id').value;
             const nama_bahan = document.getElementById('nama-bahan').value;
@@ -161,18 +254,14 @@
             } else {
                 await _supabase.from('bahan').insert([payload]);
             }
-
             tutupModal();
             loadBahan();
         }
 
         async function editBahan(id) {
             bukaModal();
-            document.getElementById('modal-title').innerText = "Edit Bahan.";
-            document.getElementById('btn-simpan').innerText = "Update";
-            
             const { data: b } = await _supabase.from('bahan').select('*').eq('id', id).single();
-            
+            document.getElementById('modal-title').innerText = "Edit Bahan.";
             document.getElementById('b-id').value = b.id;
             document.getElementById('nama-bahan').value = b.nama_bahan;
             document.getElementById('stok-bahan').value = b.stok_gram;
@@ -181,7 +270,7 @@
         }
 
         async function hapusBahan(id) {
-            if(confirm('Hapus bahan ini? Resep yang menggunakan bahan ini akan error.')) {
+            if(confirm('Hapus bahan ini?')) {
                 await _supabase.from('bahan').delete().eq('id', id);
                 loadBahan();
             }
@@ -189,10 +278,8 @@
 
         function bukaModal() { 
             document.getElementById('modal-bahan').classList.remove('hidden'); 
+            document.getElementById('modal-title').innerText = "Setup Bahan.";
             document.getElementById('b-id').value = '';
-            document.getElementById('nama-bahan').value = '';
-            document.getElementById('stok-bahan').value = '';
-            document.getElementById('harga-total').value = '';
         }
         function tutupModal() { document.getElementById('modal-bahan').classList.add('hidden'); }
 
