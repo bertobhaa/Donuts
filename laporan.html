@@ -213,50 +213,51 @@
             } catch (err) { alert("Error Excel: " + err.message); }
         }
 
-        function exportPDF() {
-            if (reportData.length === 0) return alert("Data kosong!");
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
+       function exportPDF() {
+    if (reportData.length === 0) return alert("Data kosong!");
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
 
-            doc.setFontSize(22); doc.setTextColor(225, 29, 72);
-            doc.text("Donuts. Sales Report", 14, 20);
-            
-            doc.setFontSize(9); doc.setTextColor(100);
-            doc.text(`Periode: ${document.getElementById('filter-start').value} s/d ${document.getElementById('filter-end').value}`, 14, 28);
-            doc.text(`Dicetak: ${new Date().toLocaleString('id-ID')}`, 14, 33);
+    doc.setFontSize(22); doc.setTextColor(225, 29, 72);
+    doc.text("Donuts. Sales Report", 14, 20);
+    
+    doc.setFontSize(9); doc.setTextColor(100);
+    doc.text(`Periode: ${document.getElementById('filter-start').value} s/d ${document.getElementById('filter-end').value}`, 14, 28);
+    doc.text(`Dicetak: ${new Date().toLocaleString('id-ID')}`, 14, 33);
 
-            // Summary Table
-            doc.autoTable({
-                startY: 40,
-                body: [
-                    ["Total Penjualan Kotor", "Rp " + (summary.jual || 0).toLocaleString()],
-                    ["Total Diskon", "- Rp " + (summary.disc || 0).toLocaleString()],
-                    ["Total PPN (Dinamis)", "Rp " + (summary.ppn || 0).toLocaleString()],
-                    ["Total HPP (Bahan)", "- Rp " + (summary.hpp || 0).toLocaleString()],
-                    ["GRAND TOTAL NETTO", "Rp " + (summary.netto || 0).toLocaleString()],
-                    ["ESTIMASI LABA BERSIH", "Rp " + (summary.margin || 0).toLocaleString()],
-                ],
-                theme: 'plain', styles: { fontStyle: 'bold', fontSize: 10 }
-            });
+    // --- PERBAIKAN SUMMARY TABLE ---
+    doc.autoTable({
+        startY: 40,
+        body: [
+            ["Total Penjualan Kotor", "Rp " + (summary.jual || 0).toLocaleString()],
+            ["Total Diskon", "- Rp " + (summary.disc || 0).toLocaleString()],
+            ["Total PPN (Dinamis)", "Rp " + (summary.ppn || 0).toLocaleString()],
+            ["Total HPP (Bahan)", "- Rp " + (summary.hpp || 0).toLocaleString()],
+            // Pastikan menggunakan summary.netto
+            ["GRAND TOTAL NETTO", "Rp " + (summary.netto || 0).toLocaleString()], 
+            ["ESTIMASI LABA BERSIH", "Rp " + (summary.margin || 0).toLocaleString()],
+        ],
+        theme: 'plain', styles: { fontStyle: 'bold', fontSize: 10 }
+    });
 
-            // Transactions Table
-            doc.autoTable({
-                startY: doc.lastAutoTable.finalY + 10,
-                head: [["Tgl", "Metode", "Total Jual", "Pajak", "Total Akhir"]],
-                body: reportData.map(d => [
-                    d.created_at.split('T')[0], 
-                    d.metode, 
-                    (d.t_harga || 0).toLocaleString(), 
-                    (d.ppn_fix || 0).toLocaleString(), 
-                    (d.t_akhir || 0).toLocaleString()
-                ]),
-                headStyles: { fillColor: [225, 29, 72] },
-                alternateRowStyles: { fillColor: [250, 250, 250] }
-            });
+    // --- PERBAIKAN TRANSACTIONS TABLE ---
+    doc.autoTable({
+        startY: doc.lastAutoTable.finalY + 10,
+        head: [["Tgl", "Metode", "Total Jual", "Pajak", "Total Akhir"]],
+        body: reportData.map(d => [
+            d.created_at.split('T')[0], 
+            d.metode, 
+            (d.t_harga || 0).toLocaleString(), 
+            (d.ppn_fix || 0).toLocaleString(), 
+            // Ganti ke d.t_akhir agar tidak 0
+            (d.t_akhir || d.total_akhir || 0).toLocaleString() 
+        ]),
+        headStyles: { fillColor: [225, 29, 72] },
+        alternateRowStyles: { fillColor: [250, 250, 250] }
+    });
 
-            doc.save("Laporan_Donuts_Detail.pdf");
-        }
-
+    doc.save("Laporan_Donuts_Detail.pdf");
+}
         async function voidTrx(id) {
             if(!confirm("⚠️ PERINGATAN: Menghapus transaksi akan menghapus data permanen. Lanjutkan?")) return;
             try {
