@@ -213,50 +213,69 @@
             document.getElementById('order-bar').classList.toggle('translate-y-full', count === 0);
         }
 
-        async function prosesCheckout() {
-            const nama = document.getElementById('nama-pelanggan').value;
-            const tipe = document.querySelector('input[name="tipe_order"]:checked').value;
-            const bayar = document.querySelector('input[name="metode_bayar"]:checked').value;
-            const fileBukti = document.getElementById('bukti-bayar').files[0];
+       async function prosesCheckout() {
+    const nama = document.getElementById('nama-pelanggan').value;
+    const tipe = document.querySelector('input[name="tipe_order"]:checked').value;
+    const bayar = document.querySelector('input[name="metode_bayar"]:checked').value;
+    const fileBukti = document.getElementById('bukti-bayar').files[0];
 
-            if(!nama) return alert("Siapa nama Anda?");
-            if(bayar === 'Transfer' && !fileBukti) return alert("Mohon upload bukti transfer!");
+    if(!nama) return alert("Siapa nama Anda?");
+    if(bayar === 'Transfer' && !fileBukti) return alert("Mohon upload bukti transfer!");
 
-            const btn = document.getElementById('btn-kirim');
-            btn.disabled = true; btn.innerText = "MENGIRIM...";
+    const btn = document.getElementById('btn-kirim');
+    btn.disabled = true; 
+    btn.innerText = "MENGIRIM...";
 
-            let buktiUrl = "";
-            if(fileBukti) {
-                const fName = `${Date.now()}_bukti.png`;
-                const { data: upData } = await _supabase.storage.from('bukti-transfer').upload(fName, fileBukti);
-                if(upData) {
-                    const { data } = _supabase.storage.from('bukti-transfer').getPublicUrl(fName);
-                    buktiUrl = data.publicUrl;
-                }
-            }
+    let buktiUrl = "";
 
-            const subtotal = cart.reduce((a, b) => a + (b.harga * b.qty), 0);
-            const totalFinal = subtotal - (subtotal * diskonPersen / 100);
+    // PERBAIKAN LOGIKA UPLOAD
+    if(bayar === 'Transfer' && fileBukti) {
+        const fileExt = fileBukti.name.split('.').pop(); // Mengambil ekstensi asli file
+        const fName = `${Date.now()}_${nama.replace(/\s+/g, '_')}.${fileExt}`;
+        
+        const { data: upData, error: upError } = await _supabase.storage
+            .from('bukti-transfer')
+            .upload(fName, fileBukti);
 
-            const { data, error } = await _supabase.from('pesanan_pelanggan').insert([{
-                nomor_meja: nomorMeja,
-                nama_pelanggan: nama,
-                items: cart,
-                total_harga: totalFinal,
-                tipe_order: tipe,
-                metode_bayar: bayar,
-                status: 'menunggu',
-                bukti_bayar_url: buktiUrl
-            }]).select();
-
-            if(!error) {
-                localStorage.setItem('activeOrderId', data[0].id);
-                location.reload();
-            } else {
-                alert("Gagal kirim pesanan!");
-                btn.disabled = false;
-            }
+        if(upError) {
+            console.error("Gagal Upload ke Storage:", upError.message);
+            alert("Gagal mengunggah gambar: " + upError.message);
+            btn.disabled = false;
+            btn.innerText = "COBA LAGI";
+            return; // Berhenti di sini jika upload gagal
         }
+
+        if(upData) {
+            const { data } = _supabase.storage.from('bukti-transfer').getPublicUrl(fName);
+            buktiUrl = data.publicUrl;
+            console.log("Gambar berhasil diunggah. URL:", buktiUrl);
+        }
+    }
+
+    const subtotal = cart.reduce((a, b) => a + (b.harga * b.qty), 0);
+    const totalFinal = subtotal - (subtotal * diskonPersen / 100);
+
+    const { data, error: dbError } = await _supabase.from('pesanan_pelanggan').insert([{
+        nomor_meja: nomorMeja,
+        nama_pelanggan: nama,
+        items: cart,
+        total_harga: totalFinal,
+        tipe_order: tipe,
+        metode_bayar: bayar,
+        status: 'menunggu',
+        bukti_bayar_url: buktiUrl
+    }]).select();
+
+    if(!dbError) {
+        localStorage.setItem('activeOrderId', data[0].id);
+        location.reload();
+    } else {
+        console.error("Gagal Simpan Database:", dbError.message);
+        alert("Gagal simpan pesanan: " + dbError.message);
+        btn.disabled = false;
+        btn.innerText = "PESAN SEKARANG";
+    }
+}
 
         async function pantauStatus(orderId) {
             document.getElementById('status-tracker').classList.remove('hidden');
