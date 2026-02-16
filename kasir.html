@@ -33,34 +33,37 @@
     </audio>
 
     <aside class="w-20 lg:w-64 bg-slate-900 h-full flex flex-col p-6 text-white no-print transition-all">
-    <div class="mb-10 flex items-center gap-3">
-        <div class="p-2 bg-rose-500 rounded-xl"><i data-lucide="donut" class="w-6 h-6"></i></div>
-        <span class="font-black text-xl italic tracking-tighter hidden lg:block">Donuts.inc</span>
-    </div>
-    
-    <nav class="flex-1 space-y-4">
-        <a href="kasir.html" class="flex items-center gap-4 p-3 bg-rose-500 rounded-2xl transition-all">
-            <i data-lucide="layout-grid"></i>
-            <span class="font-bold text-sm hidden lg:block">Point of Sale</span>
-        </a>
-        <a href="admin.html" class="flex items-center gap-4 p-3 hover:bg-white/10 rounded-2xl transition-all text-slate-400">
-            <i data-lucide="history"></i>
-            <span class="font-bold text-sm hidden lg:block">Process Order</span>
-        </a>
-        </nav>
-
-    <div class="pt-6 border-t border-white/10 space-y-4">
-        <div class="text-slate-500">
-            <p class="text-[10px] font-black uppercase hidden lg:block">Staff Active</p>
-            <p class="text-xs font-bold text-white hidden lg:block" id="display-user">Memuat...</p>
+        <div class="mb-10 flex items-center gap-3">
+            <div class="p-2 bg-rose-500 rounded-xl"><i data-lucide="donut" class="w-6 h-6"></i></div>
+            <span class="font-black text-xl italic tracking-tighter hidden lg:block">Donuts.inc</span>
         </div>
         
-        <button onclick="handleLogout()" class="w-full flex items-center gap-4 p-3 hover:bg-rose-500/20 text-rose-400 hover:text-rose-500 rounded-2xl transition-all group">
-            <i data-lucide="log-out" class="group-hover:-translate-x-1 transition-transform"></i>
-            <span class="font-bold text-sm hidden lg:block">Keluar Sistem</span>
-        </button>
-    </div>
-</aside>
+        <nav class="flex-1 space-y-4">
+            <a href="kasir.html" class="flex items-center gap-4 p-3 bg-rose-500 rounded-2xl transition-all">
+                <i data-lucide="layout-grid"></i>
+                <span class="font-bold text-sm hidden lg:block">Point of Sale</span>
+            </a>
+            <a href="admin.html" class="flex items-center gap-4 p-3 hover:bg-white/10 rounded-2xl transition-all text-slate-400">
+                <i data-lucide="history"></i>
+                <span class="font-bold text-sm hidden lg:block">Process Order</span>
+            </a>
+            <a href="#" class="flex items-center gap-4 p-3 hover:bg-white/10 rounded-2xl transition-all text-slate-400">
+                <i data-lucide="settings"></i>
+                <span class="font-bold text-sm hidden lg:block">Pengaturan</span>
+            </a>
+        </nav>
+
+        <div class="pt-6 border-t border-white/10 space-y-4">
+            <div class="text-slate-500">
+                <p class="text-[10px] font-black uppercase hidden lg:block">Staff Active</p>
+                <p id="staff-name" class="text-xs font-bold text-white truncate hidden lg:block">Admin Kasir</p>
+            </div>
+            <button onclick="handleLogout()" class="w-full flex items-center gap-4 p-3 hover:bg-rose-500/20 text-rose-400 hover:text-rose-500 rounded-2xl transition-all group">
+                <i data-lucide="log-out" class="group-hover:-translate-x-1 transition-transform"></i>
+                <span class="font-bold text-sm hidden lg:block">Keluar Sistem</span>
+            </button>
+        </div>
+    </aside>
 
     <div class="flex-1 flex flex-col min-w-0">
         <header class="bg-white p-6 border-b flex justify-between items-center no-print">
@@ -168,6 +171,14 @@
 
         async function init() {
             try {
+                // Check Authentication
+                const { data: { user } } = await _supabase.auth.getUser();
+                if (!user) {
+                    window.location.href = "login.html";
+                    return;
+                }
+                document.getElementById('staff-name').innerText = user.email.split('@')[0].toUpperCase();
+
                 // 1. Load Settings
                 const { data: sets } = await _supabase.from('settings').select('*');
                 if(sets) {
@@ -189,7 +200,14 @@
                 lucide.createIcons();
             } catch (err) {
                 console.error("Gagal inisialisasi:", err.message);
-                alert("Koneksi Supabase Bermasalah. Cek Konfigurasi.");
+                alert("Koneksi Supabase Bermasalah.");
+            }
+        }
+
+        async function handleLogout() {
+            if (confirm("Apakah Anda yakin ingin keluar dari sistem?")) {
+                await _supabase.auth.signOut();
+                window.location.href = "login.html";
             }
         }
 
@@ -267,25 +285,23 @@
             }
         }
 
-     async function addToCart(id, nama, harga) {
-    // Ambil data stok terbaru dari Supabase
-    const { data: p } = await _supabase.from('produk').select('stok').eq('id', id).single();
-    
-    const itemInCart = cart.find(i => i.id === id);
-    const currentQty = itemInCart ? itemInCart.qty : 0;
+        async function addToCart(id, nama, harga) {
+            const { data: p } = await _supabase.from('produk').select('stok').eq('id', id).single();
+            const itemInCart = cart.find(i => i.id === id);
+            const currentQty = itemInCart ? itemInCart.qty : 0;
 
-    if (p.stok <= currentQty) {
-        alert("Stok tidak mencukupi!");
-        return;
-    }
+            if (p.stok <= currentQty) {
+                alert("Stok tidak mencukupi!");
+                return;
+            }
 
-    if(itemInCart) {
-        itemInCart.qty++;
-    } else {
-        cart.push({id, nama, harga, qty: 1});
-    }
-    renderCart();
-}
+            if(itemInCart) {
+                itemInCart.qty++;
+            } else {
+                cart.push({id, nama, harga, qty: 1});
+            }
+            renderCart();
+        }
 
         function renderCart() {
             const list = document.getElementById('cart-list');
@@ -330,72 +346,54 @@
         function updateQty(i, v) { cart[i].qty += v; if(cart[i].qty < 1) cart.splice(i,1); renderCart(); }
         function clearCart() { if(confirm("Hapus keranjang?")) { cart = []; currentOnlineId = null; renderCart(); } }
 
-      async function prosesCheckout() {
-    const btn = document.getElementById('btn-bayar');
-    btn.disabled = true;
-    btn.innerText = "MEMPROSES...";
+        async function prosesCheckout() {
+            const btn = document.getElementById('btn-bayar');
+            btn.disabled = true;
+            btn.innerText = "MEMPROSES...";
 
-    const sub = cart.reduce((a, b) => a + (b.harga * b.qty), 0);
-    const disc = sub * discRate;
-    const ppn = (sub - disc) * ppnRate;
-    const total = sub - disc + ppn;
-    const bankId = document.getElementById('select-bank').value;
-    const bankText = document.getElementById('select-bank').options[document.getElementById('select-bank').selectedIndex].text;
+            const sub = cart.reduce((a, b) => a + (b.harga * b.qty), 0);
+            const disc = sub * discRate;
+            const ppn = (sub - disc) * ppnRate;
+            const total = sub - disc + ppn;
+            const bankId = document.getElementById('select-bank').value;
+            const bankText = document.getElementById('select-bank').options[document.getElementById('select-bank').selectedIndex].text;
 
-    try {
-        // --- LOGIKA PENGURANGAN STOK ---
-        for (const item of cart) {
-            // Ambil stok saat ini terlebih dahulu
-            const { data: pData } = await _supabase
-                .from('produk')
-                .select('stok')
-                .eq('id', item.id)
-                .single();
+            try {
+                for (const item of cart) {
+                    const { data: pData } = await _supabase.from('produk').select('stok').eq('id', item.id).single();
+                    if (pData) {
+                        const stokBaru = pData.stok - item.qty;
+                        const { error: upErr } = await _supabase.from('produk').update({ stok: stokBaru }).eq('id', item.id);
+                        if (upErr) throw new Error(`Gagal update stok untuk ${item.nama}`);
+                    }
+                }
 
-            if (pData) {
-                const stokBaru = pData.stok - item.qty;
-                
-                // Update stok ke database
-                const { error: upErr } = await _supabase
-                    .from('produk')
-                    .update({ stok: stokBaru })
-                    .eq('id', item.id);
-                
-                if (upErr) throw new Error(`Gagal update stok untuk ${item.nama}`);
+                const { data: trx, error: tErr } = await _supabase.from('transaksi').insert([{
+                    total_harga: total, 
+                    pajak_nominal: ppn, 
+                    diskon_nominal: disc,
+                    total_qty: cart.reduce((a, b) => a + b.qty, 0), 
+                    bank_id: bankId, 
+                    items: cart
+                }]).select().single();
+
+                if(tErr) throw tErr;
+
+                if(currentOnlineId) {
+                    await _supabase.from('pesanan_pelanggan').update({ status: 'selesai' }).eq('id', currentOnlineId);
+                }
+
+                showReceipt(trx, sub, ppn, disc, total, bankText);
+                const { data: freshProd } = await _supabase.from('produk').select('*').order('nama');
+                renderProduk(freshProd);
+
+            } catch (e) { 
+                alert("Gagal memproses transaksi: " + e.message);
+                btn.disabled = false;
+                btn.innerText = "BAYAR SEKARANG";
             }
         }
-        // --------------------------------
 
-        // 1. Simpan Transaksi
-        const { data: trx, error: tErr } = await _supabase.from('transaksi').insert([{
-            total_harga: total, 
-            pajak_nominal: ppn, 
-            diskon_nominal: disc,
-            total_qty: cart.reduce((a, b) => a + b.qty, 0), 
-            bank_id: bankId, 
-            items: cart
-        }]).select().single();
-
-        if(tErr) throw tErr;
-
-        // 2. Jika ini order online, update statusnya
-        if(currentOnlineId) {
-            await _supabase.from('pesanan_pelanggan').update({ status: 'selesai' }).eq('id', currentOnlineId);
-        }
-
-        showReceipt(trx, sub, ppn, disc, total, bankText);
-        
-        // Opsional: Refresh list produk agar tampilan stok di UI (jika ada) terupdate
-        const { data: freshProd } = await _supabase.from('produk').select('*').order('nama');
-        renderProduk(freshProd);
-
-    } catch (e) { 
-        alert("Gagal memproses transaksi: " + e.message);
-        console.error(e);
-        btn.disabled = false;
-        btn.innerText = "BAYAR SEKARANG";
-    }
-}
         function showReceipt(trx, sub, ppn, disc, total, bank) {
             const area = document.getElementById('print-area');
             const waktu = new Date().toLocaleString('id-ID');
@@ -446,45 +444,12 @@
             });
         }
 
-        // Clock
         setInterval(() => { 
             const now = new Date();
             document.getElementById('real-time-clock').innerText = now.toLocaleTimeString('id-ID', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' }); 
         }, 1000);
 
         init();
-
-        // Tambahkan fungsi ini di dalam script
-async function handleLogout() {
-    const yakin = confirm("Apakah Anda yakin ingin keluar dari sistem kasir?");
-    if (!yakin) return;
-
-    try {
-        const { error } = await _supabase.auth.signOut();
-        if (error) throw error;
-        
-        // Redirect ke halaman login
-        window.location.href = "login.html";
-    } catch (err) {
-        alert("Gagal keluar: " + err.message);
-    }
-}
-
-// Tambahkan pengecekan user saat init() untuk menampilkan email/nama
-async function checkUser() {
-    const { data: { user } } = await _supabase.auth.getUser();
-    if (user) {
-        document.getElementById('display-user').innerText = user.email.split('@')[0].toUpperCase();
-    } else {
-        window.location.href = "login.html"; // Tendang balik jika tidak ada session
-    }
-}
-
-// Panggil checkUser() di dalam fungsi init() Anda
-async function init() {
-    await checkUser(); // Tambahkan ini
-    // ... kode init lainnya ...
-}
     </script>
 </body>
 </html>
