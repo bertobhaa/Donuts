@@ -12,8 +12,6 @@
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
         body { font-family: 'Plus Jakarta Sans', sans-serif; overflow: hidden; }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
-        
-        @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
         .row-animate { animation: fadeIn 0.4s ease-out forwards; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
@@ -83,14 +81,14 @@
                         <thead>
                             <tr class="bg-slate-50/50 border-b border-slate-100">
                                 <th class="p-6 text-[10px] font-black uppercase text-slate-400">Pelanggan</th>
-                                <th class="p-6 text-[10px] font-black uppercase text-slate-400">Order & Payment</th>
-                                <th class="p-6 text-[10px] font-black uppercase text-slate-400">Pesanan</th>
+                                <th class="p-6 text-[10px] font-black uppercase text-slate-400">Order & Items</th>
+                                <th class="p-6 text-[10px] font-black uppercase text-slate-400">Rincian Harga</th>
                                 <th class="p-6 text-[10px] font-black uppercase text-slate-400 text-center">Bukti</th>
                                 <th class="p-6 text-[10px] font-black uppercase text-slate-400">Status</th>
                                 <th class="p-6 text-[10px] font-black uppercase text-slate-400 text-right">Aksi</th>
                             </tr>
                         </thead>
-                        <tbody id="order-table-body" class="divide-y divide-slate-50">
+                        <tbody id="order-table-body" class="divide-y divide-slate-50 text-sm">
                             </tbody>
                     </table>
                 </div>
@@ -101,13 +99,11 @@
     <div id="modal-bukti" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-[2.5rem] max-w-md w-full p-8 shadow-2xl">
             <div class="flex justify-between items-center mb-6">
-                <h3 class="font-black text-xl italic uppercase">Detail Transfer</h3>
-                <button onclick="closeModal()" class="p-2 hover:bg-slate-100 rounded-full transition-all"><i data-lucide="x"></i></button>
+                <h3 class="font-black text-xl italic uppercase">Bukti Transfer</h3>
+                <button onclick="closeModal()" class="p-2 hover:bg-slate-100 rounded-full"><i data-lucide="x"></i></button>
             </div>
-            <div class="aspect-[3/4] bg-slate-100 rounded-3xl overflow-hidden border border-slate-200">
-                <img id="img-preview" src="" class="w-full h-full object-contain">
-            </div>
-            <button onclick="closeModal()" class="w-full mt-6 bg-slate-900 text-white py-4 rounded-2xl font-black hover:bg-black transition-all">TUTUP</button>
+            <img id="img-preview" src="" class="w-full rounded-3xl border border-slate-200 shadow-inner">
+            <button onclick="closeModal()" class="w-full mt-6 bg-slate-900 text-white py-4 rounded-2xl font-black uppercase">Tutup</button>
         </div>
     </div>
 
@@ -141,20 +137,39 @@
                 return;
             }
 
-            tbody.innerHTML = orders.map(o => `
+            tbody.innerHTML = orders.map(o => {
+                // Kalkulasi harga untuk tampilan admin
+                const hargaNormal = o.items.reduce((acc, item) => acc + (item.harga * item.qty), 0);
+                const hargaNet = o.total_harga;
+                const nominalDiskon = hargaNormal - hargaNet;
+
+                return `
                 <tr class="hover:bg-slate-50/50 transition-colors">
                     <td class="p-6">
                         <div class="font-black text-slate-900">${o.nama_pelanggan}</div>
-                        <div class="text-[10px] font-bold text-rose-500 uppercase">MEJA ${o.nomor_meja}</div>
+                        <div class="text-[10px] font-bold text-rose-500 uppercase tracking-tighter">MEJA ${o.nomor_meja}</div>
                     </td>
                     <td class="p-6">
-                        <div class="flex flex-col gap-1 text-[10px] font-black uppercase">
-                            <span class="text-indigo-600">${o.tipe_order || 'Dine In'}</span>
-                            <span class="text-slate-400">${o.metode_bayar || 'Transfer'}</span>
+                        <div class="text-[10px] font-black uppercase text-indigo-600 mb-1">${o.tipe_order} • ${o.metode_bayar}</div>
+                        <div class="text-[11px] font-bold text-slate-500">
+                            ${o.items.map(i => `<div>${i.qty}x ${i.nama}</div>`).join('')}
                         </div>
                     </td>
-                    <td class="p-6 text-[11px] font-bold text-slate-500">
-                        ${o.items.map(i => `<div>${i.qty}x ${i.nama}</div>`).join('')}
+                    <td class="p-6 min-w-[150px]">
+                        <div class="space-y-1">
+                            <div class="flex justify-between text-[10px] font-bold text-slate-400 uppercase">
+                                <span>Normal:</span>
+                                <span>Rp ${hargaNormal.toLocaleString()}</span>
+                            </div>
+                            <div class="flex justify-between text-[10px] font-bold text-rose-500 uppercase">
+                                <span>Diskon:</span>
+                                <span>- Rp ${nominalDiskon.toLocaleString()}</span>
+                            </div>
+                            <div class="flex justify-between text-xs font-black text-slate-900 border-t border-slate-100 pt-1 uppercase">
+                                <span>Total Net:</span>
+                                <span>Rp ${hargaNet.toLocaleString()}</span>
+                            </div>
+                        </div>
                     </td>
                     <td class="p-6 text-center">
                         ${o.bukti_bayar_url ? `
@@ -173,12 +188,12 @@
                         <div class="flex justify-end gap-2">
                             ${o.status === 'menunggu' ? `
                                 <button onclick="updateStatus(${o.id}, 'siap')" class="bg-emerald-500 text-white px-4 py-2 rounded-xl font-black text-[10px] hover:bg-emerald-600 transition-all uppercase">Validasi</button>
-                            ` : `<span class="text-[9px] font-bold text-slate-400">Sent to POS</span>`}
+                            ` : `<span class="text-[9px] font-bold text-slate-400 italic">Valid</span>`}
                             <button onclick="cancelOrder(${o.id})" class="p-2 text-slate-300 hover:text-rose-500 transition-colors"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                         </div>
                     </td>
                 </tr>
-            `).join('');
+            `}).join('');
             lucide.createIcons();
         }
 
