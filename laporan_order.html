@@ -3,277 +3,238 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Donuts POS - Laporan Transaksi</title>
+    <title>Laporan Pro - Donuts POS</title>
+    <link rel="icon" href="data:;base64,iVBORw0KGgo=">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
     
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
-        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        @media print { .no-print { display: none; } }
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 50; align-items: center; justify-content: center; padding: 20px; }
+        .modal.active { display: flex; }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-800 min-h-screen flex">
+<body class="bg-slate-50 text-slate-800">
 
-    <aside class="w-64 bg-slate-900 h-screen sticky top-0 flex flex-col p-6 text-white no-print">
-        <div class="mb-10 flex items-center gap-3">
-            <div class="p-2 bg-rose-500 rounded-xl"><i data-lucide="donut" class="w-6 h-6"></i></div>
-            <span class="font-black text-xl italic tracking-tighter">Donuts.inc</span>
+    <div class="flex h-screen overflow-hidden">
+        <aside class="w-64 bg-white border-r border-slate-200 p-6 space-y-4 no-print">
+            <h1 class="text-2xl font-black italic text-rose-500 mb-8 tracking-tighter">Donuts.</h1>
+            <nav class="space-y-2">
+                <a href="index.html" class="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 font-bold text-slate-400 transition-all"><i data-lucide="layout-grid" class="w-5 h-5"></i> Dashboard</a>
+                <a href="kasir.html" class="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 font-bold text-slate-400 transition-all"><i data-lucide="shopping-cart" class="w-5 h-5"></i> Kasir</a>
+                <a href="laporan_order.html" class="flex items-center gap-3 p-3 rounded-xl bg-rose-50 text-rose-500 font-bold transition-all"><i data-lucide="file-text" class="w-5 h-5"></i> Laporan</a>
+            </nav>
+        </aside>
+
+        <main class="flex-1 overflow-y-auto p-8">
+            <header class="flex justify-between items-end mb-8 no-print">
+                <div>
+                    <h2 class="text-3xl font-black tracking-tighter text-slate-900">Detail Penjualan</h2>
+                    <p class="text-slate-500 text-sm font-medium">Audit transaksi & performa margin pesanan pelanggan</p>
+                </div>
+                <div class="flex gap-3">
+                    <button onclick="exportExcel()" class="bg-emerald-500 text-white px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-emerald-600 transition-all shadow-lg text-sm"><i data-lucide="file-spreadsheet" class="w-4 h-4"></i> Excel</button>
+                    <button onclick="exportPDF()" class="bg-slate-900 text-white px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-slate-800 transition-all shadow-lg text-sm"><i data-lucide="printer" class="w-4 h-4"></i> Cetak PDF Laporan</button>
+                </div>
+            </header>
+
+            <div class="bg-white p-6 rounded-[2rem] border border-slate-100 mb-8 flex flex-wrap gap-4 items-end no-print shadow-sm">
+                <div class="flex-1 min-w-[200px] space-y-2">
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Rentang Tanggal</label>
+                    <div class="flex gap-2">
+                        <input type="date" id="filter-start" class="w-full bg-slate-50 border-none rounded-xl p-3 text-sm font-bold focus:ring-2 focus:ring-rose-500/20 outline-none">
+                        <input type="date" id="filter-end" class="w-full bg-slate-50 border-none rounded-xl p-3 text-sm font-bold focus:ring-2 focus:ring-rose-500/20 outline-none">
+                    </div>
+                </div>
+                <div class="flex-1 min-w-[150px] space-y-2">
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Status</label>
+                    <select id="filter-status" class="w-full bg-slate-50 border-none rounded-xl p-3 text-sm font-bold focus:ring-2 focus:ring-rose-500/20 outline-none">
+                        <option value="all">Semua Status</option>
+                        <option value="selesai">Selesai</option>
+                        <option value="pending">Pending</option>
+                        <option value="batal">Batal (Void)</option>
+                    </select>
+                </div>
+                <button onclick="fetchLaporan()" class="bg-rose-500 text-white px-8 py-3 rounded-xl font-black hover:bg-rose-600 transition-all shadow-md shadow-rose-200">Filter Data</button>
+            </div>
+
+            <div class="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
+                <table class="w-full text-left border-collapse" id="table-laporan">
+                    <thead>
+                        <tr class="bg-slate-50 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b">
+                            <th class="p-5">Waktu / Customer</th>
+                            <th class="p-5">Tipe</th>
+                            <th class="p-5">Detail Pesanan</th>
+                            <th class="p-5 text-right">Total Tagihan</th>
+                            <th class="p-5 text-center">Status</th>
+                            <th class="p-5 text-center no-print">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="laporan-body" class="text-sm font-semibold divide-y divide-slate-50">
+                        </tbody>
+                </table>
+                <div id="loading" class="p-20 text-center text-slate-400 italic font-medium">
+                    Memuat data dari database...
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="modal-bukti" class="modal" onclick="this.classList.remove('active')">
+        <div class="bg-white p-6 rounded-[2rem] max-w-md w-full" onclick="event.stopPropagation()">
+            <h3 class="font-black mb-4 text-slate-900">Bukti Pembayaran</h3>
+            <img id="img-bukti" src="" class="w-full h-auto rounded-2xl bg-slate-100 min-h-[200px] object-contain">
+            <button onclick="document.getElementById('modal-bukti').classList.remove('active')" class="w-full mt-6 bg-slate-900 text-white py-3 rounded-xl font-bold">Tutup</button>
         </div>
-        <nav class="flex-1 space-y-4">
-            <a href="kasir.html" class="flex items-center gap-4 p-3 hover:bg-white/10 rounded-2xl transition-all text-slate-400">
-                <i data-lucide="layout-grid"></i>
-                <span class="font-bold text-sm">Point of Sale</span>
-            </a>
-            <a href="laporan_order.html" class="flex items-center gap-4 p-3 bg-rose-500 rounded-2xl transition-all text-white">
-                <i data-lucide="clipboard-list"></i>
-                <span class="font-bold text-sm">Laporan Order</span>
-            </a>
-            <a href="admin.html" class="flex items-center gap-4 p-3 hover:bg-white/10 rounded-2xl transition-all text-slate-400">
-                <i data-lucide="package"></i>
-                <span class="font-bold text-sm">Stok Produk</span>
-            </a>
-        </nav>
-    </aside>
-
-    <main class="flex-1 p-8 overflow-y-auto">
-        <header class="flex justify-between items-center mb-8">
-            <div>
-                <h1 class="text-3xl font-black tracking-tight text-slate-900">Laporan Penjualan</h1>
-                <p class="text-slate-500 font-semibold">Pantau performa bisnis Anda secara real-time.</p>
-            </div>
-            <div class="flex gap-4">
-                <button onclick="exportToPDF()" class="bg-rose-500 text-white px-6 py-3 rounded-2xl font-black text-sm shadow-lg shadow-rose-200 flex items-center gap-2 hover:bg-rose-600 transition-all">
-                    <i data-lucide="download" class="w-4 h-4"></i> Export PDF
-                </button>
-            </div>
-        </header>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100">
-                <p class="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1">Total Pendapatan</p>
-                <h3 id="stat-income" class="text-2xl font-black text-slate-900">Rp 0</h3>
-            </div>
-            <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100">
-                <p class="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1">Pesanan Sukses</p>
-                <h3 id="stat-orders" class="text-2xl font-black text-slate-900">0</h3>
-            </div>
-            <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100">
-                <p class="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1">Pesanan Batal</p>
-                <h3 id="stat-void" class="text-2xl font-black text-rose-500">0</h3>
-            </div>
-        </div>
-
-        <div class="bg-white p-6 rounded-[2rem] shadow-sm mb-8 flex flex-wrap gap-6 items-end border border-slate-100">
-            <div class="flex-1 min-w-[200px]">
-                <label class="text-[10px] font-black text-slate-400 uppercase mb-2 block tracking-widest">Filter Tanggal</label>
-                <input type="date" id="filter-tanggal" onchange="loadLaporan()" class="w-full bg-slate-50 border-none p-4 rounded-2xl outline-none font-bold text-sm focus:ring-2 focus:ring-rose-500/20">
-            </div>
-            <div class="flex-1 min-w-[200px]">
-                <label class="text-[10px] font-black text-slate-400 uppercase mb-2 block tracking-widest">Status</label>
-                <select id="filter-status" onchange="loadLaporan()" class="w-full bg-slate-50 border-none p-4 rounded-2xl outline-none font-bold text-sm focus:ring-2 focus:ring-rose-500/20">
-                    <option value="all">Semua Status</option>
-                    <option value="success">Sukses</option>
-                    <option value="void">Dibatalkan (Void)</option>
-                </select>
-            </div>
-            <button onclick="resetFilter()" class="p-4 bg-slate-100 rounded-2xl text-slate-500 hover:bg-slate-200 transition-all">
-                <i data-lucide="rotate-ccw" class="w-5 h-5"></i>
-            </button>
-        </div>
-
-        <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden">
-            <table class="w-full text-left">
-                <thead class="bg-slate-50/50 border-b border-slate-100">
-                    <tr>
-                        <th class="p-6 text-[10px] font-black uppercase text-slate-400">ID / Waktu</th>
-                        <th class="p-6 text-[10px] font-black uppercase text-slate-400">Daftar Produk</th>
-                        <th class="p-6 text-[10px] font-black uppercase text-slate-400">Metode</th>
-                        <th class="p-6 text-[10px] font-black uppercase text-slate-400">Total Tagihan</th>
-                        <th class="p-6 text-[10px] font-black uppercase text-slate-400">Status</th>
-                        <th class="p-6 text-[10px] font-black uppercase text-slate-400 text-center">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody id="laporan-list" class="divide-y divide-slate-100 font-semibold text-sm">
-                    </tbody>
-            </table>
-            <div id="loading-state" class="p-20 text-center text-slate-400 italic">
-                Memuat data transaksi...
-            </div>
-        </div>
-    </main>
+    </div>
 
     <script>
+        // --- KONFIGURASI SUPABASE ---
         const SB_URL = "https://bkkpkfvcssdmgnncrrhu.supabase.co";
-        const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJra3BrZnZjc3NkbWdubmNycmh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA3OTQ4OTIsImV4cCI6MjA4NjM3MDg5Mn0.VeE2IZhQmTyKMMQI4Ukh0nt6YHR2zVs_nUnjtPt-GPQ";
+        const SB_KEY = "YOUR_SUPABASE_KEY"; // Pastikan ganti dengan API Key Anda
         const _supabase = supabase.createClient(SB_URL, SB_KEY);
 
-        let reportData = [];
+        let dataLaporan = [];
 
-        async function loadLaporan() {
-            const loading = document.getElementById('loading-state');
-            const list = document.getElementById('laporan-list');
-            const filterDate = document.getElementById('filter-tanggal').value;
-            const filterStatus = document.getElementById('filter-status').value;
+        async function fetchLaporan() {
+            const loading = document.getElementById('loading');
+            const tbody = document.getElementById('laporan-body');
+            const start = document.getElementById('filter-start').value;
+            const end = document.getElementById('filter-end').value;
+            const status = document.getElementById('filter-status').value;
 
             loading.classList.remove('hidden');
-            list.innerHTML = '';
+            tbody.innerHTML = '';
 
             try {
-                let query = _supabase.from('transaksi').select('*, bank_payment(nama_metode)').order('created_at', { ascending: false });
+                let query = _supabase.from('pesanan_pelanggan').select('*').order('created_at', { ascending: false });
 
-                if (filterDate) {
-                    query = query.gte('created_at', `${filterDate}T00:00:00`)
-                                 .lte('created_at', `${filterDate}T23:59:59`);
-                }
+                if (start) query = query.gte('created_at', `${start}T00:00:00`);
+                if (end) query = query.lte('created_at', `${end}T23:59:59`);
+                if (status !== 'all') query = query.eq('status', status);
 
-                let { data, error } = await query;
+                const { data, error } = await query;
                 if (error) throw error;
 
-                // Client-side status filtering
-                if (filterStatus !== 'all') {
-                    data = data.filter(t => (filterStatus === 'void' ? t.status === 'void' : t.status !== 'void'));
-                }
-
-                reportData = data;
+                dataLaporan = data;
                 renderTable(data);
-                updateStats(data);
-
             } catch (err) {
                 console.error(err);
-                alert("Gagal memuat data laporan.");
+                alert("Gagal mengambil data: " + err.message);
             } finally {
                 loading.classList.add('hidden');
             }
         }
 
         function renderTable(data) {
-            const list = document.getElementById('laporan-list');
+            const tbody = document.getElementById('laporan-body');
             if (data.length === 0) {
-                list.innerHTML = `<tr><td colspan="6" class="p-20 text-center text-slate-400 italic">Tidak ada transaksi ditemukan</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="6" class="p-10 text-center text-slate-400 italic">Data tidak ditemukan</td></tr>`;
                 return;
             }
 
-            list.innerHTML = data.map(t => `
-                <tr class="${t.status === 'void' ? 'bg-rose-50/30' : 'hover:bg-slate-50/50'} transition-all">
-                    <td class="p-6">
-                        <div class="text-xs font-black uppercase text-slate-900">#${t.id.toString().slice(-6)}</div>
-                        <div class="text-[10px] text-slate-400 font-bold">${new Date(t.created_at).toLocaleString('id-ID')}</div>
+            tbody.innerHTML = data.map(o => `
+                <tr class="${o.status === 'batal' ? 'bg-rose-50/50' : 'hover:bg-slate-50/50'} transition-all">
+                    <td class="p-5">
+                        <div class="text-slate-900 font-black">${o.nama_pelanggan || 'Guest'}</div>
+                        <div class="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">${new Date(o.created_at).toLocaleString('id-ID')}</div>
                     </td>
-                    <td class="p-6">
-                        <div class="text-[11px] leading-relaxed max-w-xs">
-                            ${t.items.map(i => `<span class="bg-slate-100 px-2 py-0.5 rounded text-slate-600 mr-1 mb-1 inline-block">${i.qty}x ${i.nama}</span>`).join('')}
+                    <td class="p-5">
+                        <span class="text-[10px] font-black uppercase px-2 py-1 bg-slate-100 rounded-lg text-slate-500">${o.tipe_order || 'Kasir'}</span>
+                        ${o.nomor_meja ? `<div class="text-[10px] font-bold mt-1">Meja: ${o.nomor_meja}</div>` : ''}
+                    </td>
+                    <td class="p-5">
+                        <div class="text-[11px] font-bold text-slate-600">
+                            ${o.items.map(i => `${i.qty}x ${i.nama}`).join(', ')}
                         </div>
                     </td>
-                    <td class="p-6 text-[11px] font-black text-slate-500 uppercase">
-                        ${t.bank_payment?.nama_metode || 'Cash'}
+                    <td class="p-5 text-right font-black text-slate-900">
+                        Rp ${o.total_harga.toLocaleString('id-ID')}
                     </td>
-                    <td class="p-6 font-black text-slate-900">
-                        Rp ${t.total_harga.toLocaleString('id-ID')}
+                    <td class="p-5 text-center">
+                        <span class="px-3 py-1 rounded-full text-[9px] font-black uppercase ${
+                            o.status === 'selesai' ? 'bg-green-100 text-green-600' : 
+                            o.status === 'batal' ? 'bg-rose-100 text-rose-600' : 'bg-amber-100 text-amber-600'
+                        }">${o.status}</span>
                     </td>
-                    <td class="p-6">
-                        <span class="px-3 py-1 rounded-full text-[9px] font-black uppercase ${t.status === 'void' ? 'bg-rose-100 text-rose-600' : 'bg-green-100 text-green-600'}">
-                            ${t.status === 'void' ? 'Void / Batal' : 'Sukses'}
-                        </span>
-                    </td>
-                    <td class="p-6 text-center">
-                        ${t.status !== 'void' ? `
-                            <button onclick="voidAction(${t.id})" class="p-3 bg-white border border-slate-100 rounded-xl text-rose-500 hover:bg-rose-500 hover:text-white transition-all shadow-sm">
-                                <i data-lucide="trash-2" class="w-4 h-4"></i>
-                            </button>
-                        ` : `<i data-lucide="info" class="w-4 h-4 text-slate-300 mx-auto" title="Stok sudah dikembalikan"></i>`}
+                    <td class="p-5 text-center no-print">
+                        <div class="flex justify-center gap-2">
+                            ${o.bukti_bayar_url ? `
+                                <button onclick="openBukti('${o.bukti_bayar_url}')" class="p-2 bg-blue-50 text-blue-500 rounded-lg hover:bg-blue-500 hover:text-white transition-all"><i data-lucide="image" class="w-4 h-4"></i></button>
+                            ` : ''}
+                            ${o.status !== 'batal' ? `
+                                <button onclick="voidOrder(${o.id})" class="p-2 bg-rose-50 text-rose-500 rounded-lg hover:bg-rose-500 hover:text-white transition-all"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                            ` : ''}
+                        </div>
                     </td>
                 </tr>
             `).join('');
             lucide.createIcons();
         }
 
-        function updateStats(data) {
-            const income = data.filter(t => t.status !== 'void').reduce((a, b) => a + b.total_harga, 0);
-            const successCount = data.filter(t => t.status !== 'void').length;
-            const voidCount = data.filter(t => t.status === 'void').length;
-
-            document.getElementById('stat-income').innerText = `Rp ${income.toLocaleString('id-ID')}`;
-            document.getElementById('stat-orders').innerText = successCount;
-            document.getElementById('stat-void').innerText = voidCount;
-        }
-
-        async function voidAction(id) {
-            if (!confirm("Void transaksi? Stok produk akan dikembalikan dan pendapatan akan berkurang.")) return;
-
+        async function voidOrder(id) {
+            if (!confirm("Void pesanan ini? Stok akan dikembalikan dan status berubah jadi 'batal'.")) return;
             try {
-                // 1. Ambil data transaksi
-                const { data: trx } = await _supabase.from('transaksi').select('*').eq('id', id).single();
-                
-                // 2. Kembalikan stok satu per satu
-                for (const item of trx.items) {
+                // 1. Ambil data untuk kembalikan stok
+                const { data: order } = await _supabase.from('pesanan_pelanggan').select('items').eq('id', id).single();
+                for (const item of order.items) {
                     const { data: p } = await _supabase.from('produk').select('stok').eq('id', item.id).single();
-                    if (p) {
-                        await _supabase.from('produk').update({ stok: p.stok + item.qty }).eq('id', item.id);
-                    }
+                    await _supabase.from('produk').update({ stok: p.stok + item.qty }).eq('id', item.id);
                 }
-
-                // 3. Update status transaksi jadi void
-                await _supabase.from('transaksi').update({ status: 'void' }).eq('id', id);
-
-                alert("Transaksi berhasil dibatalkan dan stok dikembalikan.");
-                loadLaporan();
-            } catch (err) {
-                alert("Terjadi kesalahan sistem saat Void.");
-            }
+                // 2. Update Status
+                await _supabase.from('pesanan_pelanggan').update({ status: 'batal' }).eq('id', id);
+                alert("Berhasil Void.");
+                fetchLaporan();
+            } catch (e) { alert("Error: " + e.message); }
         }
 
-        function resetFilter() {
-            document.getElementById('filter-tanggal').value = '';
-            document.getElementById('filter-status').value = 'all';
-            loadLaporan();
+        function openBukti(url) {
+            document.getElementById('img-bukti').src = url;
+            document.getElementById('modal-bukti').classList.add('active');
         }
 
-        function exportToPDF() {
+        function exportExcel() {
+            const ws = XLSX.utils.json_to_sheet(dataLaporan.map(o => ({
+                Waktu: new Date(o.created_at).toLocaleString(),
+                Pelanggan: o.nama_pelanggan,
+                Tipe: o.tipe_order,
+                Total: o.total_harga,
+                Status: o.status
+            })));
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Laporan");
+            XLSX.writeFile(wb, "Laporan-Donuts.xlsx");
+        }
+
+        function exportPDF() {
             const { jsPDF } = window.jspdf;
-            const doc = new jsPDF('l', 'mm', 'a4'); // Landscape
-            const dateStr = document.getElementById('filter-tanggal').value || 'Semua Waktu';
-
-            // Header PDF
-            doc.setFont("helvetica", "bold");
-            doc.setFontSize(20);
-            doc.text("LAPORAN PENJUALAN DONUTS.INC", 14, 20);
-            
-            doc.setFontSize(10);
-            doc.setFont("helvetica", "normal");
-            doc.text(`Periode: ${dateStr}`, 14, 28);
-            doc.text(`Dicetak pada: ${new Date().toLocaleString('id-ID')}`, 14, 33);
-
-            const tableData = reportData.map(t => [
-                `#${t.id.toString().slice(-6)}`,
-                new Date(t.created_at).toLocaleString('id-ID'),
-                t.items.map(i => `${i.qty}x ${i.nama}`).join(', '),
-                t.bank_payment?.nama_metode || 'Cash',
-                `Rp ${t.total_harga.toLocaleString('id-ID')}`,
-                t.status === 'void' ? 'BATAL' : 'SUKSES'
-            ]);
-
+            const doc = new jsPDF('l', 'mm', 'a4');
+            doc.text("Laporan Penjualan Donuts.inc", 14, 15);
             doc.autoTable({
-                startY: 40,
-                head: [['ID', 'Waktu', 'Produk', 'Metode', 'Total', 'Status']],
-                body: tableData,
-                theme: 'grid',
-                headStyles: { fillColor: [244, 63, 94], halign: 'center' }, // Rose-500
-                columnStyles: {
-                    4: { halign: 'right', fontStyle: 'bold' },
-                    5: { halign: 'center' }
-                },
-                styles: { fontSize: 8 }
+                startY: 20,
+                head: [['Waktu', 'Pelanggan', 'Tipe', 'Total', 'Status']],
+                body: dataLaporan.map(o => [
+                    new Date(o.created_at).toLocaleString(),
+                    o.nama_pelanggan,
+                    o.tipe_order,
+                    `Rp ${o.total_harga.toLocaleString()}`,
+                    o.status
+                ]),
+                headStyles: { fillColor: [244, 63, 94] }
             });
-
-            doc.save(`Laporan-Donuts-${dateStr}.pdf`);
+            doc.save("Laporan-Donuts.pdf");
         }
 
-        // Initialize
-        loadLaporan();
+        window.onload = () => {
+            fetchLaporan();
+            lucide.createIcons();
+        }
     </script>
 </body>
 </html>
