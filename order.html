@@ -46,7 +46,7 @@
             <div class="w-20 h-20 bg-rose-100 text-rose-500 rounded-full flex items-center justify-center mx-auto mb-4">
                 <i data-lucide="x-circle" class="w-10 h-10"></i>
             </div>
-            <h3 class="text-xl font-black text-slate-900 mb-2">PESANAN DIBATALKAN</h3>
+            <h3 class="text-xl font-black text-slate-900 mb-2 uppercase italic">Pesanan Dibatalkan</h3>
             <p id="pesan-batal" class="text-slate-500 text-sm font-bold leading-relaxed mb-6">Maaf, pesanan Anda tidak dapat diproses saat ini.</p>
             <button onclick="tutupNotifBatal()" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest">Mulai Pesanan Baru</button>
         </div>
@@ -110,7 +110,23 @@
                         <span class="text-xs font-bold">Transfer</span>
                     </label>
                 </div>
+
+                <div id="area-bank" class="hidden space-y-4 p-5 bg-blue-50 rounded-[2rem] border border-blue-100 mt-4">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-[10px] font-black text-blue-400 uppercase tracking-tighter">BCA - Donuts Inc</p>
+                            <p class="text-lg font-black text-blue-900 leading-none">7722-098-123</p>
+                        </div>
+                        <div class="bg-blue-600 p-2 rounded-xl text-white">
+                            <i data-lucide="university" class="w-5 h-5"></i>
+                        </div>
+                    </div>
+                    <div class="space-y-2 border-t border-blue-200/50 pt-4">
+                        <label class="text-[10px] font-black text-slate-500 block uppercase tracking-widest">Upload Bukti Transfer:</label>
+                        <input type="file" id="bukti-bayar" accept="image/*" class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-[10px] file:font-black file:uppercase file:bg-blue-600 file:text-white">
+                    </div>
                 </div>
+            </div>
         </section>
     </main>
 
@@ -128,7 +144,6 @@
         const SB_URL = "https://bkkpkfvcssdmgnncrrhu.supabase.co";
         const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJra3BrZnZjc3NkbWdubmNycmh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA3OTQ4OTIsImV4cCI6MjA4NjM3MDg5Mn0.VeE2IZhQmTyKMMQI4Ukh0nt6YHR2zVs_nUnjtPt-GPQ";
         const _supabase = supabase.createClient(SB_URL, SB_KEY);
-        const adminWA = "6281234567890"; 
 
         let cart = [];
         let allProducts = [];
@@ -143,98 +158,85 @@
             activeOrderId = localStorage.getItem('activeOrderId');
             if(activeOrderId) pantauStatus(activeOrderId);
 
-            checkAutoCancel(); // Jalankan auto-cancel check
+            checkAutoCancel(); 
             
             const { data } = await _supabase.from('produk').select('*').order('nama');
-            if (data) {
-                allProducts = data; renderMenu(data);
-            }
+            if (data) { allProducts = data; renderMenu(data); }
             lucide.createIcons();
         }
 
-        // --- LOGIKA AUTO CANCEL (20 MENIT) ---
+        // --- SISTEM AUTO-CANCEL 20 MENIT ---
         async function checkAutoCancel() {
             if (!activeOrderId) return;
-            
-            const { data: order } = await _supabase.from('pesanan_pelanggan').select('created_at, status').eq('id', activeOrderId).single();
+            const { data: order } = await _supabase.from('pesanan_pelanggan').select('created_at, status').eq('id', activeOrderId).maybeSingle();
             
             if (order && order.status === 'menunggu') {
-                const limit = 20 * 60 * 1000; // 20 Menit
+                const limit = 20 * 60 * 1000;
                 const created = new Date(order.created_at).getTime();
                 const now = new Date().getTime();
 
                 if (now - created > limit) {
                     await _supabase.from('pesanan_pelanggan').delete().eq('id', activeOrderId);
-                    handlePembatalan("Waktu pemesanan habis (melebihi 20 menit).");
+                    handlePembatalan("Sesi pesanan habis (melebihi 20 menit).");
                 }
             }
         }
 
-        // --- MONITORING REALTIME ---
+        // --- SISTEM MONITORING REALTIME ---
         async function pantauStatus(orderId) {
             document.getElementById('status-tracker').classList.remove('hidden');
+            const { data } = await _supabase.from('pesanan_pelanggan').select('*').eq('id', orderId).maybeSingle();
             
-            // Cek Data Awal
-            const { data } = await _supabase.from('pesanan_pelanggan').select('*').eq('id', orderId).single();
             if(!data) {
                 localStorage.removeItem('activeOrderId');
                 return location.reload();
             }
             updateStatusUI(data.status);
 
-            // Realtime Update & Delete
-            _supabase.channel(`order-${orderId}`)
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'pesanan_pelanggan', filter: `id=eq.${orderId}` }, 
-            payload => {
-                if (payload.eventType === 'DELETE') {
-                    handlePembatalan("Pesanan dibatalkan oleh Admin.");
-                } else if (payload.eventType === 'UPDATE') {
-                    updateStatusUI(payload.new.status);
-                }
-            }).subscribe();
+            _supabase.channel(`status-${orderId}`)
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'pesanan_pelanggan', filter: `id=eq.${orderId}` }, 
+                payload => {
+                    if (payload.eventType === 'DELETE') {
+                        handlePembatalan("Pesanan Anda tidak dapat diproses (Dibatalkan oleh Admin).");
+                    } else if (payload.eventType === 'UPDATE') {
+                        updateStatusUI(payload.new.status);
+                    }
+                }).subscribe();
         }
 
         function updateStatusUI(status) {
             const txt = document.getElementById('text-status');
             const btnBatal = document.getElementById('btn-batal-customer');
-            
             const map = {
                 'menunggu': 'Menunggu konfirmasi...',
                 'proses': '👨‍🍳 Sedang disiapkan...',
                 'siap': '✅ Siap diambil!',
                 'selesai': '✨ Nikmati donatmu!'
             };
-            
             txt.innerText = map[status] || status;
 
-            // Aturan Pembatalan: Hanya jika status 'menunggu'
-            if (status === 'menunggu') {
-                btnBatal.classList.remove('hidden');
-            } else {
-                btnBatal.classList.add('hidden');
-            }
+            // Tombol batal HANYA muncul jika status 'menunggu'
+            if (status === 'menunggu') btnBatal.classList.remove('hidden');
+            else btnBatal.classList.add('hidden');
 
             if(status === 'selesai') {
                 setTimeout(() => {
                     localStorage.removeItem('activeOrderId');
                     document.getElementById('status-tracker').classList.add('hidden');
-                }, 5000);
+                }, 10000);
             }
         }
 
-        // --- BATAL OLEH CUSTOMER ---
+        // --- FITUR BATAL CUSTOMER ---
         async function customerCancelOrder() {
-            if (confirm('Batalkan pesanan Anda?')) {
+            if (confirm('Yakin ingin membatalkan pesanan?')) {
                 const { error } = await _supabase.from('pesanan_pelanggan')
                     .delete()
                     .eq('id', activeOrderId)
-                    .eq('status', 'menunggu'); // Security check
+                    .eq('status', 'menunggu');
 
-                if (error) {
-                    alert("Gagal batal: Pesanan sudah dalam proses.");
-                } else {
-                    handlePembatalan("Anda telah membatalkan pesanan.");
-                }
+                if (error) alert("Gagal membatalkan. Pesanan sudah diproses admin.");
+                else handlePembatalan("Anda telah membatalkan pesanan ini.");
             }
         }
 
@@ -245,11 +247,9 @@
             document.getElementById('notif-batal').classList.remove('hidden');
         }
 
-        function tutupNotifBatal() {
-            location.reload();
-        }
+        function tutupNotifBatal() { location.reload(); }
 
-        // --- FUNGSI ASLI ANDA (tambahItem, renderMenu, dll) ---
+        // --- LOGIKA MENU & CART ---
         function renderMenu(data) {
             const container = document.getElementById('menu-container');
             container.innerHTML = data.map(p => `
@@ -282,23 +282,45 @@
             document.getElementById('order-bar').classList.toggle('translate-y-full', count === 0);
         }
 
+        function toggleAlamat(show) { document.getElementById('alamat-lengkap').classList.toggle('hidden', !show); }
+        function toggleBank(show) { document.getElementById('area-bank').classList.toggle('hidden', !show); lucide.createIcons(); }
+
+        // --- CHECKOUT & UPLOAD ---
         async function prosesCheckout() {
-            // ... (Kode checkout Anda tetap sama)
             const nama = document.getElementById('nama-pelanggan').value;
             const tipe = document.querySelector('input[name="tipe_order"]:checked').value;
             const bayar = document.querySelector('input[name="metode_bayar"]:checked').value;
+            const fileBukti = document.getElementById('bukti-bayar').files[0];
             const total = cart.reduce((a, b) => a + (b.harga * b.qty), 0);
 
-            if(!nama) return alert("Isi nama dulu!");
+            if(!nama) return alert("Masukkan nama Anda!");
+            if(bayar === 'Transfer' && !fileBukti) return alert("Harap upload bukti transfer!");
+
+            const btn = document.getElementById('btn-kirim');
+            btn.disabled = true; btn.innerText = "MENGIRIM...";
+
+            let buktiUrl = "";
+            if(fileBukti) {
+                const fName = `${Date.now()}_bukti.png`;
+                const { data: upData, error: upError } = await _supabase.storage.from('bukti-transfer').upload(fName, fileBukti);
+                if(!upError) {
+                    const { data } = _supabase.storage.from('bukti-transfer').getPublicUrl(fName);
+                    buktiUrl = data.publicUrl;
+                }
+            }
 
             const { data, error } = await _supabase.from('pesanan_pelanggan').insert([{
                 nomor_meja: nomorMeja, nama_pelanggan: nama, items: cart,
-                total_harga: total, tipe_order: tipe, metode_bayar: bayar, status: 'menunggu'
+                total_harga: total, tipe_order: tipe, metode_bayar: bayar,
+                status: 'menunggu', bukti_bayar_url: buktiUrl
             }]).select();
 
             if(!error) {
                 localStorage.setItem('activeOrderId', data[0].id);
                 location.reload();
+            } else {
+                alert("Error: " + error.message);
+                btn.disabled = false; btn.innerText = "KONFIRMASI";
             }
         }
 
@@ -307,8 +329,6 @@
             const filtered = allProducts.filter(p => p.nama.toLowerCase().includes(keyword));
             renderMenu(filtered);
         }
-        function toggleAlamat(show) { document.getElementById('alamat-lengkap').classList.toggle('hidden', !show); }
-        function toggleBank(show) { document.getElementById('area-bank').classList.toggle('hidden', !show); }
 
         init();
     </script>
