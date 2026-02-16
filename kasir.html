@@ -23,7 +23,7 @@
 
         @keyframes pulse-red {
             0% { transform: scale(1); }
-            50% { transform: scale(1.1); box-shadow: 0 0 20px rgba(225, 29, 72, 0.5); }
+            50% { transform: scale(1.05); box-shadow: 0 0 15px rgba(225, 29, 72, 0.4); }
             100% { transform: scale(1); }
         }
         .order-alert { animation: pulse-red 2s infinite; }
@@ -32,14 +32,14 @@
 <body class="bg-slate-50 flex h-screen overflow-hidden text-slate-800">
 
     <main class="flex-1 flex flex-col h-full no-print">
-        <header class="bg-white p-6 border-b border-slate-200 flex justify-between items-center">
+        <header class="bg-white p-6 border-b border-slate-200 flex justify-between items-center shadow-sm">
             <div class="flex items-center gap-4">
                 <div class="p-3 bg-rose-500 rounded-2xl text-white">
                     <i data-lucide="store" class="w-6 h-6"></i>
                 </div>
                 <div>
-                    <h2 class="text-xl font-black italic tracking-tight">Donuts.inc POS</h2>
-                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Terminal Kasir Utama</p>
+                    <h2 class="text-xl font-black italic tracking-tight uppercase">Donuts.inc</h2>
+                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Kasir Terminal</p>
                 </div>
             </div>
             
@@ -64,10 +64,11 @@
     </main>
 
     <aside class="w-full md:w-[450px] bg-white border-l border-slate-200 flex flex-col h-full shadow-2xl z-10 no-print">
-        <div class="p-8 border-b bg-slate-50/30">
+        <div class="p-8 border-b bg-slate-50/30 flex justify-between items-center">
             <h3 class="font-black text-xl flex items-center gap-3">
-                <i data-lucide="shopping-cart" class="text-rose-500"></i> Keranjang Kasir
+                <i data-lucide="shopping-cart" class="text-rose-500"></i> Keranjang
             </h3>
+            <button onclick="clearCart()" class="text-[10px] font-bold text-rose-500 uppercase hover:underline">Hapus Semua</button>
         </div>
 
         <div id="cart-list" class="flex-1 overflow-y-auto p-8 space-y-4 hide-scrollbar">
@@ -90,7 +91,7 @@
             <div class="space-y-2 pt-4 border-t border-dashed border-slate-200 text-sm font-bold">
                 <div class="flex justify-between text-slate-400"><span>Subtotal</span><span id="subtotal">Rp 0</span></div>
                 <div class="flex justify-between text-slate-400"><span id="ppn-text">PPN</span><span id="ppn-label">Rp 0</span></div>
-                <div class="flex justify-between text-rose-500"><span>Diskon Global</span><span id="diskon-label">- Rp 0</span></div>
+                <div id="row-diskon" class="flex justify-between text-rose-500 hidden"><span>Diskon Global</span><span id="diskon-label">- Rp 0</span></div>
                 <div class="flex justify-between items-center pt-3">
                     <span class="font-black text-slate-800 uppercase tracking-tighter">Total Akhir</span>
                     <span class="text-3xl font-black text-slate-900" id="total-tagihan">Rp 0</span>
@@ -105,22 +106,25 @@
 
     <div id="panel-queue" class="fixed right-[450px] top-[80px] bottom-0 w-[350px] bg-white border-l border-slate-100 shadow-2xl z-20 translate-x-full transition-transform duration-500 overflow-hidden flex flex-col no-print">
         <div class="p-6 border-b bg-slate-900 text-white flex justify-between items-center">
-            <h4 class="font-black text-sm uppercase tracking-widest">Pesanan Siap Bayar</h4>
+            <h4 class="font-black text-sm uppercase tracking-widest text-rose-400">Order Online</h4>
             <button onclick="toggleQueue()"><i data-lucide="x" class="w-5 h-5"></i></button>
         </div>
         <div id="queue-list" class="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-50 hide-scrollbar">
-            <div class="text-center py-10 opacity-30 text-xs italic">Menunggu validasi admin...</div>
-        </div>
+            </div>
     </div>
 
     <div id="modal-struk" class="fixed inset-0 bg-slate-900/90 backdrop-blur-md z-[100] hidden flex flex-col items-center justify-center p-4">
-        <div class="bg-white w-full max-w-[350px] p-8 rounded-[2rem] shadow-2xl struk-font text-[12px] text-slate-800" id="print-area"></div>
+        <div class="bg-white w-full max-w-[350px] p-8 rounded-[2rem] shadow-2xl struk-font text-[12px] text-slate-800" id="print-area">
+            </div>
         <div class="flex flex-wrap justify-center gap-3 mt-8 no-print">
             <button onclick="window.print()" class="bg-white text-slate-900 px-6 py-4 rounded-2xl font-black shadow-xl hover:bg-slate-50 flex items-center gap-2">
-                <i data-lucide="printer" class="w-4 h-4"></i> Cetak Struk
+                <i data-lucide="printer" class="w-4 h-4"></i> Cetak
+            </button>
+            <button id="btn-wa" class="bg-green-500 text-white px-6 py-4 rounded-2xl font-black shadow-xl shadow-green-500/30 flex items-center gap-2">
+                <i data-lucide="message-circle" class="w-4 h-4"></i> WhatsApp
             </button>
             <button onclick="location.reload()" class="bg-rose-500 text-white px-6 py-4 rounded-2xl font-black shadow-xl shadow-rose-500/30">
-                Pesanan Baru
+                Selesai
             </button>
         </div>
     </div>
@@ -133,17 +137,18 @@
         let cart = [];
         let discRate = 0;
         let ppnRate = 0;
-        let currentOrderPelangganId = null; // Menyimpan ID pesanan dari admin
+        let currentOrderPelangganId = null;
 
         async function init() {
             // 1. Load Settings
             const { data: settings } = await _supabase.from('settings').select('*');
             if (settings) {
                 const disc = settings.find(s => s.key === 'diskon_global');
-                if(disc) discRate = disc.value / 100;
+                if(disc) discRate = parseFloat(disc.value) / 100;
+
                 const ppnSetting = settings.find(s => s.key === 'ppn');
                 if(ppnSetting) {
-                    ppnRate = ppnSetting.value / 100;
+                    ppnRate = parseFloat(ppnSetting.value) / 100;
                     document.getElementById('ppn-info').innerText = `${ppnSetting.value}%`;
                     document.getElementById('ppn-text').innerText = `PPN (${ppnSetting.value}%)`;
                 }
@@ -151,28 +156,30 @@
 
             // 2. Load Produk
             const { data: produk } = await _supabase.from('produk').select('*').order('nama');
-            const pContainer = document.getElementById('produk-list');
-            pContainer.innerHTML = produk.map(p => `
-                <div onclick="addToCart(${p.id}, '${p.nama}', ${p.harga})" class="produk-card bg-white p-5 rounded-[2.5rem] border border-slate-100 hover:border-rose-300 hover:shadow-2xl transition-all cursor-pointer group">
-                    <div class="w-full aspect-square bg-slate-50 rounded-[2rem] mb-5 overflow-hidden">
-                        <img src="${p.image_url || 'https://via.placeholder.com/300'}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+            if(produk) {
+                document.getElementById('produk-list').innerHTML = produk.map(p => `
+                    <div onclick="addToCart(${p.id}, '${p.nama}', ${p.harga})" class="produk-card bg-white p-5 rounded-[2.5rem] border border-slate-100 hover:border-rose-300 hover:shadow-2xl transition-all cursor-pointer group">
+                        <div class="w-full aspect-square bg-slate-50 rounded-[2rem] mb-5 overflow-hidden">
+                            <img src="${p.image_url || 'https://via.placeholder.com/300'}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                        </div>
+                        <h4 class="font-black text-slate-800 text-sm mb-1 uppercase">${p.nama}</h4>
+                        <p class="text-rose-500 font-black text-sm">Rp ${p.harga.toLocaleString('id-ID')}</p>
                     </div>
-                    <h4 class="font-black text-slate-800 text-sm mb-1">${p.nama}</h4>
-                    <p class="text-rose-500 font-black text-sm">Rp ${Number(p.harga).toLocaleString('id-ID')}</p>
-                </div>
-            `).join('');
+                `).join('');
+            }
 
             // 3. Load Payment
             const { data: banks } = await _supabase.from('bank_payment').select('*').eq('aktif', true);
-            document.getElementById('select-bank').innerHTML = banks.map(b => `<option value="${b.id}">${b.nama_metode}</option>`).join('');
+            if(banks) {
+                document.getElementById('select-bank').innerHTML = banks.map(b => `<option value="${b.id}">${b.nama_metode}</option>`).join('');
+            }
             
-            // 4. Start Realtime Listener
             setupRealtime();
             fetchPendingOrders();
             lucide.createIcons();
         }
 
-        // --- SISTEM ANTREAN DARI ADMIN ---
+        // --- REALTIME ---
         function setupRealtime() {
             _supabase.channel('kasir_sync').on('postgres_changes', { event: '*', schema: 'public', table: 'pesanan_pelanggan' }, () => {
                 fetchPendingOrders();
@@ -180,7 +187,6 @@
         }
 
         async function fetchPendingOrders() {
-            // Ambil pesanan yang statusnya 'siap' (sudah dicek admin)
             const { data } = await _supabase.from('pesanan_pelanggan').select('*').eq('status', 'siap').order('created_at', { ascending: false });
             const badge = document.getElementById('queue-count');
             const list = document.getElementById('queue-list');
@@ -191,43 +197,38 @@
                 document.getElementById('btn-queue').classList.add('order-alert');
                 
                 list.innerHTML = data.map(o => `
-                    <div class="bg-white p-4 rounded-2xl shadow-sm border-2 border-rose-100">
-                        <div class="flex justify-between items-start mb-2">
-                            <div>
-                                <h5 class="font-black text-rose-500">MEJA ${o.nomor_meja}</h5>
-                                <p class="text-[10px] font-bold text-slate-400 uppercase">${o.nama_pelanggan}</p>
-                            </div>
+                    <div class="bg-white p-5 rounded-3xl shadow-sm border border-rose-100">
+                        <div class="flex justify-between mb-2">
+                            <span class="font-black text-rose-500 uppercase italic">Meja ${o.nomor_meja}</span>
+                            <span class="text-[9px] font-bold text-slate-400">${new Date(o.created_at).toLocaleTimeString()}</span>
                         </div>
-                        <div class="bg-slate-50 p-2 rounded-xl text-[10px] mb-3">
-                            ${o.items.map(i => `${i.qty}x ${i.nama}`).join(', ')}
+                        <p class="text-[11px] font-black text-slate-800 mb-3">${o.nama_pelanggan}</p>
+                        <div class="bg-slate-50 p-3 rounded-xl text-[10px] space-y-1 mb-4">
+                            ${o.items.map(i => `<div>${i.qty}x ${i.nama}</div>`).join('')}
                         </div>
-                        <button onclick="claimOrder(${o.id})" class="w-full bg-slate-900 text-white py-2 rounded-xl text-[10px] font-black uppercase hover:bg-rose-500 transition-colors">Bayar Sekarang</button>
+                        <button onclick="claimOrder(${o.id})" class="w-full bg-slate-900 text-white py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-rose-500 transition-colors">Proses Pembayaran</button>
                     </div>
                 `).join('');
             } else {
                 badge.classList.add('hidden');
                 document.getElementById('btn-queue').classList.remove('order-alert');
-                list.innerHTML = `<div class="text-center py-10 opacity-30 text-xs italic">Belum ada pesanan siap bayar...</div>`;
+                list.innerHTML = `<div class="text-center py-20 opacity-30 text-xs italic">Belum ada antrean...</div>`;
             }
-            lucide.createIcons();
         }
 
         async function claimOrder(id) {
             const { data: order } = await _supabase.from('pesanan_pelanggan').select('*').eq('id', id).single();
             if (order) {
                 cart = order.items; 
-                currentOrderPelangganId = id; // Simpan ID untuk update status nanti
+                currentOrderPelangganId = id;
                 renderCart();
                 toggleQueue();
-                await _supabase.from('pesanan_pelanggan').update({ status: 'checkout' }).eq('id', id);
             }
         }
 
-        function toggleQueue() {
-            document.getElementById('panel-queue').classList.toggle('translate-x-full');
-        }
+        function toggleQueue() { document.getElementById('panel-queue').classList.toggle('translate-x-full'); }
 
-        // --- KERANJANG & CHECKOUT ---
+        // --- KERANJANG ---
         function addToCart(id, nama, harga) {
             const item = cart.find(i => i.id === id);
             if(item) item.qty++; else cart.push({id, nama, harga, qty: 1});
@@ -240,14 +241,19 @@
             renderCart();
         }
 
+        function clearCart() { cart = []; renderCart(); currentOrderPelangganId = null; }
+
         function renderCart() {
             const container = document.getElementById('cart-list');
             const btn = document.getElementById('btn-bayar');
+            
             if(cart.length === 0) {
                 container.innerHTML = `<div class="text-center py-20 opacity-20 italic">Keranjang kosong</div>`;
                 btn.disabled = true;
+                updateDisplay(0,0,0,0);
                 return;
             }
+            
             btn.disabled = false;
             container.innerHTML = cart.map((item, idx) => `
                 <div class="flex justify-between items-center bg-slate-50 p-4 rounded-3xl border border-slate-100">
@@ -264,84 +270,115 @@
             `).join('');
 
             const sub = cart.reduce((a, b) => a + (b.harga * b.qty), 0);
-            const ppnNominal = sub * ppnRate;
             const discNominal = sub * discRate;
-            const total = sub + ppnNominal - discNominal;
+            const ppnNominal = (sub - discNominal) * ppnRate;
+            const total = sub - discNominal + ppnNominal;
 
-            document.getElementById('subtotal').innerText = `Rp ${sub.toLocaleString()}`;
-            document.getElementById('ppn-label').innerText = `Rp ${ppnNominal.toLocaleString()}`;
-            document.getElementById('diskon-label').innerText = `- Rp ${discNominal.toLocaleString()}`;
-            document.getElementById('total-tagihan').innerText = `Rp ${total.toLocaleString()}`;
+            updateDisplay(sub, discNominal, ppnNominal, total);
             lucide.createIcons();
         }
 
+        function updateDisplay(sub, disc, ppn, total) {
+            document.getElementById('subtotal').innerText = `Rp ${sub.toLocaleString('id-ID')}`;
+            document.getElementById('ppn-label').innerText = `Rp ${ppn.toLocaleString('id-ID')}`;
+            
+            const rowDisc = document.getElementById('row-diskon');
+            if(disc > 0) {
+                rowDisc.classList.remove('hidden');
+                document.getElementById('diskon-label').innerText = `- Rp ${disc.toLocaleString('id-ID')}`;
+            } else {
+                rowDisc.classList.add('hidden');
+            }
+
+            document.getElementById('total-tagihan').innerText = `Rp ${total.toLocaleString('id-ID')}`;
+        }
+
+        // --- FINAL CHECKOUT & NOTA ---
         async function prosesCheckout() {
             const sub = cart.reduce((a, b) => a + (b.harga * b.qty), 0);
-            const ppnNominal = sub * ppnRate;
             const discNominal = sub * discRate;
-            const total = sub + ppnNominal - discNominal;
+            const ppnNominal = (sub - discNominal) * ppnRate;
+            const total = sub - discNominal + ppnNominal;
             const bankId = document.getElementById('select-bank').value;
+            const bankText = document.getElementById('select-bank').options[document.getElementById('select-bank').selectedIndex].text;
 
             try {
-                // 1. Simpan Transaksi Utama
+                // 1. Simpan Transaksi
                 const { data: trx, error } = await _supabase.from('transaksi').insert([{
-                    total_harga: total,
-                    pajak_nominal: ppnNominal,
-                    diskon_nominal: discNominal,
-                    total_qty: cart.reduce((a, b) => a + b.qty, 0),
-                    bank_id: bankId,
-                    items: cart
+                    total_harga: total, pajak_nominal: ppnNominal, diskon_nominal: discNominal,
+                    total_qty: cart.reduce((a, b) => a + b.qty, 0), bank_id: bankId, items: cart
                 }]).select().single();
 
                 if(error) throw error;
 
-                // 2. Jika berasal dari pesanan pelanggan, set status jadi 'selesai'
+                // 2. Update Status Pesanan Online
                 if (currentOrderPelangganId) {
                     await _supabase.from('pesanan_pelanggan').update({ status: 'selesai' }).eq('id', currentOrderPelangganId);
-                    currentOrderPelangganId = null;
                 }
 
-                // 3. Potong Stok via RPC
+                // 3. Update Stok via RPC
                 for (const item of cart) {
                     await _supabase.rpc('proses_pengurangan_stok', { produk_id_input: item.id, qty_beli: item.qty });
                 }
 
-                showReceipt(trx, sub, ppnNominal, discNominal, total);
-                cart = [];
-                renderCart();
-            } catch (e) {
-                alert("Gagal: " + e.message);
-            }
+                showReceipt(trx, sub, ppnNominal, discNominal, total, bankText);
+                clearCart();
+            } catch (e) { alert("Gagal: " + e.message); }
         }
 
-        function showReceipt(trx, sub, ppn, disc, total) {
+        function showReceipt(trx, sub, ppn, disc, total, bank) {
             const area = document.getElementById('print-area');
-            const bankText = document.getElementById('select-bank').options[document.getElementById('select-bank').selectedIndex].text;
+            const waktu = new Date().toLocaleString('id-ID');
             
             area.innerHTML = `
                 <div class="text-center mb-6">
-                    <h2 class="text-2xl font-black uppercase italic tracking-tighter">Donuts.</h2>
-                    <p class="text-[9px] font-bold">#TRX-${trx.id} | ${new Date().toLocaleString()}</p>
+                    <h2 class="text-2xl font-black italic tracking-tighter uppercase">Donuts.inc</h2>
+                    <p class="text-[8px] font-bold">#TRX-${trx.id} | ${waktu}</p>
                 </div>
-                <div class="space-y-1 mb-4">
-                    ${trx.items.map(i => `<div class="flex justify-between"><span>${i.qty}x ${i.nama}</span><span>${(i.qty * i.harga).toLocaleString()}</span></div>`).join('')}
+                <div class="space-y-1 mb-4 border-b border-dashed pb-3">
+                    ${trx.items.map(i => `
+                        <div class="flex justify-between">
+                            <span>${i.qty}x ${i.nama}</span>
+                            <span>${(i.qty * i.harga).toLocaleString('id-ID')}</span>
+                        </div>
+                    `).join('')}
                 </div>
-                <div class="border-t border-dashed border-slate-400 pt-3 space-y-1">
-                    <div class="flex justify-between"><span>Subtotal</span><span>${sub.toLocaleString()}</span></div>
-                    <div class="flex justify-between"><span>PPN</span><span>${ppn.toLocaleString()}</span></div>
-                    <div class="flex justify-between font-black border-t border-slate-900 pt-2 text-sm"><span>TOTAL</span><span>Rp ${total.toLocaleString()}</span></div>
+                <div class="space-y-1">
+                    <div class="flex justify-between"><span>Subtotal</span><span>${sub.toLocaleString('id-ID')}</span></div>
+                    ${disc > 0 ? `<div class="flex justify-between text-rose-500"><span>Diskon</span><span>-${disc.toLocaleString('id-ID')}</span></div>` : ''}
+                    <div class="flex justify-between"><span>PPN</span><span>${ppn.toLocaleString('id-ID')}</span></div>
+                    <div class="flex justify-between font-black border-t border-slate-900 pt-2 text-sm">
+                        <span>TOTAL</span><span>Rp ${total.toLocaleString('id-ID')}</span>
+                    </div>
                 </div>
-                <div class="mt-6 text-center text-[10px] font-black uppercase">Paid via ${bankText}</div>
+                <div class="mt-6 text-center text-[9px] font-black border py-2 rounded-lg">PAID VIA ${bank.toUpperCase()}</div>
             `;
+
+            document.getElementById('btn-wa').onclick = () => sendWA(trx, sub, ppn, disc, total, bank, waktu);
             document.getElementById('modal-struk').classList.remove('hidden');
             lucide.createIcons();
         }
 
+        function sendWA(trx, sub, ppn, disc, total, bank, waktu) {
+            let msg = `*NOTA PEMBAYARAN - DONUTS.INC*%0A`;
+            msg += `ID TRX: #${trx.id}%0A`;
+            msg += `Waktu: ${waktu}%0A%0A`;
+            trx.items.forEach(i => msg += `${i.qty}x ${i.nama} = ${(i.qty*i.harga).toLocaleString('id-ID')}%0A`);
+            msg += `%0ASubtotal: ${sub.toLocaleString('id-ID')}%0A`;
+            if(disc > 0) msg += `Diskon: -${disc.toLocaleString('id-ID')}%0A`;
+            msg += `PPN: ${ppn.toLocaleString('id-ID')}%0A`;
+            msg += `*TOTAL: Rp ${total.toLocaleString('id-ID')}*%0A%0A`;
+            msg += `Metode: ${bank}%0A`;
+            msg += `Status: *LUNAS*%0A%0A`;
+            msg += `_Terima kasih sudah belanja!_ 🍩`;
+            window.open(`https://wa.me/?text=${msg}`, '_blank');
+        }
+
         function filterMenu() {
-            const keyword = document.getElementById('cari-menu').value.toLowerCase();
+            const key = document.getElementById('cari-menu').value.toLowerCase();
             document.querySelectorAll('.produk-card').forEach(card => {
-                const nama = card.querySelector('h4').innerText.toLowerCase();
-                card.style.display = nama.includes(keyword) ? 'block' : 'none';
+                const name = card.querySelector('h4').innerText.toLowerCase();
+                card.style.display = name.includes(key) ? 'block' : 'none';
             });
         }
 
