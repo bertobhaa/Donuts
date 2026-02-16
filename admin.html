@@ -1,200 +1,160 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <link rel="icon" href="data:,">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Kasir - Donuts.inc</title>
+    <title>Admin Monitor - Donuts.inc</title>
+    <link rel="icon" href="data:,">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
-        
-        /* Gaya Khusus Cetak Struk */
-        @media print {
-            body * { visibility: hidden; }
-            #struk-area, #struk-area * { visibility: visible; }
-            #struk-area { 
-                position: absolute; 
-                left: 0; 
-                top: 0; 
-                width: 100%; 
-                padding: 0;
-                margin: 0;
-            }
-            .no-print { display: none; }
-        }
-
-        #struk-area { 
-            font-family: 'Courier New', Courier, monospace; 
-            width: 300px; 
-            background: white;
-        }
+        .modal-active { overflow: hidden; }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-800 p-4 md:p-8">
+<body class="bg-slate-50 text-slate-800">
 
-    <div class="max-w-6xl mx-auto">
-        <header class="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
-            <div>
-                <h1 class="text-3xl font-black text-slate-900 italic tracking-tighter">ORDER DASHBOARD.</h1>
-                <p class="text-slate-500 font-bold text-sm">Pantau pesanan masuk secara real-time</p>
-            </div>
-            <div class="flex items-center gap-3">
-                <div id="conn-status" class="flex items-center gap-2 bg-emerald-100 text-emerald-600 px-4 py-2 rounded-full text-[10px] font-black uppercase">
-                    <span class="w-2 h-2 bg-emerald-500 rounded-full animate-ping"></span>
-                    Sistem Aktif
+    <div class="min-h-screen flex flex-col">
+        <header class="bg-white border-b border-slate-200 p-6 sticky top-0 z-10">
+            <div class="max-w-7xl mx-auto flex justify-between items-center">
+                <div>
+                    <h1 class="text-2xl font-black text-slate-900 italic tracking-tighter">ADMIN MONITOR.</h1>
+                    <p class="text-slate-500 text-xs font-bold uppercase tracking-widest">Manajemen Pesanan & Validasi Pembayaran</p>
                 </div>
-                <button onclick="location.reload()" class="p-2 bg-white rounded-xl shadow-sm hover:bg-slate-100">
-                    <i data-lucide="refresh-cw" class="w-5 h-5"></i>
-                </button>
+                <div id="conn-status" class="flex items-center gap-2 bg-emerald-50 text-emerald-600 px-4 py-2 rounded-xl text-[10px] font-black border border-emerald-100">
+                    <span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span> LIVE SERVER
+                </div>
             </div>
         </header>
 
-        <div id="admin-orders-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div class="col-span-full text-center py-20 text-slate-400 italic">Memuat data pesanan...</div>
+        <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-8">
+            <div class="bg-white rounded-[2rem] shadow-sm border border-slate-200 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-50/50 border-b border-slate-100">
+                                <th class="p-6 text-[10px] font-black uppercase text-slate-400">Info Pelanggan</th>
+                                <th class="p-6 text-[10px] font-black uppercase text-slate-400">Detail Pesanan</th>
+                                <th class="p-6 text-[10px] font-black uppercase text-slate-400">Total Tagihan</th>
+                                <th class="p-6 text-[10px] font-black uppercase text-slate-400 text-center">Bukti Bayar</th>
+                                <th class="p-6 text-[10px] font-black uppercase text-slate-400">Status</th>
+                                <th class="p-6 text-[10px] font-black uppercase text-slate-400 text-right">Aksi Manajemen</th>
+                            </tr>
+                        </thead>
+                        <tbody id="order-table-body" class="divide-y divide-slate-50">
+                            </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="modal-bukti" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-[2.5rem] max-w-md w-full p-8 shadow-2xl scale-95 transition-transform">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="font-black text-xl">Validasi Transfer</h3>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-rose-500 transition-colors"><i data-lucide="x"></i></button>
+            </div>
+            <div class="aspect-[3/4] bg-slate-100 rounded-3xl overflow-hidden border border-slate-200">
+                <img id="img-preview" src="" class="w-full h-full object-cover">
+            </div>
+            <button onclick="closeModal()" class="w-full mt-6 bg-slate-900 text-white py-4 rounded-2xl font-black hover:bg-black transition-all">TUTUP DETAIL</button>
         </div>
     </div>
 
-    <div id="struk-area" class="hidden"></div>
-
     <script>
-        // --- KONFIGURASI SUPABASE ---
         const SB_URL = "https://bkkpkfvcssdmgnncrrhu.supabase.co";
-        const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJra3BrZnZjc3NkbWdubmNycmh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA3OTQ4OTIsImV4cCI6MjA4NjM3MDg5Mn0.VeE2IZhQmTyKMMQI4Ukh0nt6YHR2zVs_nUnjtPt-GPQ"; // GANTI DENGAN SERVICE ROLE KEY ANDA
+        const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJra3BrZnZjc3NkbWdubmNycmh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA3OTQ4OTIsImV4cCI6MjA4NjM3MDg5Mn0.VeE2IZhQmTyKMMQI4Ukh0nt6YHR2zVs_nUnjtPt-GPQ";
         const _supabase = supabase.createClient(SB_URL, SB_KEY);
 
         async function fetchOrders() {
             const { data, error } = await _supabase
                 .from('pesanan_pelanggan')
                 .select('*')
-                .neq('status', 'selesai') // Hanya tampilkan yang belum selesai
+                .neq('status', 'selesai')
                 .order('created_at', { ascending: false });
 
-            if (!error) renderOrders(data);
+            if (!error) renderTable(data);
         }
 
-        function renderOrders(orders) {
-            const container = document.getElementById('admin-orders-container');
+        function renderTable(orders) {
+            const tbody = document.getElementById('order-table-body');
             if (orders.length === 0) {
-                container.innerHTML = `<div class="col-span-full text-center py-20 bg-white rounded-[3rem] border-2 border-dashed border-slate-200 text-slate-400 font-bold">Belum ada pesanan aktif hari ini.</div>`;
+                tbody.innerHTML = `<tr><td colspan="6" class="p-20 text-center text-slate-400 font-bold italic border-none">Tidak ada pesanan aktif saat ini.</td></tr>`;
                 return;
             }
 
-            container.innerHTML = orders.map(o => `
-                <div class="bg-white rounded-[2.5rem] p-6 shadow-sm border-2 ${o.status === 'menunggu' ? 'border-rose-500 ring-4 ring-rose-500/5' : 'border-transparent'} transition-all">
-                    <div class="flex justify-between items-start mb-4">
-                        <div>
-                            <span class="px-3 py-1 bg-slate-100 rounded-full text-[10px] font-black uppercase text-slate-500">${o.tipe_order}</span>
-                            <h3 class="text-xl font-black text-slate-800 mt-2">${o.nama_pelanggan}</h3>
-                            <p class="text-xs font-bold text-slate-400">#ORD-${o.id.toString().slice(-5)} • Meja ${o.nomor_meja}</p>
+            tbody.innerHTML = orders.map(o => `
+                <tr class="hover:bg-slate-50/50 transition-colors">
+                    <td class="p-6">
+                        <div class="font-black text-slate-900">${o.nama_pelanggan}</div>
+                        <div class="text-[10px] font-bold text-rose-500 uppercase tracking-tighter">Meja ${o.nomor_meja} • ${o.tipe_order}</div>
+                    </td>
+                    <td class="p-6">
+                        <div class="text-[11px] font-bold text-slate-600 space-y-1">
+                            ${o.items.map(i => `<div>${i.qty}x ${i.nama}</div>`).join('')}
                         </div>
-                        <div class="text-right">
-                            <p class="text-lg font-black text-rose-500 italic">Rp ${o.total_harga.toLocaleString()}</p>
-                            <p class="text-[10px] font-bold text-slate-400 uppercase">${o.metode_bayar}</p>
-                        </div>
-                    </div>
-
-                    <div class="bg-slate-50 rounded-2xl p-4 mb-4 space-y-2">
-                        ${o.items.map(i => `
-                            <div class="flex justify-between text-xs font-bold">
-                                <span class="text-slate-600">${i.qty}x ${i.nama}</span>
-                                <span class="text-slate-400">Rp ${(i.harga * i.qty).toLocaleString()}</span>
-                            </div>
-                        `).join('')}
-                    </div>
-
-                    ${o.alamat_kirim ? `
-                        <div class="mb-4 p-3 bg-amber-50 rounded-xl border border-amber-100">
-                            <p class="text-[9px] font-black text-amber-600 uppercase">Alamat Kirim:</p>
-                            <p class="text-[11px] font-bold text-amber-800">${o.alamat_kirim}</p>
-                        </div>
-                    ` : ''}
-
-                    <div class="flex flex-col gap-2">
+                    </td>
+                    <td class="p-6 font-black text-slate-900 italic">Rp ${o.total_harga.toLocaleString()}</td>
+                    <td class="p-6 text-center">
                         ${o.bukti_bayar_url ? `
-                            <a href="${o.bukti_bayar_url}" target="_blank" class="flex items-center justify-center gap-2 bg-blue-50 text-blue-600 py-2 rounded-xl text-[10px] font-black hover:bg-blue-100 transition-all">
-                                <i data-lucide="image" class="w-3 h-3"></i> CEK BUKTI TRANSFER
-                            </a>
-                        ` : ''}
-                        
-                        <div class="grid grid-cols-2 gap-2 mt-2">
-                            <button onclick="updateStatus(${o.id}, 'proses')" class="bg-amber-500 text-white py-3 rounded-xl text-[10px] font-black shadow-lg shadow-amber-200 hover:bg-amber-600">PROSES</button>
-                            <button onclick="updateStatus(${o.id}, 'siap')" class="bg-emerald-500 text-white py-3 rounded-xl text-[10px] font-black shadow-lg shadow-emerald-200 hover:bg-emerald-600">SIAP SAJI</button>
-                            <button onclick="updateStatus(${o.id}, 'selesai')" class="bg-slate-900 text-white py-3 rounded-xl text-[10px] font-black col-span-2 mt-1 hover:bg-black">SELESAI & CETAK STRUK</button>
+                            <button onclick="openModal('${o.bukti_bayar_url}')" class="inline-flex items-center gap-2 bg-blue-50 text-blue-600 px-4 py-2 rounded-xl text-[10px] font-black border border-blue-100 hover:bg-blue-100 transition-all">
+                                <i data-lucide="image" class="w-3 h-3"></i> LIHAT BUKTI
+                            </button>
+                        ` : '<span class="text-[10px] font-bold text-slate-300 italic uppercase underline decoration-dotted">Belum Upload</span>'}
+                    </td>
+                    <td class="p-6">
+                        <span class="px-3 py-1 rounded-full text-[9px] font-black uppercase border 
+                            ${o.status === 'menunggu' ? 'bg-amber-50 text-amber-600 border-amber-200' : 'bg-emerald-50 text-emerald-600 border-emerald-200'}">
+                            ${o.status}
+                        </span>
+                    </td>
+                    <td class="p-6">
+                        <div class="flex justify-end gap-2">
+                            <button onclick="updateStatus(${o.id}, 'proses')" class="p-2 bg-white text-amber-500 border border-slate-200 rounded-lg hover:bg-amber-500 hover:text-white transition-all shadow-sm"><i data-lucide="play" class="w-4 h-4"></i></button>
+                            <button onclick="updateStatus(${o.id}, 'siap')" class="p-2 bg-white text-emerald-500 border border-slate-200 rounded-lg hover:bg-emerald-500 hover:text-white transition-all shadow-sm"><i data-lucide="check-circle-2" class="w-4 h-4"></i></button>
+                            <button onclick="cancelOrder(${o.id})" class="p-2 bg-white text-rose-500 border border-slate-200 rounded-lg hover:bg-rose-500 hover:text-white transition-all shadow-sm"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                         </div>
-                    </div>
-                </div>
+                    </td>
+                </tr>
             `).join('');
             lucide.createIcons();
         }
 
-        async function updateStatus(id, newStatus) {
-            // Jika selesai, kita ambil data lengkap dulu untuk struk
-            if (newStatus === 'selesai') {
-                const { data: orderData } = await _supabase.from('pesanan_pelanggan').select('*').eq('id', id).single();
-                if (orderData) {
-                    siapkanStruk(orderData);
-                    setTimeout(() => { window.print(); }, 500);
-                }
+        async function updateStatus(id, status) {
+            const { error } = await _supabase.from('pesanan_pelanggan').update({ status }).eq('id', id);
+            if (!error) fetchOrders();
+        }
+
+        async function cancelOrder(id) {
+            if(confirm('Batalkan pesanan ini? Data akan dihapus.')) {
+                const { error } = await _supabase.from('pesanan_pelanggan').delete().eq('id', id);
+                if (!error) fetchOrders();
             }
-
-            const { error } = await _supabase
-                .from('pesanan_pelanggan')
-                .update({ status: newStatus })
-                .eq('id', id);
-            
-            if(!error) fetchOrders();
         }
 
-        function siapkanStruk(o) {
-            const area = document.getElementById('struk-area');
-            area.classList.remove('hidden');
-            
-            area.innerHTML = `
-                <div style="text-align: center; border-bottom: 1px dashed #000; padding-bottom: 10px; margin-bottom: 10px;">
-                    <h2 style="margin: 0; font-size: 18px;">DONUTS.inc</h2>
-                    <p style="margin: 0; font-size: 10px;">Jl. Manis No. 123, Kota Donat</p>
-                </div>
-                <div style="font-size: 10px; margin-bottom: 10px;">
-                    <p style="margin: 0;">No: #ORD-${o.id}</p>
-                    <p style="margin: 0;">Tgl: ${new Date(o.created_at).toLocaleString('id-ID')}</p>
-                    <p style="margin: 0;">Plg: ${o.nama_pelanggan} (${o.nomor_meja})</p>
-                    <p style="margin: 0;">Tipe: ${o.tipe_order} / ${o.metode_bayar}</p>
-                </div>
-                <div style="border-bottom: 1px dashed #000; padding-bottom: 10px; margin-bottom: 5px;">
-                    ${o.items.map(i => `
-                        <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 2px;">
-                            <span>${i.qty}x ${i.nama}</span>
-                            <span>${(i.harga * i.qty).toLocaleString()}</span>
-                        </div>
-                    `).join('')}
-                </div>
-                <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 13px; margin-top: 5px;">
-                    <span>TOTAL</span>
-                    <span>Rp ${o.total_harga.toLocaleString()}</span>
-                </div>
-                <div style="text-align: center; margin-top: 20px; font-size: 10px;">
-                    <p>Selamat Menikmati!</p>
-                </div>
-            `;
+        // --- MODAL LOGIC ---
+        function openModal(url) {
+            document.getElementById('img-preview').src = url;
+            document.getElementById('modal-bukti').classList.remove('hidden');
+            document.body.classList.add('modal-active');
         }
 
-        // --- REALTIME LISTENER ---
-        const channel = _supabase.channel('order_changes')
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'pesanan_pelanggan' }, (payload) => {
-                fetchOrders();
-                // Play Sound Notif jika ada pesanan baru
-                if (payload.eventType === 'INSERT') {
-                    const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3');
-                    audio.play().catch(e => console.log("Audio play blocked by browser"));
-                }
-            })
-            .subscribe();
+        function closeModal() {
+            document.getElementById('modal-bukti').classList.add('hidden');
+            document.body.classList.remove('modal-active');
+        }
 
-        // Initial Load
+        // --- REALTIME ---
+        _supabase.channel('admin_room').on('postgres_changes', { event: '*', schema: 'public', table: 'pesanan_pelanggan' }, (payload) => {
+            fetchOrders();
+            if (payload.eventType === 'INSERT') {
+                new Audio('https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3').play().catch(()=>{});
+            }
+        }).subscribe();
+
         fetchOrders();
     </script>
 </body>
