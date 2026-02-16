@@ -19,6 +19,23 @@
 </head>
 <body class="bg-slate-50 text-slate-800">
 
+    <div id="welcome-modal" class="fixed inset-0 z-[60] bg-rose-500 flex items-center justify-center p-6 transition-all duration-500">
+        <div class="bg-white w-full max-w-md rounded-[2.5rem] p-8 shadow-2xl text-center space-y-6 scale-in">
+            <div class="bg-rose-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto">
+                <i data-lucide="user-check" class="text-rose-500 w-10 h-10"></i>
+            </div>
+            <div>
+                <h2 class="text-2xl font-black italic text-slate-900">Halo, Pecinta Donut!</h2>
+                <p class="text-slate-500 text-sm font-medium">Lengkapi data diri sebentar untuk mulai memesan ya.</p>
+            </div>
+            <div class="space-y-3">
+                <input type="text" id="reg-nama" placeholder="Nama Lengkap" class="w-full bg-slate-100 border-none p-4 rounded-2xl text-sm font-bold outline-none focus:ring-2 focus:ring-rose-500/20">
+                <input type="tel" id="reg-wa" placeholder="Nomor WhatsApp (Contoh: 0812...)" class="w-full bg-slate-100 border-none p-4 rounded-2xl text-sm font-bold outline-none focus:ring-2 focus:ring-rose-500/20">
+            </div>
+            <button onclick="saveCustomerData()" class="w-full bg-rose-500 text-white py-4 rounded-2xl font-black shadow-lg shadow-rose-200 hover:bg-rose-600 transition-all">Mulai Belanja 🍩</button>
+        </div>
+    </div>
+
     <div id="status-tracker" class="hidden fixed top-0 inset-x-0 z-50 p-4 bg-rose-500 text-white shadow-xl">
         <div class="max-w-md mx-auto flex items-center justify-between">
             <div class="flex items-center gap-3">
@@ -39,9 +56,12 @@
             <h1 class="text-2xl font-black italic tracking-tighter text-rose-500">Donuts.</h1>
             <p id="info-meja" class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Meja: -</p>
         </div>
-        <div class="relative bg-slate-100 p-2 rounded-xl">
-            <i data-lucide="shopping-bag" class="text-slate-800 w-5 h-5"></i>
-            <span id="cart-count" class="absolute -top-2 -right-2 bg-rose-500 text-white text-[9px] w-5 h-5 flex items-center justify-center rounded-full hidden font-black ring-2 ring-white">0</span>
+        <div class="flex items-center gap-3">
+            <button onclick="clearSession()" class="text-[10px] font-bold text-slate-300 uppercase">Ganti Nama</button>
+            <div class="relative bg-slate-100 p-2 rounded-xl">
+                <i data-lucide="shopping-bag" class="text-slate-800 w-5 h-5"></i>
+                <span id="cart-count" class="absolute -top-2 -right-2 bg-rose-500 text-white text-[9px] w-5 h-5 flex items-center justify-center rounded-full hidden font-black ring-2 ring-white">0</span>
+            </div>
         </div>
     </header>
 
@@ -74,15 +94,15 @@
                 <div class="grid grid-cols-3 gap-2">
                     <label class="flex flex-col items-center gap-2 p-3 bg-slate-50 rounded-2xl border-2 border-transparent has-[:checked]:border-rose-500 cursor-pointer transition-all">
                         <input type="radio" name="tipe_order" value="Dine In" class="hidden" checked onclick="toggleAlamat(false)">
-                        <span class="text-[10px] font-black">MAKAN SINI</span>
+                        <span class="text-[10px] font-black uppercase">Makan Sini</span>
                     </label>
                     <label class="flex flex-col items-center gap-2 p-3 bg-slate-50 rounded-2xl border-2 border-transparent has-[:checked]:border-rose-500 cursor-pointer transition-all">
                         <input type="radio" name="tipe_order" value="Take Away" class="hidden" onclick="toggleAlamat(false)">
-                        <span class="text-[10px] font-black">BUNGKUS</span>
+                        <span class="text-[10px] font-black uppercase">Bungkus</span>
                     </label>
                     <label class="flex flex-col items-center gap-2 p-3 bg-slate-50 rounded-2xl border-2 border-transparent has-[:checked]:border-rose-500 cursor-pointer transition-all">
                         <input type="radio" name="tipe_order" value="Delivery" class="hidden" onclick="toggleAlamat(true)">
-                        <span class="text-[10px] font-black">ANTAR</span>
+                        <span class="text-[10px] font-black uppercase">Antar</span>
                     </label>
                 </div>
                 <textarea id="alamat-lengkap" class="hidden w-full p-4 bg-slate-50 rounded-2xl border-none text-sm outline-none focus:ring-1 focus:ring-rose-200" placeholder="Tulis alamat lengkap pengiriman..."></textarea>
@@ -100,7 +120,6 @@
                         <span class="text-xs font-black">TRANSFER</span>
                     </label>
                 </div>
-
                 <div id="area-bank" class="hidden space-y-4 p-5 bg-blue-50 rounded-[2rem] border border-blue-100 mt-4 scale-in">
                     <div class="flex justify-between items-start">
                         <div>
@@ -110,7 +129,7 @@
                         <i data-lucide="university" class="text-blue-600"></i>
                     </div>
                     <div class="pt-4 border-t border-blue-200/50">
-                        <label class="text-[10px] font-black text-slate-500 block mb-2">UPLOAD BUKTI TRANSFER:</label>
+                        <label class="text-[10px] font-black text-slate-500 block mb-2 uppercase">Upload Bukti:</label>
                         <input type="file" id="bukti-bayar" accept="image/*" class="text-xs block w-full text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-[10px] file:font-black file:bg-blue-600 file:text-white">
                     </div>
                 </div>
@@ -118,22 +137,37 @@
         </section>
     </main>
 
-    <div id="order-bar" class="fixed bottom-0 inset-x-0 p-6 bg-white/90 backdrop-blur-xl border-t border-slate-100 transform translate-y-full transition-all duration-500 z-40 rounded-t-[2.5rem] shadow-2xl">
-        <div class="max-w-md mx-auto space-y-3">
-            <div class="grid grid-cols-2 gap-2">
-                <input type="text" id="nama-pelanggan" placeholder="Nama Anda..." class="w-full bg-slate-100 border-none p-4 rounded-2xl text-sm font-bold outline-none focus:ring-2 focus:ring-rose-500/20">
-                <input type="tel" id="wa-pelanggan" placeholder="No. WhatsApp..." class="w-full bg-slate-100 border-none p-4 rounded-2xl text-sm font-bold outline-none focus:ring-2 focus:ring-rose-500/20">
+    <div id="order-bar" class="fixed bottom-0 inset-x-0 p-6 bg-white/95 backdrop-blur-xl border-t border-slate-100 transform translate-y-full transition-all duration-500 z-40 rounded-t-[2.5rem] shadow-[0_-20px_50px_-12px_rgba(0,0,0,0.1)]">
+        <div class="max-w-md mx-auto space-y-4">
+            <div class="flex justify-between items-center px-2">
+                <div class="flex items-center gap-2">
+                    <div class="bg-rose-100 p-2 rounded-lg"><i data-lucide="user" class="w-3 h-3 text-rose-500"></i></div>
+                    <span id="display-nama" class="text-[11px] font-black text-slate-700 uppercase tracking-tight">Memuat...</span>
+                </div>
+                <div id="display-wa" class="text-[10px] font-bold text-slate-400">08xxx</div>
             </div>
-            <button onclick="prosesCheckout()" id="btn-kirim" class="w-full bg-rose-500 text-white py-5 rounded-[1.5rem] font-black flex justify-between items-center px-8 active:scale-95 transition-all">
-                <span class="tracking-widest uppercase text-xs">Pesan Sekarang</span>
-                <div id="total-text" class="text-right">Rp 0</div>
+
+            <div class="bg-slate-50 p-4 rounded-2xl space-y-1">
+                <div class="flex justify-between text-[10px] font-bold text-slate-400 uppercase">
+                    <span>Subtotal (<span id="total-qty">0</span> items)</span>
+                    <span id="subtotal-text">Rp 0</span>
+                </div>
+                <div id="diskon-row" class="hidden flex justify-between text-[10px] font-bold text-emerald-500 uppercase">
+                    <span>Diskon Promo</span>
+                    <span id="diskon-text">- Rp 0</span>
+                </div>
+            </div>
+
+            <button onclick="prosesCheckout()" id="btn-kirim" class="w-full bg-rose-500 text-white py-5 rounded-2xl font-black flex justify-between items-center px-8 active:scale-95 transition-all shadow-lg shadow-rose-200">
+                <span class="tracking-widest uppercase text-xs">Konfirmasi Pesanan</span>
+                <div id="total-text" class="text-lg font-black">Rp 0</div>
             </button>
         </div>
     </div>
 
     <script>
         const SB_URL = "https://bkkpkfvcssdmgnncrrhu.supabase.co";
-        const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJra3BrZnZjc3NkbWdubmNycmh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA3OTQ4OTIsImV4cCI6MjA4NjM3MDg5Mn0.VeE2IZhQmTyKMMQI4Ukh0nt6YHR2zVs_nUnjtPt-GPQ"; // Gunakan Key Anda
+        const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJra3BrZnZjc3NkbWdubmNycmh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA3OTQ4OTIsImV4cCI6MjA4NjM3MDg5Mn0.VeE2IZhQmTyKMMQI4Ukh0nt6YHR2zVs_nUnjtPt-GPQ";
         const _supabase = supabase.createClient(SB_URL, SB_KEY);
 
         let cart = [];
@@ -141,8 +175,12 @@
         let diskonPersen = 0;
         let activeOrderId = null;
         let nomorMeja = "TA";
+        let customerData = { nama: "", wa: "" };
 
         async function init() {
+            // Cek Session Pelanggan
+            checkCustomerSession();
+
             const params = new URLSearchParams(window.location.search);
             nomorMeja = params.get('meja') || "TA";
             document.getElementById('info-meja').innerText = `Meja: ${nomorMeja}`;
@@ -155,6 +193,44 @@
             lucide.createIcons();
         }
 
+        // --- LOGIKA REGISTRASI ---
+        function checkCustomerSession() {
+            const saved = sessionStorage.getItem('customerInfo');
+            if (saved) {
+                customerData = JSON.parse(saved);
+                document.getElementById('welcome-modal').classList.add('hidden');
+                syncDisplayData();
+            }
+        }
+
+        function saveCustomerData() {
+            const nama = document.getElementById('reg-nama').value.trim();
+            const wa = document.getElementById('reg-wa').value.trim();
+
+            if (nama.length < 3 || wa.length < 9) {
+                return alert("Mohon isi Nama & WhatsApp dengan benar!");
+            }
+
+            customerData = { nama, wa };
+            sessionStorage.setItem('customerInfo', JSON.stringify(customerData));
+            
+            document.getElementById('welcome-modal').classList.add('hidden');
+            syncDisplayData();
+        }
+
+        function syncDisplayData() {
+            document.getElementById('display-nama').innerText = customerData.nama;
+            document.getElementById('display-wa').innerText = customerData.wa;
+        }
+
+        function clearSession() {
+            if(confirm("Ganti identitas pelanggan?")) {
+                sessionStorage.removeItem('customerInfo');
+                location.reload();
+            }
+        }
+
+        // --- LOGIKA PRODUK & KERANJANG ---
         async function ambilSettings() {
             const { data } = await _supabase.from('settings').select('*').eq('key', 'diskon_global').maybeSingle();
             if(data) {
@@ -162,6 +238,7 @@
                 if(diskonPersen > 0) {
                     document.getElementById('promo-banner').classList.remove('hidden');
                     document.getElementById('diskon-val').innerText = diskonPersen;
+                    document.getElementById('diskon-row').classList.remove('hidden');
                 }
             }
         }
@@ -200,8 +277,10 @@
             const nominalDiskon = (subtotal * diskonPersen) / 100;
             const totalFinal = subtotal - nominalDiskon;
 
-            const totalDisplay = document.getElementById('total-text');
-            totalDisplay.innerHTML = `<p class="text-lg font-black">Rp ${totalFinal.toLocaleString()}</p>`;
+            document.getElementById('total-qty').innerText = count;
+            document.getElementById('subtotal-text').innerText = `Rp ${subtotal.toLocaleString()}`;
+            document.getElementById('diskon-text').innerText = `- Rp ${nominalDiskon.toLocaleString()}`;
+            document.getElementById('total-text').innerText = `Rp ${totalFinal.toLocaleString()}`;
 
             document.getElementById('cart-count').innerText = count;
             document.getElementById('cart-count').classList.toggle('hidden', count === 0);
@@ -209,21 +288,21 @@
         }
 
         async function prosesCheckout() {
-            const nama = document.getElementById('nama-pelanggan').value;
-            const wa = document.getElementById('wa-pelanggan').value;
+            const { nama, wa } = customerData;
             const tipe = document.querySelector('input[name="tipe_order"]:checked').value;
             const bayar = document.querySelector('input[name="metode_bayar"]:checked').value;
             const fileBukti = document.getElementById('bukti-bayar').files[0];
+            const alamat = document.getElementById('alamat-lengkap').value;
 
-            if(!nama || !wa) return alert("Lengkapi Nama dan Nomor WhatsApp!");
+            if(tipe === 'Delivery' && !alamat) return alert("Mohon isi alamat pengiriman!");
             if(bayar === 'Transfer' && !fileBukti) return alert("Mohon upload bukti transfer!");
 
             const btn = document.getElementById('btn-kirim');
             btn.disabled = true; 
-            btn.innerText = "MENGIRIM...";
+            btn.innerHTML = `<i data-lucide="loader" class="w-4 h-4 animate-spin"></i> MEMPROSES...`;
+            lucide.createIcons();
 
             let buktiUrl = "";
-
             if(bayar === 'Transfer' && fileBukti) {
                 const fName = `${Date.now()}_${nama.replace(/\s+/g, '_')}.jpg`;
                 const { data: upData, error: upError } = await _supabase.storage.from('bukti-transfer').upload(fName, fileBukti);
@@ -239,10 +318,11 @@
             const { data, error } = await _supabase.from('pesanan_pelanggan').insert([{
                 nomor_meja: nomorMeja,
                 nama_pelanggan: nama,
-                nomor_whatsapp: wa, // DATA WA MASUK KE SINI
+                nomor_whatsapp: wa,
                 items: cart,
                 total_harga: totalFinal,
                 tipe_order: tipe,
+                alamat_delivery: alamat,
                 metode_bayar: bayar,
                 status: 'menunggu',
                 bukti_bayar_url: buktiUrl
@@ -254,30 +334,20 @@
             } else {
                 alert("Gagal kirim: " + error.message);
                 btn.disabled = false;
+                btn.innerText = "Konfirmasi Pesanan";
             }
         }
 
+        // --- MONITORING STATUS SAMA SEPERTI SEBELUMNYA ---
         async function pantauStatus(orderId) {
             document.getElementById('status-tracker').classList.remove('hidden');
             const { data } = await _supabase.from('pesanan_pelanggan').select('*').eq('id', orderId).maybeSingle();
-            
-            if(!data || data.status === 'batal') { 
-                localStorage.removeItem('activeOrderId'); 
-                return location.reload(); 
-            }
+            if(!data || data.status === 'batal') { localStorage.removeItem('activeOrderId'); return location.reload(); }
             updateStatusUI(data.status);
-
-            _supabase.channel(`st-${orderId}`)
-                .on('postgres_changes', { event: '*', schema: 'public', table: 'pesanan_pelanggan', filter: `id=eq.${orderId}` }, 
-                payload => {
-                    if(payload.new.status === 'batal') {
-                        localStorage.removeItem('activeOrderId');
-                        alert("Maaf, pesanan Anda dibatalkan.");
-                        location.reload();
-                    } else {
-                        updateStatusUI(payload.new.status);
-                    }
-                }).subscribe();
+            _supabase.channel(`st-${orderId}`).on('postgres_changes', { event: '*', schema: 'public', table: 'pesanan_pelanggan', filter: `id=eq.${orderId}` }, payload => {
+                if(payload.new.status === 'batal') { localStorage.removeItem('activeOrderId'); alert("Maaf, pesanan Anda dibatalkan."); location.reload(); }
+                else { updateStatusUI(payload.new.status); }
+            }).subscribe();
         }
 
         function updateStatusUI(status) {
@@ -285,24 +355,13 @@
             const btnBatal = document.getElementById('btn-batal-customer');
             const map = { 'menunggu': 'Menunggu Konfirmasi...', 'siap': '✅ Siap diambil!', 'selesai': '✨ Pesanan Selesai!' };
             txt.innerText = map[status] || 'Sedang Diproses...';
-            
-            if(status === 'menunggu') btnBatal.classList.remove('hidden');
-            else btnBatal.classList.add('hidden');
-
-            if(status === 'selesai') {
-                setTimeout(() => { localStorage.removeItem('activeOrderId'); location.reload(); }, 10000);
-            }
+            if(status === 'menunggu') btnBatal.classList.remove('hidden'); else btnBatal.classList.add('hidden');
+            if(status === 'selesai') { setTimeout(() => { localStorage.removeItem('activeOrderId'); location.reload(); }, 10000); }
         }
 
         async function customerCancelOrder() {
             if(!confirm('Batalkan pesanan Anda?')) return;
-            
-            // Catat pembatalan oleh customer di kolom dibatalkan_oleh
-            await _supabase.from('pesanan_pelanggan').update({ 
-                status: 'batal', 
-                dibatalkan_oleh: 'customer' 
-            }).eq('id', activeOrderId).eq('status', 'menunggu');
-
+            await _supabase.from('pesanan_pelanggan').update({ status: 'batal', dibatalkan_oleh: 'customer' }).eq('id', activeOrderId).eq('status', 'menunggu');
             localStorage.removeItem('activeOrderId');
             location.reload();
         }
@@ -311,7 +370,6 @@
             const q = document.getElementById('cari-menu').value.toLowerCase();
             renderMenu(allProducts.filter(p => p.nama.toLowerCase().includes(q)));
         }
-
         function toggleAlamat(s) { document.getElementById('alamat-lengkap').classList.toggle('hidden', !s); }
         function toggleBank(s) { document.getElementById('area-bank').classList.toggle('hidden', !s); lucide.createIcons(); }
 
