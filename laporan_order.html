@@ -36,7 +36,7 @@
             <header class="flex justify-between items-end mb-8 no-print">
                 <div>
                     <h2 class="text-3xl font-black tracking-tighter text-slate-900">Detail Penjualan</h2>
-                    <p class="text-slate-500 text-sm font-medium">Audit transaksi & performa margin pesanan pelanggan</p>
+                    <p class="text-slate-500 text-sm font-medium">Audit transaksi & data kontak pelanggan</p>
                 </div>
                 <div class="flex gap-3">
                     <button onclick="exportExcel()" class="bg-emerald-500 text-white px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-emerald-600 transition-all shadow-lg text-sm"><i data-lucide="file-spreadsheet" class="w-4 h-4"></i> Excel</button>
@@ -57,7 +57,8 @@
                     <select id="filter-status" class="w-full bg-slate-50 border-none rounded-xl p-3 text-sm font-bold focus:ring-2 focus:ring-rose-500/20 outline-none">
                         <option value="all">Semua Status</option>
                         <option value="selesai">Selesai</option>
-                        <option value="pending">Pending</option>
+                        <option value="menunggu">Menunggu</option>
+                        <option value="siap">Siap</option>
                         <option value="batal">Batal (Void)</option>
                     </select>
                 </div>
@@ -69,6 +70,7 @@
                     <thead>
                         <tr class="bg-slate-50 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b">
                             <th class="p-5">Waktu / Customer</th>
+                            <th class="p-5">Kontak WA</th>
                             <th class="p-5">Tipe</th>
                             <th class="p-5">Detail Pesanan</th>
                             <th class="p-5 text-right">Total Tagihan</th>
@@ -76,8 +78,7 @@
                             <th class="p-5 text-center no-print">Aksi</th>
                         </tr>
                     </thead>
-                    <tbody id="laporan-body" class="text-sm font-semibold divide-y divide-slate-50">
-                        </tbody>
+                    <tbody id="laporan-body" class="text-sm font-semibold divide-y divide-slate-50"></tbody>
                 </table>
                 <div id="loading" class="p-20 text-center text-slate-400 italic font-medium">
                     Memuat data dari database...
@@ -88,16 +89,17 @@
 
     <div id="modal-bukti" class="modal" onclick="this.classList.remove('active')">
         <div class="bg-white p-6 rounded-[2rem] max-w-md w-full" onclick="event.stopPropagation()">
-            <h3 class="font-black mb-4 text-slate-900">Bukti Pembayaran</h3>
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="font-black text-slate-900">Bukti Pembayaran</h3>
+                <button onclick="document.getElementById('modal-bukti').classList.remove('active')"><i data-lucide="x" class="w-5 h-5 text-slate-400"></i></button>
+            </div>
             <img id="img-bukti" src="" class="w-full h-auto rounded-2xl bg-slate-100 min-h-[200px] object-contain">
-            <button onclick="document.getElementById('modal-bukti').classList.remove('active')" class="w-full mt-6 bg-slate-900 text-white py-3 rounded-xl font-bold">Tutup</button>
         </div>
     </div>
 
     <script>
-        // --- KONFIGURASI SUPABASE ---
         const SB_URL = "https://bkkpkfvcssdmgnncrrhu.supabase.co";
-        const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJra3BrZnZjc3NkbWdubmNycmh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA3OTQ4OTIsImV4cCI6MjA4NjM3MDg5Mn0.VeE2IZhQmTyKMMQI4Ukh0nt6YHR2zVs_nUnjtPt-GPQ"; // Pastikan ganti dengan API Key Anda
+        const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJra3BrZnZjc3NkbWdubmNycmh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA3OTQ4OTIsImV4cCI6MjA4NjM3MDg5Mn0.VeE2IZhQmTyKMMQI4Ukh0nt6YHR2zVs_nUnjtPt-GPQ";
         const _supabase = supabase.createClient(SB_URL, SB_KEY);
 
         let dataLaporan = [];
@@ -125,7 +127,6 @@
                 dataLaporan = data;
                 renderTable(data);
             } catch (err) {
-                console.error(err);
                 alert("Gagal mengambil data: " + err.message);
             } finally {
                 loading.classList.add('hidden');
@@ -135,15 +136,21 @@
         function renderTable(data) {
             const tbody = document.getElementById('laporan-body');
             if (data.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" class="p-10 text-center text-slate-400 italic">Data tidak ditemukan</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="7" class="p-10 text-center text-slate-400 italic">Data tidak ditemukan</td></tr>`;
                 return;
             }
 
             tbody.innerHTML = data.map(o => `
-                <tr class="${o.status === 'batal' ? 'bg-rose-50/50' : 'hover:bg-slate-50/50'} transition-all">
+                <tr class="${o.status === 'batal' ? 'bg-rose-50/30' : 'hover:bg-slate-50/50'} transition-all">
                     <td class="p-5">
                         <div class="text-slate-900 font-black">${o.nama_pelanggan || 'Guest'}</div>
                         <div class="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">${new Date(o.created_at).toLocaleString('id-ID')}</div>
+                    </td>
+                    <td class="p-5">
+                        <a href="https://wa.me/${o.nomor_whatsapp}" target="_blank" class="text-rose-500 font-bold hover:underline flex items-center gap-1">
+                            ${o.nomor_whatsapp || '-'}
+                            ${o.nomor_whatsapp ? '<i data-lucide="external-link" class="w-3 h-3"></i>' : ''}
+                        </a>
                     </td>
                     <td class="p-5">
                         <span class="text-[10px] font-black uppercase px-2 py-1 bg-slate-100 rounded-lg text-slate-500">${o.tipe_order || 'Kasir'}</span>
@@ -158,10 +165,15 @@
                         Rp ${o.total_harga.toLocaleString('id-ID')}
                     </td>
                     <td class="p-5 text-center">
-                        <span class="px-3 py-1 rounded-full text-[9px] font-black uppercase ${
-                            o.status === 'selesai' ? 'bg-green-100 text-green-600' : 
-                            o.status === 'batal' ? 'bg-rose-100 text-rose-600' : 'bg-amber-100 text-amber-600'
-                        }">${o.status}</span>
+                        <div class="flex flex-col items-center gap-1">
+                            <span class="px-3 py-1 rounded-full text-[9px] font-black uppercase ${
+                                o.status === 'selesai' ? 'bg-green-100 text-green-600' : 
+                                o.status === 'batal' ? 'bg-rose-100 text-rose-600' : 'bg-amber-100 text-amber-600'
+                            }">${o.status}</span>
+                            ${o.status === 'batal' && o.dibatalkan_oleh ? 
+                                `<span class="text-[8px] font-bold text-rose-400 italic uppercase">By ${o.dibatalkan_oleh}</span>` 
+                            : ''}
+                        </div>
                     </td>
                     <td class="p-5 text-center no-print">
                         <div class="flex justify-center gap-2">
@@ -169,7 +181,7 @@
                                 <button onclick="openBukti('${o.bukti_bayar_url}')" class="p-2 bg-blue-50 text-blue-500 rounded-lg hover:bg-blue-500 hover:text-white transition-all"><i data-lucide="image" class="w-4 h-4"></i></button>
                             ` : ''}
                             ${o.status !== 'batal' ? `
-                                <button onclick="voidOrder(${o.id})" class="p-2 bg-rose-50 text-rose-500 rounded-lg hover:bg-rose-500 hover:text-white transition-all"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                                <button onclick="voidOrder(${o.id})" class="p-2 bg-rose-50 text-rose-500 rounded-lg hover:bg-rose-500 hover:text-white transition-all" title="Batalkan Pesanan"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                             ` : ''}
                         </div>
                     </td>
@@ -181,14 +193,17 @@
         async function voidOrder(id) {
             if (!confirm("Void pesanan ini? Stok akan dikembalikan dan status berubah jadi 'batal'.")) return;
             try {
-                // 1. Ambil data untuk kembalikan stok
                 const { data: order } = await _supabase.from('pesanan_pelanggan').select('items').eq('id', id).single();
                 for (const item of order.items) {
                     const { data: p } = await _supabase.from('produk').select('stok').eq('id', item.id).single();
                     await _supabase.from('produk').update({ stok: p.stok + item.qty }).eq('id', item.id);
                 }
-                // 2. Update Status
-                await _supabase.from('pesanan_pelanggan').update({ status: 'batal' }).eq('id', id);
+                // Catat dibatalkan oleh admin
+                await _supabase.from('pesanan_pelanggan').update({ 
+                    status: 'batal',
+                    dibatalkan_oleh: 'admin' 
+                }).eq('id', id);
+                
                 alert("Berhasil Void.");
                 fetchLaporan();
             } catch (e) { alert("Error: " + e.message); }
@@ -203,32 +218,41 @@
             const ws = XLSX.utils.json_to_sheet(dataLaporan.map(o => ({
                 Waktu: new Date(o.created_at).toLocaleString(),
                 Pelanggan: o.nama_pelanggan,
+                WhatsApp: o.nomor_whatsapp,
                 Tipe: o.tipe_order,
+                Item: o.items.map(i => `${i.qty}x ${i.nama}`).join(', '),
                 Total: o.total_harga,
-                Status: o.status
+                Status: o.status,
+                Void_By: o.dibatalkan_oleh || '-'
             })));
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "Laporan");
-            XLSX.writeFile(wb, "Laporan-Donuts.xlsx");
+            XLSX.writeFile(wb, `Laporan-Donuts-${new Date().toLocaleDateString()}.xlsx`);
         }
 
         function exportPDF() {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF('l', 'mm', 'a4');
+            doc.setFontSize(18);
             doc.text("Laporan Penjualan Donuts.inc", 14, 15);
+            doc.setFontSize(10);
+            doc.text(`Dicetak pada: ${new Date().toLocaleString()}`, 14, 22);
+            
             doc.autoTable({
-                startY: 20,
-                head: [['Waktu', 'Pelanggan', 'Tipe', 'Total', 'Status']],
+                startY: 28,
+                head: [['Waktu', 'Pelanggan', 'WhatsApp', 'Tipe', 'Total', 'Status']],
                 body: dataLaporan.map(o => [
                     new Date(o.created_at).toLocaleString(),
                     o.nama_pelanggan,
+                    o.nomor_whatsapp || '-',
                     o.tipe_order,
                     `Rp ${o.total_harga.toLocaleString()}`,
-                    o.status
+                    o.status.toUpperCase()
                 ]),
-                headStyles: { fillColor: [244, 63, 94] }
+                headStyles: { fillColor: [244, 63, 94] },
+                alternateRowStyles: { fillColor: [252, 252, 252] }
             });
-            doc.save("Laporan-Donuts.pdf");
+            doc.save(`Laporan-Donuts-${Date.now()}.pdf`);
         }
 
         window.onload = () => {
