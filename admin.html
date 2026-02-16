@@ -113,7 +113,6 @@
         const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJra3BrZnZjc3NkbWdubmNycmh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA3OTQ4OTIsImV4cCI6MjA4NjM3MDg5Mn0.VeE2IZhQmTyKMMQI4Ukh0nt6YHR2zVs_nUnjtPt-GPQ";
         const _supabase = supabase.createClient(SB_URL, SB_KEY);
 
-        // Audio Notifikasi (Opsional)
         const notifySound = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
 
         async function fetchOrders() {
@@ -200,9 +199,11 @@
                     <td class="p-6">
                         <div class="flex justify-end gap-2">
                             ${o.nomor_whatsapp ? `
-                                <a href="https://wa.me/62${o.nomor_whatsapp.replace(/^0/, '')}" target="_blank" class="p-2.5 bg-green-50 text-green-600 rounded-xl hover:bg-green-600 hover:text-white transition-all">
+                                <button onclick="kirimKonfirmasiWA('${o.nama_pelanggan}', '${o.nomor_whatsapp}', ${JSON.stringify(o.items).replace(/"/g, '&quot;')}, ${o.total_harga})" 
+                                    class="p-2.5 bg-green-50 text-green-600 rounded-xl hover:bg-green-600 hover:text-white transition-all flex items-center gap-2 group">
                                     <i data-lucide="message-circle" class="w-4 h-4"></i>
-                                </a>
+                                    <span class="text-[10px] font-black hidden group-hover:block uppercase">Konfirmasi</span>
+                                </button>
                             ` : ''}
                             ${o.status === 'menunggu' ? `
                                 <button onclick="updateStatus(${o.id}, 'siap')" class="bg-emerald-500 text-white px-5 py-2.5 rounded-xl font-black text-[10px] hover:bg-emerald-600 transition-all uppercase shadow-md shadow-emerald-500/10">Validasi</button>
@@ -217,6 +218,16 @@
             lucide.createIcons();
         }
 
+        // Fungsi Baru untuk Konfirmasi WhatsApp Detail Pesanan
+        function kirimKonfirmasiWA(nama, wa, items, total) {
+            const phone = wa.startsWith('0') ? '62' + wa.substring(1) : wa;
+            let daftarItem = items.map((i, idx) => `${idx + 1}. ${i.nama} (${i.qty}x)`).join('%0A');
+            
+            const msg = `*Donuts.inc - Konfirmasi Pesanan*%0A%0AHallo Kak *${nama}*, berikut detail pesanan Kakak:%0A---------------------------%0A${daftarItem}%0A---------------------------%0A*Total Akhir: Rp ${total.toLocaleString('id-ID')}*%0A%0AMohon ditunggu ya Kak, pesanan sedang kami proses. Terima kasih! 🍩`;
+            
+            window.open(`https://wa.me/${phone}?text=${msg}`, '_blank');
+        }
+
         async function updateStatus(id, status) {
             const { error } = await _supabase.from('pesanan_pelanggan').update({ status }).eq('id', id);
             if (!error) fetchOrders();
@@ -224,28 +235,14 @@
 
         async function voidOrder(id) {
             if (!confirm('Batalkan pesanan ini? Stok akan dikembalikan otomatis.')) return;
-
             try {
-                const { data: order, error: fetchError } = await _supabase
-                    .from('pesanan_pelanggan')
-                    .select('items')
-                    .eq('id', id)
-                    .single();
-
+                const { data: order, error: fetchError } = await _supabase.from('pesanan_pelanggan').select('items').eq('id', id).single();
                 if (fetchError) throw fetchError;
-
                 for (const item of order.items) {
                     const { data: p } = await _supabase.from('produk').select('stok').eq('id', item.id).single();
-                    if (p) {
-                        await _supabase.from('produk').update({ stok: p.stok + item.qty }).eq('id', item.id);
-                    }
+                    if (p) await _supabase.from('produk').update({ stok: p.stok + item.qty }).eq('id', item.id);
                 }
-
-                await _supabase.from('pesanan_pelanggan').update({ 
-                    status: 'batal',
-                    dibatalkan_oleh: 'admin' 
-                }).eq('id', id);
-
+                await _supabase.from('pesanan_pelanggan').update({ status: 'batal', dibatalkan_oleh: 'admin' }).eq('id', id);
                 fetchOrders();
             } catch (err) {
                 console.error(err);
@@ -263,28 +260,16 @@
             document.getElementById('modal-bukti').classList.add('hidden');
         }
 
-          function sendWA(trx, total, bank) {
-            let itemsText = trx.items.map(i => `${i.qty}x ${i.nama}`).join(', ');
-            let msg = `*Donuts.inc - Hallo Kak Silahkan Ditunggu Pesanan Kaka Akan kami proses*%0A---------------------------%0AItems: ${itemsText}%0A*Total: Rp ${total.toLocaleString('id-ID')}*%0AStatus: *Proses (${bank})*%0A%0ATerima Kasih!`;
-            window.open(`https://wa.me/?text=${msg}`, '_blank');
-        }
-
-
-        // Real-time Listener (Supabase Realtime)
         _supabase.channel('admin_live')
-            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'pesanan_pelanggan' }, (payload) => {
-                notifySound.play().catch(e => console.log("Sound enabled after interaction"));
+            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'pesanan_pelanggan' }, () => {
+                notifySound.play().catch(e => console.log("Audio play blocked"));
                 fetchOrders();
             })
-            .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'pesanan_pelanggan' }, () => {
-                fetchOrders();
-            })
-            .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'pesanan_pelanggan' }, () => {
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'pesanan_pelanggan' }, () => {
                 fetchOrders();
             })
             .subscribe();
 
-        // Initial Load
         fetchOrders();
         lucide.createIcons();
     </script>
