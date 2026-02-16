@@ -205,24 +205,38 @@
             }
         }
 
-        // FUNGSI MODAL BUKTI BAYAR
         function openModal(url) {
-            const modal = document.getElementById('modal-bukti');
-            const img = document.getElementById('img-preview');
-            const loader = document.getElementById('img-loading');
-            const btnDownload = document.getElementById('btn-download');
-            
-            loader.classList.remove('hidden');
-            img.src = url;
-            btnDownload.href = url;
-            modal.classList.remove('hidden');
+    const modal = document.getElementById('modal-bukti');
+    const img = document.getElementById('img-preview');
+    const loader = document.getElementById('img-loading');
+    const btnDownload = document.getElementById('btn-download');
+    
+    // 1. Reset tampilan sebelum memuat gambar baru
+    loader.classList.remove('hidden');
+    img.classList.add('opacity-0'); // Sembunyikan gambar dulu agar tidak berkedip
+    
+    // 2. Set URL
+    img.src = url;
+    btnDownload.href = url;
+    modal.classList.remove('hidden');
 
-            img.onload = () => loader.classList.add('hidden');
-            img.onerror = () => {
-                alert("Gambar bukti bayar gagal dimuat. Pastikan URL valid.");
-                closeModal();
-            }
+    // 3. Ketika gambar berhasil dimuat
+    img.onload = () => {
+        loader.classList.add('hidden');
+        img.classList.remove('opacity-0');
+        img.classList.add('opacity-100');
+    };
+
+    // 4. Perbaikan: Hanya tampilkan alert jika URL benar-benar rusak
+    img.onerror = () => {
+        // Cek apakah src kosong atau bukan, untuk menghindari notifikasi palsu
+        if (img.src && img.src !== window.location.href) {
+            loader.classList.add('hidden');
+            alert("Maaf, file gambar tidak ditemukan di server.");
+            closeModal();
         }
+    };
+}
 
         function closeModal() {
             document.getElementById('modal-bukti').classList.add('hidden');
