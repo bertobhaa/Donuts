@@ -13,7 +13,7 @@
         body { font-family: 'Plus Jakarta Sans', sans-serif; overflow: hidden; }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .row-animate { animation: fadeIn 0.4s ease-out forwards; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body class="bg-slate-100 flex h-screen text-slate-800">
@@ -25,15 +25,18 @@
         </div>
         
         <nav class="flex-1 space-y-4">
-                  <a href="kasir.html" class="flex items-center gap-4 p-3 hover:bg-white/10 rounded-2xl transition-all text-slate-400">
+            <a href="kasir.html" class="flex items-center gap-4 p-3 hover:bg-white/10 rounded-2xl transition-all text-slate-400">
                 <i data-lucide="layout-grid"></i>
                 <span class="font-bold text-sm hidden lg:block">Point of Sale</span>
             </a>
-            <a href="#" class="flex items-center gap-4 p-3 bg-rose-500 rounded-2xl transition-all text-white shadow-lg shadow-rose-500/20">
+            <a href="admin.html" class="flex items-center gap-4 p-3 bg-rose-500 rounded-2xl transition-all text-white shadow-lg shadow-rose-500/20">
                 <i data-lucide="history"></i>
                 <span class="font-bold text-sm hidden lg:block">Process Order</span>
             </a>
-            
+            <a href="laporan_order.html" class="flex items-center gap-4 p-3 hover:bg-white/10 rounded-2xl transition-all text-slate-400">
+                <i data-lucide="file-text"></i>
+                <span class="font-bold text-sm hidden lg:block">Laporan</span>
+            </a>
         </nav>
 
         <div class="pt-6 border-t border-white/10 text-slate-500">
@@ -80,13 +83,12 @@
                                 <th class="p-6 text-[10px] font-black text-slate-400">Pelanggan</th>
                                 <th class="p-6 text-[10px] font-black text-slate-400">Order & Items</th>
                                 <th class="p-6 text-[10px] font-black text-slate-400">Total Harga</th>
-                                <th class="p-6 text-[10px] font-black text-slate-400 text-center">Bukti Transfer</th>
+                                <th class="p-6 text-[10px] font-black text-slate-400 text-center">Bukti Bayar</th>
                                 <th class="p-6 text-[10px] font-black text-slate-400">Status</th>
                                 <th class="p-6 text-[10px] font-black text-slate-400 text-right">Aksi</th>
                             </tr>
                         </thead>
-                        <tbody id="order-table-body" class="divide-y divide-slate-50 text-sm">
-                            </tbody>
+                        <tbody id="order-table-body" class="divide-y divide-slate-50 text-sm"></tbody>
                     </table>
                 </div>
             </div>
@@ -94,42 +96,28 @@
     </div>
 
     <div id="modal-bukti" class="hidden fixed inset-0 bg-slate-900/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-[3rem] max-w-md w-full p-8 shadow-2xl scale-in">
+        <div class="bg-white rounded-[3rem] max-w-md w-full p-8 shadow-2xl">
             <div class="flex justify-between items-center mb-6">
-                <div>
-                    <h3 class="font-black text-xl italic uppercase">Verifikasi Bukti</h3>
-                    <p class="text-[10px] font-bold text-slate-400 uppercase">Pastikan nominal & nama sesuai</p>
-                </div>
-                <button onclick="closeModal()" class="p-2 bg-slate-100 hover:bg-rose-100 hover:text-rose-500 rounded-full transition-all">
-                    <i data-lucide="x" class="w-5 h-5"></i>
-                </button>
+                <h3 class="font-black text-xl italic uppercase">Verifikasi Bukti</h3>
+                <button onclick="closeModal()" class="p-2 bg-slate-100 hover:bg-rose-100 rounded-full"><i data-lucide="x" class="w-5 h-5"></i></button>
             </div>
-            
-            <div class="aspect-[3/4] bg-slate-100 rounded-[2rem] overflow-hidden border border-slate-200 relative group">
-                <img id="img-preview" src="" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
-                <div id="img-loading" class="absolute inset-0 flex items-center justify-center bg-white/80">
-                    <i data-lucide="loader" class="animate-spin text-rose-500"></i>
-                </div>
+            <div class="aspect-[3/4] bg-slate-100 rounded-[2rem] overflow-hidden border">
+                <img id="img-preview" src="" class="w-full h-full object-contain">
             </div>
-
-            <div class="flex gap-3 mt-6">
-                <a id="btn-download" href="" download="bukti-bayar.jpg" class="flex-1 bg-slate-100 text-slate-900 py-4 rounded-2xl font-black text-xs uppercase text-center hover:bg-slate-200 transition-all">Download</a>
-                <button onclick="closeModal()" class="flex-1 bg-slate-900 text-white py-4 rounded-2xl font-black text-xs uppercase hover:bg-black transition-all">Tutup</button>
-            </div>
+            <button onclick="closeModal()" class="w-full mt-6 bg-slate-900 text-white py-4 rounded-2xl font-black uppercase text-xs tracking-widest">Tutup</button>
         </div>
     </div>
 
     <script>
-        // KONFIGURASI SUPABASE
         const SB_URL = "https://bkkpkfvcssdmgnncrrhu.supabase.co";
-        const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJra3BrZnZjc3NkbWdubmNycmh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA3OTQ4OTIsImV4cCI6MjA4NjM3MDg5Mn0.VeE2IZhQmTyKMMQI4Ukh0nt6YHR2zVs_nUnjtPt-GPQ";
+        const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."; // Gunakan Key Anda
         const _supabase = supabase.createClient(SB_URL, SB_KEY);
 
         async function fetchOrders() {
             const { data, error } = await _supabase
                 .from('pesanan_pelanggan')
                 .select('*')
-                .neq('status', 'selesai')
+                .in('status', ['menunggu', 'siap']) // Hanya ambil yang belum selesai/batal
                 .order('created_at', { ascending: false });
 
             if (!error) {
@@ -146,7 +134,7 @@
         function renderTable(orders) {
             const tbody = document.getElementById('order-table-body');
             if (orders.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" class="p-24 text-center text-slate-300 font-bold italic">Menunggu pesanan baru...</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="6" class="p-24 text-center text-slate-300 font-bold italic">Antrean kosong...</td></tr>`;
                 return;
             }
 
@@ -154,22 +142,20 @@
                 <tr class="hover:bg-slate-50/50 transition-colors row-animate">
                     <td class="p-6">
                         <div class="font-black text-slate-900 text-base leading-tight">${o.nama_pelanggan}</div>
-                        <div class="text-[10px] font-black text-rose-500 uppercase">MEJA ${o.nomor_meja}</div>
+                        <div class="text-[10px] font-black text-rose-500 uppercase">MEJA ${o.nomor_meja || '-'}</div>
+                        <div class="text-[9px] font-bold text-slate-400 mt-1">${o.nomor_whatsapp || ''}</div>
                     </td>
                     <td class="p-6">
-                        <div class="text-[10px] font-black uppercase text-indigo-600 mb-1 leading-none">${o.tipe_order} • ${o.metode_bayar}</div>
-                        <div class="text-[11px] font-bold text-slate-500 space-y-0.5">
+                        <div class="text-[10px] font-black uppercase text-indigo-600 mb-1 leading-none">${o.tipe_order}</div>
+                        <div class="text-[11px] font-bold text-slate-500">
                             ${o.items.map(i => `<div>${i.qty}x ${i.nama}</div>`).join('')}
                         </div>
                     </td>
-                    <td class="p-6 font-black text-slate-900">
-                        Rp ${o.total_harga.toLocaleString()}
-                    </td>
+                    <td class="p-6 font-black text-slate-900">Rp ${o.total_harga.toLocaleString()}</td>
                     <td class="p-6 text-center">
                         ${o.bukti_bayar_url ? `
-                            <button onclick="openModal('${o.bukti_bayar_url}')" class="group relative p-3 bg-blue-50 text-blue-600 rounded-2xl border border-blue-100 hover:bg-blue-600 hover:text-white transition-all shadow-sm">
+                            <button onclick="openModal('${o.bukti_bayar_url}')" class="p-3 bg-blue-50 text-blue-600 rounded-2xl border border-blue-100 hover:bg-blue-600 hover:text-white transition-all shadow-sm">
                                 <i data-lucide="image" class="w-5 h-5"></i>
-                                <span class="absolute -top-2 -right-2 w-3 h-3 bg-blue-500 rounded-full border-2 border-white"></span>
                             </button>
                         ` : '<span class="text-slate-200 italic text-[10px]">Tunai</span>'}
                     </td>
@@ -181,12 +167,17 @@
                     </td>
                     <td class="p-6">
                         <div class="flex justify-end gap-2">
+                            ${o.nomor_whatsapp ? `
+                                <a href="https://wa.me/${o.nomor_whatsapp}" target="_blank" class="p-2.5 bg-green-50 text-green-600 rounded-xl hover:bg-green-600 hover:text-white transition-all">
+                                    <i data-lucide="message-circle" class="w-4 h-4"></i>
+                                </a>
+                            ` : ''}
                             ${o.status === 'menunggu' ? `
                                 <button onclick="updateStatus(${o.id}, 'siap')" class="bg-emerald-500 text-white px-5 py-2.5 rounded-xl font-black text-[10px] hover:bg-emerald-600 transition-all uppercase shadow-md shadow-emerald-500/10">Validasi</button>
                             ` : `
                                 <button onclick="updateStatus(${o.id}, 'selesai')" class="bg-slate-900 text-white px-5 py-2.5 rounded-xl font-black text-[10px] hover:bg-black transition-all uppercase shadow-md shadow-slate-900/10">Selesaikan</button>
                             `}
-                            <button onclick="cancelOrder(${o.id})" class="p-2.5 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                            <button onclick="voidOrder(${o.id})" class="p-2.5 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all"><i data-lucide="x-circle" class="w-4 h-4"></i></button>
                         </div>
                     </td>
                 </tr>
@@ -199,58 +190,57 @@
             if (!error) fetchOrders();
         }
 
-        async function cancelOrder(id) {
-            if(confirm('Hapus pesanan ini dari antrean?')) {
-                await _supabase.from('pesanan_pelanggan').delete().eq('id', id);
+        async function voidOrder(id) {
+            if (!confirm('Batalkan pesanan ini? Stok akan dikembalikan otomatis.')) return;
+
+            try {
+                // 1. Ambil detail item untuk kembalikan stok
+                const { data: order, error: fetchError } = await _supabase
+                    .from('pesanan_pelanggan')
+                    .select('items')
+                    .eq('id', id)
+                    .single();
+
+                if (fetchError) throw fetchError;
+
+                // 2. Loop balikkan stok
+                for (const item of order.items) {
+                    const { data: p } = await _supabase.from('produk').select('stok').eq('id', item.id).single();
+                    if (p) {
+                        await _supabase.from('produk').update({ stok: p.stok + item.qty }).eq('id', item.id);
+                    }
+                }
+
+                // 3. Update status jadi batal dan catat dibatalkan oleh admin
+                await _supabase.from('pesanan_pelanggan').update({ 
+                    status: 'batal',
+                    dibatalkan_oleh: 'admin' 
+                }).eq('id', id);
+
+                alert("Pesanan dibatalkan & stok dikembalikan.");
                 fetchOrders();
+            } catch (err) {
+                console.error(err);
+                alert("Gagal membatalkan pesanan.");
             }
         }
 
         function openModal(url) {
-    const modal = document.getElementById('modal-bukti');
-    const img = document.getElementById('img-preview');
-    const loader = document.getElementById('img-loading');
-    const btnDownload = document.getElementById('btn-download');
-    
-    // 1. Reset tampilan sebelum memuat gambar baru
-    loader.classList.remove('hidden');
-    img.classList.add('opacity-0'); // Sembunyikan gambar dulu agar tidak berkedip
-    
-    // 2. Set URL
-    img.src = url;
-    btnDownload.href = url;
-    modal.classList.remove('hidden');
-
-    // 3. Ketika gambar berhasil dimuat
-    img.onload = () => {
-        loader.classList.add('hidden');
-        img.classList.remove('opacity-0');
-        img.classList.add('opacity-100');
-    };
-
-    // 4. Perbaikan: Hanya tampilkan alert jika URL benar-benar rusak
-    img.onerror = () => {
-        // Cek apakah src kosong atau bukan, untuk menghindari notifikasi palsu
-        if (img.src && img.src !== window.location.href) {
-            loader.classList.add('hidden');
-            alert("Maaf, file gambar tidak ditemukan di server.");
-            closeModal();
+            const img = document.getElementById('img-preview');
+            img.src = url;
+            document.getElementById('modal-bukti').classList.remove('hidden');
         }
-    };
-}
 
         function closeModal() {
             document.getElementById('modal-bukti').classList.add('hidden');
-            document.getElementById('img-preview').src = "";
         }
 
-        // REAL-TIME LISTENER
-        _supabase.channel('admin_updates')
+        // Real-time listener
+        _supabase.channel('admin_live')
             .on('postgres_changes', { event: '*', schema: 'public', table: 'pesanan_pelanggan' }, () => {
                 fetchOrders();
             }).subscribe();
 
-        // INIT
         fetchOrders();
         lucide.createIcons();
     </script>
