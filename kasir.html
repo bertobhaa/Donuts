@@ -33,31 +33,34 @@
     </audio>
 
     <aside class="w-20 lg:w-64 bg-slate-900 h-full flex flex-col p-6 text-white no-print transition-all">
-        <div class="mb-10 flex items-center gap-3">
-            <div class="p-2 bg-rose-500 rounded-xl"><i data-lucide="donut" class="w-6 h-6"></i></div>
-            <span class="font-black text-xl italic tracking-tighter hidden lg:block">Donuts.inc</span>
-        </div>
-        
-        <nav class="flex-1 space-y-4">
-            <a href="kasir.html" class="flex items-center gap-4 p-3 bg-rose-500 rounded-2xl transition-all">
-                <i data-lucide="layout-grid"></i>
-                <span class="font-bold text-sm hidden lg:block">Point of Sale</span>
-            </a>
-            <a href="admin.html" class="flex items-center gap-4 p-3 hover:bg-white/10 rounded-2xl transition-all text-slate-400">
-                <i data-lucide="history"></i>
-                <span class="font-bold text-sm hidden lg:block">Process Order</span>
-            </a>
-            <a href="#" class="flex items-center gap-4 p-3 hover:bg-white/10 rounded-2xl transition-all text-slate-400">
-                <i data-lucide="settings"></i>
-                <span class="font-bold text-sm hidden lg:block">Pengaturan</span>
-            </a>
+    <div class="mb-10 flex items-center gap-3">
+        <div class="p-2 bg-rose-500 rounded-xl"><i data-lucide="donut" class="w-6 h-6"></i></div>
+        <span class="font-black text-xl italic tracking-tighter hidden lg:block">Donuts.inc</span>
+    </div>
+    
+    <nav class="flex-1 space-y-4">
+        <a href="kasir.html" class="flex items-center gap-4 p-3 bg-rose-500 rounded-2xl transition-all">
+            <i data-lucide="layout-grid"></i>
+            <span class="font-bold text-sm hidden lg:block">Point of Sale</span>
+        </a>
+        <a href="admin.html" class="flex items-center gap-4 p-3 hover:bg-white/10 rounded-2xl transition-all text-slate-400">
+            <i data-lucide="history"></i>
+            <span class="font-bold text-sm hidden lg:block">Process Order</span>
+        </a>
         </nav>
 
-        <div class="pt-6 border-t border-white/10 text-slate-500">
+    <div class="pt-6 border-t border-white/10 space-y-4">
+        <div class="text-slate-500">
             <p class="text-[10px] font-black uppercase hidden lg:block">Staff Active</p>
-            <p class="text-xs font-bold text-white hidden lg:block">Admin Kasir #01</p>
+            <p class="text-xs font-bold text-white hidden lg:block" id="display-user">Memuat...</p>
         </div>
-    </aside>
+        
+        <button onclick="handleLogout()" class="w-full flex items-center gap-4 p-3 hover:bg-rose-500/20 text-rose-400 hover:text-rose-500 rounded-2xl transition-all group">
+            <i data-lucide="log-out" class="group-hover:-translate-x-1 transition-transform"></i>
+            <span class="font-bold text-sm hidden lg:block">Keluar Sistem</span>
+        </button>
+    </div>
+</aside>
 
     <div class="flex-1 flex flex-col min-w-0">
         <header class="bg-white p-6 border-b flex justify-between items-center no-print">
@@ -450,6 +453,38 @@
         }, 1000);
 
         init();
+
+        // Tambahkan fungsi ini di dalam script
+async function handleLogout() {
+    const yakin = confirm("Apakah Anda yakin ingin keluar dari sistem kasir?");
+    if (!yakin) return;
+
+    try {
+        const { error } = await _supabase.auth.signOut();
+        if (error) throw error;
+        
+        // Redirect ke halaman login
+        window.location.href = "login.html";
+    } catch (err) {
+        alert("Gagal keluar: " + err.message);
+    }
+}
+
+// Tambahkan pengecekan user saat init() untuk menampilkan email/nama
+async function checkUser() {
+    const { data: { user } } = await _supabase.auth.getUser();
+    if (user) {
+        document.getElementById('display-user').innerText = user.email.split('@')[0].toUpperCase();
+    } else {
+        window.location.href = "login.html"; // Tendang balik jika tidak ada session
+    }
+}
+
+// Panggil checkUser() di dalam fungsi init() Anda
+async function init() {
+    await checkUser(); // Tambahkan ini
+    // ... kode init lainnya ...
+}
     </script>
 </body>
 </html>
