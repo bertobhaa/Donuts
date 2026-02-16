@@ -41,37 +41,64 @@
         </div>
     </div>
 
-    <script>
-        const SB_URL = "https://bkkpkfvcssdmgnncrrhu.supabase.co";
-        const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJra3BrZnZjc3NkbWdubmNycmh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA3OTQ4OTIsImV4cCI6MjA4NjM3MDg5Mn0.VeE2IZhQmTyKMMQI4Ukh0nt6YHR2zVs_nUnjtPt-GPQ";
-        const _supabase = supabase.createClient(SB_URL, SB_KEY);
+<script>
+    const SB_URL = "https://bkkpkfvcssdmgnncrrhu.supabase.co";
+    const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJra3BrZnZjc3NkbWdubmNycmh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA3OTQ4OTIsImV4cCI6MjA4NjM3MDg5Mn0.VeE2IZhQmTyKMMQI4Ukh0nt6YHR2zVs_nUnjtPt-GPQ";
+    const _supabase = supabase.createClient(SB_URL, SB_KEY);
 
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const btn = document.getElementById('btnLogin');
-            btn.innerText = "Mengecek...";
-            
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('btnLogin');
+        const errorDiv = document.getElementById('errorMsg');
+        
+        btn.innerText = "Mengecek Akses...";
+        btn.disabled = true;
+        errorDiv.classList.add('hidden');
+        
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
 
-            const { error } = await _supabase.auth.signInWithPassword({ email, password });
+        try {
+            // 1. Login ke Supabase Auth
+            const { data: authData, error: authError } = await _supabase.auth.signInWithPassword({ email, password });
 
-            if (error) {
-                document.getElementById('errorMsg').classList.remove('hidden');
-                btn.innerText = "Masuk Ke Dashboard";
-            } else {
+            if (authError) throw authError;
+
+            // 2. Ambil role dari tabel 'profil' berdasarkan user ID yang baru login
+            const { data: profile, error: profileError } = await _supabase
+                .from('profil')
+                .select('role')
+                .eq('id', authData.user.id)
+                .single();
+
+            if (profileError) throw profileError;
+
+            // 3. Redirect otomatis berdasarkan role
+            const role = profile.role ? profile.role.toLowerCase() : 'kasir'; // default kasir jika kosong
+
+            if (role === 'admin') {
                 window.location.href = "index.html";
+            } else {
+                window.location.href = "kasir.html";
             }
-        });
 
-        async function resetPassword() {
-            const email = prompt("Masukkan email Anda:");
-            if (!email) return;
-            const { error } = await _supabase.auth.resetPasswordForEmail(email);
-            alert(error ? "Gagal: " + error.message : "Link reset password terkirim ke email!");
+        } catch (err) {
+            console.error("Login Error:", err.message);
+            errorDiv.innerText = "Login Gagal: " + (err.message === "Invalid login credentials" ? "Email atau password salah!" : err.message);
+            errorDiv.classList.remove('hidden');
+            btn.innerText = "Masuk Ke Dashboard";
+            btn.disabled = false;
         }
+    });
 
-        lucide.createIcons();
-    </script>
+    async function resetPassword() {
+        const email = prompt("Masukkan email Anda:");
+        if (!email) return;
+        const { error } = await _supabase.auth.resetPasswordForEmail(email);
+        alert(error ? "Gagal: " + error.message : "Link reset password terkirim ke email!");
+    }
+
+    lucide.createIcons();
+</script>
 </body>
 </html>
