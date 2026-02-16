@@ -57,7 +57,7 @@
             <p id="info-meja" class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Meja: -</p>
         </div>
         <div class="flex items-center gap-3">
-            <button onclick="clearSession()" class="text-[10px] font-bold text-slate-300 uppercase">Ganti Nama</button>
+            <button onclick="clearSession()" class="text-[10px] font-bold text-slate-300 uppercase">LOG OUT</button>
             <div class="relative bg-slate-100 p-2 rounded-xl">
                 <i data-lucide="shopping-bag" class="text-slate-800 w-5 h-5"></i>
                 <span id="cart-count" class="absolute -top-2 -right-2 bg-rose-500 text-white text-[9px] w-5 h-5 flex items-center justify-center rounded-full hidden font-black ring-2 ring-white">0</span>
@@ -174,7 +174,7 @@
         let allProducts = [];
         let diskonPersen = 0;
         let activeOrderId = null;
-        let nomorMeja = "TA";
+        let nomorMeja = "CO";
         let customerData = { nama: "", wa: "" };
 
         async function init() {
@@ -182,7 +182,7 @@
             checkCustomerSession();
 
             const params = new URLSearchParams(window.location.search);
-            nomorMeja = params.get('meja') || "TA";
+            nomorMeja = params.get('Customer') || "CO";
             document.getElementById('info-meja').innerText = `Meja: ${nomorMeja}`;
 
             activeOrderId = localStorage.getItem('activeOrderId');
