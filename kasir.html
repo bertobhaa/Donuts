@@ -116,14 +116,13 @@
             <div class="bg-rose-500 p-3 rounded-2xl ring-active">
                 <i data-lucide="bell-ring" class="w-6 h-6"></i>
             </div>
-            <div>
-                <h5 class="font-black text-sm uppercase italic">Ada Orderan Masuk!</h5>
-                <p class="text-[10px] text-slate-400">Silakan cek antrean online kasir.</p>
-            </div>
-            <button onclick="toggleQueue(); hideToast();" class="bg-white/10 hover:bg-rose-500 px-4 py-2 rounded-xl text-[10px] font-black uppercase transition-all">Lihat</button>
-        </div>
+        <div>
+        <h5 class="font-black text-sm uppercase italic">Ada Orderan Masuk!</h5>
+        <p class="text-[10px] text-slate-400">Silakan cek antrean online kasir.</p>
     </div>
-
+    <button onclick="window.location.href='admin.html';" class="bg-white/10 hover:bg-rose-500 px-4 py-2 rounded-xl text-[10px] font-black uppercase transition-all">
+        Lihat
+    </button>
     <div id="modal-struk" class="fixed inset-0 bg-slate-900/95 z-[200] hidden flex items-center justify-center p-4 backdrop-blur-sm">
         <div class="bg-white w-full max-w-[350px] p-8 rounded-[2rem] shadow-2xl" id="print-area"></div>
         <div class="absolute bottom-10 flex gap-4 no-print">
