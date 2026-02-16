@@ -263,6 +263,13 @@
             document.getElementById('modal-bukti').classList.add('hidden');
         }
 
+          function sendWA(trx, total, bank) {
+            let itemsText = trx.items.map(i => `${i.qty}x ${i.nama}`).join(', ');
+            let msg = `*Donuts.inc - Hallo Kak Silahkan Ditunggu Pesanan Kaka Akan kami proses*%0A---------------------------%0AItems: ${itemsText}%0A*Total: Rp ${total.toLocaleString('id-ID')}*%0AStatus: *Proses (${bank})*%0A%0ATerima Kasih!`;
+            window.open(`https://wa.me/?text=${msg}`, '_blank');
+        }
+
+
         // Real-time Listener (Supabase Realtime)
         _supabase.channel('admin_live')
             .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'pesanan_pelanggan' }, (payload) => {
