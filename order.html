@@ -11,71 +11,173 @@
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .category-btn.active { background-color: #f43f5e; color: white; border-color: #f43f5e; }
     </style>
 </head>
 <body class="bg-white text-slate-800">
 
-    <header class="p-6 flex justify-between items-center sticky top-0 bg-white/80 backdrop-blur-md z-10">
+    <header class="p-6 flex justify-between items-center sticky top-0 bg-white/90 backdrop-blur-md z-30">
         <div>
-            <h1 class="text-2xl font-black italic tracking-tighter text-rose-500">Donuts.</h1>
-            <p id="info-meja" class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Meja: Memuat...</p>
+            <h1 class="text-2xl font-black italic tracking-tighter text-rose-500 uppercase">Donuts.</h1>
+            <p id="info-meja" class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Loading...</p>
         </div>
         <div class="relative">
-            <i data-lucide="shopping-bag" class="text-slate-800"></i>
-            <span id="cart-count" class="absolute -top-2 -right-2 bg-rose-500 text-white text-[10px] w-5 h-5 flex items-center justify-center rounded-full hidden">0</span>
+            <i data-lucide="shopping-bag" class="text-slate-800 w-7 h-7"></i>
+            <span id="cart-count" class="absolute -top-1 -right-1 bg-rose-500 text-white text-[10px] w-5 h-5 flex items-center justify-center rounded-full hidden font-black ring-2 ring-white">0</span>
         </div>
     </header>
 
-    <main class="p-6 space-y-8 pb-32">
+    <div class="px-6 space-y-4 sticky top-[80px] bg-white pb-4 z-20">
+        <div class="relative group">
+            <i data-lucide="search" class="absolute left-4 top-3.5 text-slate-400 w-5 h-5"></i>
+            <input type="text" id="cari-menu" onkeyup="filterProduk()" placeholder="Cari varian donat..." 
+                class="w-full bg-slate-50 border-none p-4 pl-12 rounded-2xl text-sm font-semibold outline-none focus:ring-2 focus:ring-rose-500/10 transition-all">
+        </div>
+    </div>
+
+    <main class="px-6 pb-44 space-y-8">
+        
         <section>
-            <h2 class="text-xl font-extrabold mb-4">Pilih Donat Favoritmu 🍩</h2>
+            <h2 class="text-lg font-extrabold mb-4 flex items-center gap-2">
+                <span class="w-2 h-6 bg-rose-500 rounded-full"></span> 
+                Menu Favorit
+            </h2>
             <div id="menu-container" class="grid grid-cols-1 gap-4">
+                <div class="animate-pulse flex gap-4 bg-slate-50 p-4 rounded-[2rem]">
+                    <div class="w-20 h-20 bg-slate-200 rounded-2xl"></div>
+                    <div class="flex-1 space-y-2 mt-2">
+                        <div class="h-4 bg-slate-200 rounded w-1/2"></div>
+                        <div class="h-4 bg-slate-200 rounded w-1/3"></div>
+                    </div>
                 </div>
+            </div>
+        </section>
+
+        <section class="p-6 bg-slate-50 rounded-[2.5rem] space-y-5 border border-slate-100">
+            <h3 class="font-black text-xs uppercase tracking-widest text-slate-400 flex items-center gap-2">
+                <i data-lucide="truck" class="w-4 h-4"></i> Layanan Pengiriman
+            </h3>
+            <div class="grid grid-cols-3 gap-3">
+                <label class="flex flex-col items-center gap-2 p-4 bg-white rounded-2xl border-2 border-transparent has-[:checked]:border-rose-500 transition-all cursor-pointer shadow-sm">
+                    <input type="radio" name="tipe_order" value="Dine In" class="hidden" checked onclick="toggleAlamat(false)">
+                    <i data-lucide="utensils" class="w-5 h-5 text-slate-600"></i>
+                    <span class="text-[10px] font-bold">Makan Sini</span>
+                </label>
+                <label class="flex flex-col items-center gap-2 p-4 bg-white rounded-2xl border-2 border-transparent has-[:checked]:border-rose-500 transition-all cursor-pointer shadow-sm">
+                    <input type="radio" name="tipe_order" value="Take Away" class="hidden" onclick="toggleAlamat(false)">
+                    <i data-lucide="package" class="w-5 h-5 text-slate-600"></i>
+                    <span class="text-[10px] font-bold">Bungkus</span>
+                </label>
+                <label class="flex flex-col items-center gap-2 p-4 bg-white rounded-2xl border-2 border-transparent has-[:checked]:border-rose-500 transition-all cursor-pointer shadow-sm">
+                    <input type="radio" name="tipe_order" value="Gojek" class="hidden" onclick="toggleAlamat(true)">
+                    <i data-lucide="bike" class="w-5 h-5 text-slate-600"></i>
+                    <span class="text-[10px] font-bold">Gojek</span>
+                </label>
+            </div>
+
+            <div id="area-alamat" class="hidden animate-[slide_0.3s_ease-out]">
+                <textarea id="alamat-lengkap" placeholder="Masukkan alamat lengkap pengiriman & catatan..." 
+                    class="w-full p-4 bg-white rounded-2xl border-none text-sm font-semibold outline-none focus:ring-2 focus:ring-rose-500/20 shadow-sm min-h-[100px]"></textarea>
+            </div>
+        </section>
+
+        <section class="p-6 bg-slate-50 rounded-[2.5rem] space-y-5 border border-slate-100">
+            <h3 class="font-black text-xs uppercase tracking-widest text-slate-400 flex items-center gap-2">
+                <i data-lucide="credit-card" class="w-4 h-4"></i> Metode Pembayaran
+            </h3>
+            <div class="grid grid-cols-2 gap-3">
+                <label class="flex items-center gap-3 p-4 bg-white rounded-2xl border-2 border-transparent has-[:checked]:border-rose-500 cursor-pointer shadow-sm transition-all">
+                    <input type="radio" name="metode_bayar" value="Cash" class="hidden" checked>
+                    <div class="p-2 bg-emerald-100 rounded-xl text-emerald-600">
+                        <i data-lucide="banknote" class="w-5 h-5"></i>
+                    </div>
+                    <span class="text-xs font-bold">Bayar Tunai</span>
+                </label>
+                <label class="flex items-center gap-3 p-4 bg-white rounded-2xl border-2 border-transparent has-[:checked]:border-rose-500 cursor-pointer shadow-sm transition-all">
+                    <input type="radio" name="metode_bayar" value="Transfer" class="hidden">
+                    <div class="p-2 bg-blue-100 rounded-xl text-blue-600">
+                        <i data-lucide="landmark" class="w-5 h-5"></i>
+                    </div>
+                    <span class="text-xs font-bold">Bank Transfer</span>
+                </label>
+            </div>
         </section>
     </main>
 
-    <div id="order-bar" class="fixed bottom-0 inset-x-0 p-6 bg-white border-t border-slate-100 shadow-[0_-10px_40px_rgba(0,0,0,0.05)] transform translate-y-full transition-transform duration-300 z-20">
-        <div class="flex flex-col gap-4">
-            <input type="text" id="nama-pelanggan" placeholder="Masukkan Nama Anda..." class="w-full bg-slate-50 border-none p-4 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-rose-500/20 outline-none">
-            <button onclick="kirimPesanan()" id="btn-kirim" class="w-full bg-rose-500 text-white py-4 rounded-2xl font-black flex justify-between items-center px-6">
-                <span>Kirim Pesanan</span>
-                <span id="total-text">Rp 0</span>
+    <div id="order-bar" class="fixed bottom-0 inset-x-0 p-6 bg-white/90 backdrop-blur-xl border-t border-slate-100 shadow-[0_-10px_40px_rgba(0,0,0,0.08)] transform translate-y-full transition-all duration-500 z-40 rounded-t-[3rem]">
+        <div class="max-w-md mx-auto space-y-4">
+            <div class="flex justify-between items-center px-2">
+                <p class="text-[10px] font-black uppercase text-slate-400">Informasi Pemesan</p>
+                <p id="label-qty" class="text-xs font-bold text-rose-500">0 Item terpilih</p>
+            </div>
+            <input type="text" id="nama-pelanggan" placeholder="Masukkan Nama Anda..." 
+                class="w-full bg-slate-100 border-none p-4 rounded-2xl text-sm font-bold outline-none focus:ring-2 focus:ring-rose-500/20">
+            
+            <button onclick="prosesCheckout()" id="btn-kirim" class="w-full bg-rose-500 text-white py-5 rounded-[1.5rem] font-black flex justify-between items-center px-8 shadow-xl shadow-rose-200 active:scale-95 transition-all">
+                <span class="tracking-tight">KONFIRMASI PESANAN</span>
+                <span id="total-text" class="text-lg">Rp 0</span>
             </button>
         </div>
     </div>
 
     <script>
+        // -- KONFIGURASI --
         const SB_URL = "https://bkkpkfvcssdmgnncrrhu.supabase.co";
         const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJra3BrZnZjc3NkbWdubmNycmh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA3OTQ4OTIsImV4cCI6MjA4NjM3MDg5Mn0.VeE2IZhQmTyKMMQI4Ukh0nt6YHR2zVs_nUnjtPt-GPQ";
+        const adminWA = "6281234567890"; // GANTI DENGAN NOMOR WA ANDA
+        
         const _supabase = supabase.createClient(SB_URL, SB_KEY);
-
         let cart = [];
-        let nomorMeja = "TA"; // Default Take Away
+        let allProducts = [];
+        let nomorMeja = "TA";
 
         async function init() {
-            // 1. Ambil Nomor Meja dari URL (?meja=05)
+            // Get table from URL
             const params = new URLSearchParams(window.location.search);
             nomorMeja = params.get('meja') || "TA";
-            document.getElementById('info-meja').innerText = `Meja: ${nomorMeja}`;
+            document.getElementById('info-meja').innerText = nomorMeja === "TA" ? "Layanan: Take Away" : `Meja: ${nomorMeja}`;
 
-            // 2. Ambil Menu dari DB
-            const { data: produk } = await _supabase.from('produk').select('*').order('nama');
+            // Fetch Menu
+            const { data, error } = await _supabase.from('produk').select('*').order('nama');
+            if (data) {
+                allProducts = data;
+                renderMenu(allProducts);
+            }
+            lucide.createIcons();
+        }
+
+        function renderMenu(items) {
             const container = document.getElementById('menu-container');
-            
-            container.innerHTML = produk.map(p => `
-                <div class="flex items-center gap-4 bg-slate-50 p-4 rounded-3xl">
-                    <img src="${p.image_url || 'https://images.unsplash.com/photo-1551024601-bec78aea704b?q=80&w=150'}" class="w-20 h-20 object-cover rounded-2xl">
+            if (items.length === 0) {
+                container.innerHTML = `<p class="text-center py-10 text-slate-400 italic">Menu tidak ditemukan...</p>`;
+                return;
+            }
+
+            container.innerHTML = items.map(p => `
+                <div class="flex items-center gap-4 bg-slate-50 p-4 rounded-[2rem] border border-transparent hover:border-rose-100 transition-all">
+                    <img src="${p.image_url || 'https://images.unsplash.com/photo-1551024601-bec78aea704b?q=80&w=150'}" 
+                        class="w-20 h-20 object-cover rounded-[1.5rem] shadow-sm">
                     <div class="flex-1">
-                        <h4 class="font-bold text-sm">${p.nama}</h4>
-                        <p class="text-rose-500 font-black text-sm">Rp ${p.harga.toLocaleString()}</p>
+                        <h4 class="font-bold text-sm text-slate-800">${p.nama}</h4>
+                        <p class="text-rose-500 font-black text-xs mt-1">Rp ${p.harga.toLocaleString()}</p>
                     </div>
-                    <button onclick="tambahItem(${p.id}, '${p.nama}', ${p.harga})" class="bg-white p-3 rounded-2xl shadow-sm text-rose-500 active:scale-90 transition-all">
+                    <button onclick="tambahItem(${p.id}, '${p.nama}', ${p.harga})" 
+                        class="bg-white p-3 rounded-2xl shadow-sm text-rose-500 hover:bg-rose-500 hover:text-white active:scale-90 transition-all">
                         <i data-lucide="plus" class="w-5 h-5"></i>
                     </button>
                 </div>
             `).join('');
-            
             lucide.createIcons();
+        }
+
+        function filterProduk() {
+            const keyword = document.getElementById('cari-menu').value.toLowerCase();
+            const filtered = allProducts.filter(p => p.nama.toLowerCase().includes(keyword));
+            renderMenu(filtered);
+        }
+
+        function toggleAlamat(show) {
+            document.getElementById('area-alamat').style.display = show ? 'block' : 'none';
         }
 
         function tambahItem(id, nama, harga) {
@@ -87,6 +189,7 @@
         function updateUI() {
             const bar = document.getElementById('order-bar');
             const totalText = document.getElementById('total-text');
+            const labelQty = document.getElementById('label-qty');
             const badge = document.getElementById('cart-count');
             
             const total = cart.reduce((a, b) => a + (b.harga * b.qty), 0);
@@ -96,6 +199,7 @@
                 bar.classList.remove('translate-y-full');
                 badge.classList.remove('hidden');
                 badge.innerText = count;
+                labelQty.innerText = `${count} Item terpilih`;
                 totalText.innerText = `Rp ${total.toLocaleString()}`;
             } else {
                 bar.classList.add('translate-y-full');
@@ -103,32 +207,63 @@
             }
         }
 
-        async function kirimPesanan() {
+        async function prosesCheckout() {
             const nama = document.getElementById('nama-pelanggan').value;
+            const tipe = document.querySelector('input[name="tipe_order"]:checked').value;
+            const bayar = document.querySelector('input[name="metode_bayar"]:checked').value;
+            const alamat = document.getElementById('alamat-lengkap').value;
+
             if(!nama) return alert("Harap isi nama Anda!");
+            if(tipe === 'Gojek' && !alamat) return alert("Mohon isi alamat pengiriman lengkap!");
 
             const btn = document.getElementById('btn-kirim');
-            btn.innerText = "Mengirim...";
+            btn.innerHTML = `<span>MENGIRIM...</span> <i data-lucide="loader" class="animate-spin"></i>`;
             btn.disabled = true;
+            lucide.createIcons();
 
+            const total = cart.reduce((a, b) => a + (b.harga * b.qty), 0);
+
+            // 1. Simpan ke Database
             const { error } = await _supabase.from('pesanan_pelanggan').insert([{
                 nomor_meja: nomorMeja,
                 nama_pelanggan: nama,
                 items: cart,
-                total_harga: cart.reduce((a, b) => a + (b.harga * b.qty), 0),
+                total_harga: total,
+                tipe_order: tipe,
+                metode_bayar: bayar,
+                alamat_kirim: alamat,
                 status: 'menunggu'
             }]);
 
             if(!error) {
-                alert("Pesanan berhasil dikirim! Silakan tunggu di meja.");
-                cart = [];
-                document.getElementById('nama-pelanggan').value = "";
-                updateUI();
+                // 2. Kirim Notif WhatsApp
+                kirimWhatsApp(nama, tipe, bayar, alamat, total);
+                
+                alert("Pesanan Anda telah diterima! Halaman akan dimuat ulang.");
+                location.reload();
             } else {
-                alert("Gagal mengirim pesanan. Coba lagi.");
+                alert("Gagal mengirim pesanan. Silakan hubungi kasir.");
+                btn.disabled = false;
+                btn.innerHTML = `<span>KONFIRMASI PESANAN</span> <span class="text-lg">Rp ${total.toLocaleString()}</span>`;
             }
-            btn.innerText = "Kirim Pesanan";
-            btn.disabled = false;
+        }
+
+        function kirimWhatsApp(nama, tipe, bayar, alamat, total) {
+            let text = `*PESANAN BARU - DONUTS.inc*%0A`;
+            text += `━━━━━━━━━━━━━━━━━━%0A`;
+            text += `👤 *Pelanggan:* ${nama}%0A`;
+            text += `📍 *Layanan:* ${tipe} (${nomorMeja})%0A`;
+            text += `💳 *Bayar via:* ${bayar}%0A`;
+            if(alamat) text += `🏠 *Alamat:* ${alamat}%0A`;
+            text += `━━━━━━━━━━━━━━━━━━%0A`;
+            cart.forEach(i => {
+                text += `• ${i.qty}x ${i.nama}%0A`;
+            });
+            text += `━━━━━━━━━━━━━━━━━━%0A`;
+            text += `*TOTAL TAGIHAN: Rp ${total.toLocaleString()}*%0A%0A`;
+            text += `_Terima kasih sudah memesan!_`;
+
+            window.open(`https://wa.me/${adminWA}?text=${text}`, '_blank');
         }
 
         init();
