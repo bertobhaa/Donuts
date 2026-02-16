@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
+    <link rel="icon" href="data:,">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Kasir - Donuts.inc</title>
@@ -62,7 +63,7 @@
     <script>
         // --- KONFIGURASI SUPABASE ---
         const SB_URL = "https://bkkpkfvcssdmgnncrrhu.supabase.co";
-        const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."; // GANTI DENGAN SERVICE ROLE KEY ANDA
+        const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJra3BrZnZjc3NkbWdubmNycmh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA3OTQ4OTIsImV4cCI6MjA4NjM3MDg5Mn0.VeE2IZhQmTyKMMQI4Ukh0nt6YHR2zVs_nUnjtPt-GPQ"; // GANTI DENGAN SERVICE ROLE KEY ANDA
         const _supabase = supabase.createClient(SB_URL, SB_KEY);
 
         async function fetchOrders() {
