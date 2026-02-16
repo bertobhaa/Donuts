@@ -2,73 +2,144 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Dashboard Kasir - Donuts</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Kasir - Donuts.inc</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        
+        /* Gaya Khusus Cetak Struk */
+        @media print {
+            body * { visibility: hidden; }
+            #struk-area, #struk-area * { visibility: visible; }
+            #struk-area { 
+                position: absolute; 
+                left: 0; 
+                top: 0; 
+                width: 100%; 
+                padding: 0;
+                margin: 0;
+            }
+            .no-print { display: none; }
+        }
+
+        #struk-area { 
+            font-family: 'Courier New', Courier, monospace; 
+            width: 300px; 
+            background: white;
+        }
+    </style>
 </head>
-<body class="bg-slate-100 p-8">
+<body class="bg-slate-50 text-slate-800 p-4 md:p-8">
+
     <div class="max-w-6xl mx-auto">
-        <header class="flex justify-between items-center mb-10">
+        <header class="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
             <div>
-                <h1 class="text-3xl font-black text-slate-800 italic">PESANAN MASUK</h1>
-                <p class="text-slate-500 font-bold">Pantau & Proses Orderan Real-time</p>
+                <h1 class="text-3xl font-black text-slate-900 italic tracking-tighter">ORDER DASHBOARD.</h1>
+                <p class="text-slate-500 font-bold text-sm">Pantau pesanan masuk secara real-time</p>
             </div>
-            <div id="connection-status" class="bg-emerald-100 text-emerald-600 px-4 py-2 rounded-full text-xs font-bold flex items-center gap-2">
-                <span class="w-2 h-2 bg-emerald-500 rounded-full animate-ping"></span> Realtime Connected
+            <div class="flex items-center gap-3">
+                <div id="conn-status" class="flex items-center gap-2 bg-emerald-100 text-emerald-600 px-4 py-2 rounded-full text-[10px] font-black uppercase">
+                    <span class="w-2 h-2 bg-emerald-500 rounded-full animate-ping"></span>
+                    Sistem Aktif
+                </div>
+                <button onclick="location.reload()" class="p-2 bg-white rounded-xl shadow-sm hover:bg-slate-100">
+                    <i data-lucide="refresh-cw" class="w-5 h-5"></i>
+                </button>
             </div>
         </header>
 
         <div id="admin-orders-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            </div>
+            <div class="col-span-full text-center py-20 text-slate-400 italic">Memuat data pesanan...</div>
+        </div>
     </div>
 
+    <div id="struk-area" class="hidden"></div>
+
     <script>
+        // --- KONFIGURASI SUPABASE ---
         const SB_URL = "https://bkkpkfvcssdmgnncrrhu.supabase.co";
-        const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."; // Gunakan Service Role Key Anda
+        const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."; // GANTI DENGAN SERVICE ROLE KEY ANDA
         const _supabase = supabase.createClient(SB_URL, SB_KEY);
 
         async function fetchOrders() {
-            const { data } = await _supabase
+            const { data, error } = await _supabase
                 .from('pesanan_pelanggan')
                 .select('*')
+                .neq('status', 'selesai') // Hanya tampilkan yang belum selesai
                 .order('created_at', { ascending: false });
-            renderOrders(data);
+
+            if (!error) renderOrders(data);
         }
 
         function renderOrders(orders) {
             const container = document.getElementById('admin-orders-container');
+            if (orders.length === 0) {
+                container.innerHTML = `<div class="col-span-full text-center py-20 bg-white rounded-[3rem] border-2 border-dashed border-slate-200 text-slate-400 font-bold">Belum ada pesanan aktif hari ini.</div>`;
+                return;
+            }
+
             container.innerHTML = orders.map(o => `
-                <div class="bg-white rounded-[2rem] p-6 shadow-sm border-2 ${o.status === 'menunggu' ? 'border-rose-500 animate-pulse' : 'border-transparent'}">
+                <div class="bg-white rounded-[2.5rem] p-6 shadow-sm border-2 ${o.status === 'menunggu' ? 'border-rose-500 ring-4 ring-rose-500/5' : 'border-transparent'} transition-all">
                     <div class="flex justify-between items-start mb-4">
                         <div>
-                            <span class="bg-slate-100 px-3 py-1 rounded-full text-[10px] font-black uppercase text-slate-500">${o.tipe_order}</span>
-                            <h3 class="text-xl font-black mt-1">${o.nama_pelanggan}</h3>
-                            <p class="text-xs font-bold text-slate-400">Meja: ${o.nomor_meja}</p>
+                            <span class="px-3 py-1 bg-slate-100 rounded-full text-[10px] font-black uppercase text-slate-500">${o.tipe_order}</span>
+                            <h3 class="text-xl font-black text-slate-800 mt-2">${o.nama_pelanggan}</h3>
+                            <p class="text-xs font-bold text-slate-400">#ORD-${o.id.toString().slice(-5)} • Meja ${o.nomor_meja}</p>
                         </div>
-                        <p class="text-sm font-black text-rose-500 italic">Rp ${o.total_harga.toLocaleString()}</p>
+                        <div class="text-right">
+                            <p class="text-lg font-black text-rose-500 italic">Rp ${o.total_harga.toLocaleString()}</p>
+                            <p class="text-[10px] font-bold text-slate-400 uppercase">${o.metode_bayar}</p>
+                        </div>
                     </div>
 
-                    <div class="space-y-2 mb-6 border-y border-slate-50 py-4">
-                        ${o.items.map(i => `<p class="text-xs font-bold text-slate-600">${i.qty}x ${i.nama}</p>`).join('')}
+                    <div class="bg-slate-50 rounded-2xl p-4 mb-4 space-y-2">
+                        ${o.items.map(i => `
+                            <div class="flex justify-between text-xs font-bold">
+                                <span class="text-slate-600">${i.qty}x ${i.nama}</span>
+                                <span class="text-slate-400">Rp ${(i.harga * i.qty).toLocaleString()}</span>
+                            </div>
+                        `).join('')}
                     </div>
 
-                    ${o.bukti_bayar_url ? `
-                        <a href="${o.bukti_bayar_url}" target="_blank" class="block w-full text-center bg-blue-50 text-blue-600 py-2 rounded-xl text-[10px] font-black mb-4 hover:bg-blue-100 transition-all">
-                            LIHAT BUKTI BAYAR 📸
-                        </a>
+                    ${o.alamat_kirim ? `
+                        <div class="mb-4 p-3 bg-amber-50 rounded-xl border border-amber-100">
+                            <p class="text-[9px] font-black text-amber-600 uppercase">Alamat Kirim:</p>
+                            <p class="text-[11px] font-bold text-amber-800">${o.alamat_kirim}</p>
+                        </div>
                     ` : ''}
 
-                    <div class="grid grid-cols-2 gap-2">
-                        <button onclick="updateStatus(${o.id}, 'proses')" class="bg-amber-500 text-white py-3 rounded-xl text-[10px] font-black">PROSES</button>
-                        <button onclick="updateStatus(${o.id}, 'siap')" class="bg-emerald-500 text-white py-3 rounded-xl text-[10px] font-black">SIAP SAJI</button>
-                        <button onclick="updateStatus(${o.id}, 'selesai')" class="bg-slate-800 text-white py-3 rounded-xl text-[10px] font-black col-span-2">SELESAI & ARSIP</button>
+                    <div class="flex flex-col gap-2">
+                        ${o.bukti_bayar_url ? `
+                            <a href="${o.bukti_bayar_url}" target="_blank" class="flex items-center justify-center gap-2 bg-blue-50 text-blue-600 py-2 rounded-xl text-[10px] font-black hover:bg-blue-100 transition-all">
+                                <i data-lucide="image" class="w-3 h-3"></i> CEK BUKTI TRANSFER
+                            </a>
+                        ` : ''}
+                        
+                        <div class="grid grid-cols-2 gap-2 mt-2">
+                            <button onclick="updateStatus(${o.id}, 'proses')" class="bg-amber-500 text-white py-3 rounded-xl text-[10px] font-black shadow-lg shadow-amber-200 hover:bg-amber-600">PROSES</button>
+                            <button onclick="updateStatus(${o.id}, 'siap')" class="bg-emerald-500 text-white py-3 rounded-xl text-[10px] font-black shadow-lg shadow-emerald-200 hover:bg-emerald-600">SIAP SAJI</button>
+                            <button onclick="updateStatus(${o.id}, 'selesai')" class="bg-slate-900 text-white py-3 rounded-xl text-[10px] font-black col-span-2 mt-1 hover:bg-black">SELESAI & CETAK STRUK</button>
+                        </div>
                     </div>
                 </div>
             `).join('');
+            lucide.createIcons();
         }
 
         async function updateStatus(id, newStatus) {
+            // Jika selesai, kita ambil data lengkap dulu untuk struk
+            if (newStatus === 'selesai') {
+                const { data: orderData } = await _supabase.from('pesanan_pelanggan').select('*').eq('id', id).single();
+                if (orderData) {
+                    siapkanStruk(orderData);
+                    setTimeout(() => { window.print(); }, 500);
+                }
+            }
+
             const { error } = await _supabase
                 .from('pesanan_pelanggan')
                 .update({ status: newStatus })
@@ -77,13 +148,52 @@
             if(!error) fetchOrders();
         }
 
-        // Realtime Subscription
-        _supabase.channel('custom-all-channel')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'pesanan_pelanggan' }, () => {
-            fetchOrders();
-            new Audio('https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3').play(); // Bunyi notif
-        }).subscribe();
+        function siapkanStruk(o) {
+            const area = document.getElementById('struk-area');
+            area.classList.remove('hidden');
+            
+            area.innerHTML = `
+                <div style="text-align: center; border-bottom: 1px dashed #000; padding-bottom: 10px; margin-bottom: 10px;">
+                    <h2 style="margin: 0; font-size: 18px;">DONUTS.inc</h2>
+                    <p style="margin: 0; font-size: 10px;">Jl. Manis No. 123, Kota Donat</p>
+                </div>
+                <div style="font-size: 10px; margin-bottom: 10px;">
+                    <p style="margin: 0;">No: #ORD-${o.id}</p>
+                    <p style="margin: 0;">Tgl: ${new Date(o.created_at).toLocaleString('id-ID')}</p>
+                    <p style="margin: 0;">Plg: ${o.nama_pelanggan} (${o.nomor_meja})</p>
+                    <p style="margin: 0;">Tipe: ${o.tipe_order} / ${o.metode_bayar}</p>
+                </div>
+                <div style="border-bottom: 1px dashed #000; padding-bottom: 10px; margin-bottom: 5px;">
+                    ${o.items.map(i => `
+                        <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 2px;">
+                            <span>${i.qty}x ${i.nama}</span>
+                            <span>${(i.harga * i.qty).toLocaleString()}</span>
+                        </div>
+                    `).join('')}
+                </div>
+                <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 13px; margin-top: 5px;">
+                    <span>TOTAL</span>
+                    <span>Rp ${o.total_harga.toLocaleString()}</span>
+                </div>
+                <div style="text-align: center; margin-top: 20px; font-size: 10px;">
+                    <p>Selamat Menikmati!</p>
+                </div>
+            `;
+        }
 
+        // --- REALTIME LISTENER ---
+        const channel = _supabase.channel('order_changes')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'pesanan_pelanggan' }, (payload) => {
+                fetchOrders();
+                // Play Sound Notif jika ada pesanan baru
+                if (payload.eventType === 'INSERT') {
+                    const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3');
+                    audio.play().catch(e => console.log("Audio play blocked by browser"));
+                }
+            })
+            .subscribe();
+
+        // Initial Load
         fetchOrders();
     </script>
 </body>
