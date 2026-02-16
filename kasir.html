@@ -17,6 +17,12 @@
         
         @keyframes ring { 0% { transform: rotate(0); } 10% { transform: rotate(30deg); } 20% { transform: rotate(-28deg); } 30% { transform: rotate(34deg); } 40% { transform: rotate(-32deg); } 50% { transform: rotate(30deg); } 60% { transform: rotate(-28deg); } 70% { transform: rotate(34deg); } 80% { transform: rotate(-32deg); } 90% { transform: rotate(28deg); } 100% { transform: rotate(0); } }
         .ring-active { animation: ring 1.5s ease-in-out infinite; }
+
+        @media print { 
+            .no-print { display: none !important; } 
+            #modal-struk { position: absolute; background: white; inset: 0; display: block; padding: 0; }
+            #print-area { box-shadow: none; border: none; width: 100%; }
+        }
     </style>
 </head>
 <body class="bg-slate-100 flex h-screen text-slate-800">
@@ -36,7 +42,6 @@
                 <i data-lucide="history"></i>
                 <span class="font-bold text-sm hidden lg:block">Process Order</span>
             </a>
-         
             <a href="#" class="flex items-center gap-4 p-3 hover:bg-white/10 rounded-2xl transition-all text-slate-400">
                 <i data-lucide="settings"></i>
                 <span class="font-bold text-sm hidden lg:block">Pengaturan</span>
@@ -69,8 +74,7 @@
                 <div class="mb-8">
                     <input type="text" id="cari-menu" onkeyup="filterMenu()" placeholder="Cari varian donat..." class="w-full max-w-md bg-white border-none p-4 rounded-3xl shadow-sm outline-none focus:ring-2 focus:ring-rose-500/20 text-sm font-semibold">
                 </div>
-                <div id="produk-list" class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6 content-start">
-                    </div>
+                <div id="produk-list" class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6 content-start"></div>
             </main>
 
             <aside class="w-[400px] bg-white border-l flex flex-col no-print shadow-xl">
@@ -78,8 +82,7 @@
                     <h3 class="font-black flex items-center gap-2"><i data-lucide="shopping-bag" class="text-rose-500"></i> Keranjang</h3>
                     <button onclick="clearCart()" class="text-[10px] font-black text-slate-400 hover:text-rose-500 uppercase">Clear</button>
                 </div>
-                <div id="cart-list" class="flex-1 overflow-y-auto p-6 space-y-4 hide-scrollbar">
-                    </div>
+                <div id="cart-list" class="flex-1 overflow-y-auto p-6 space-y-4 hide-scrollbar"></div>
                 <div class="p-6 bg-white border-t space-y-4">
                     <div class="space-y-2 text-sm font-bold">
                         <div class="flex justify-between text-slate-400"><span>Subtotal</span><span id="subtotal">Rp 0</span></div>
@@ -99,35 +102,42 @@
         </div>
     </div>
 
-    <div id="panel-queue" class="fixed right-0 top-0 bottom-0 w-[400px] bg-white border-l shadow-[0_0_50px_rgba(0,0,0,0.1)] z-50 translate-x-full transition-transform duration-500 flex flex-col">
+    <div id="panel-queue" class="fixed right-0 top-0 bottom-0 w-[400px] bg-white border-l shadow-2xl z-50 translate-x-full transition-transform duration-500 flex flex-col no-print">
         <div class="p-6 border-b bg-slate-900 text-white flex justify-between items-center">
             <div>
                 <h4 class="font-black text-sm uppercase italic">Antrean Online</h4>
                 <p class="text-[9px] text-slate-400">Siap untuk diproses pembayaran</p>
             </div>
-            <button onclick="toggleQueue()" class="bg-white/10 p-2 rounded-lg"><i data-lucide="x" class="w-5 h-5"></i></button>
+            <button onclick="toggleQueue()" class="bg-white/10 p-2 rounded-lg hover:bg-rose-500 transition-all"><i data-lucide="x" class="w-5 h-5"></i></button>
         </div>
-        <div id="queue-list" class="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50 hide-scrollbar">
-            </div>
+        <div id="queue-list" class="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50 hide-scrollbar"></div>
     </div>
 
-    <div id="toast-notif" class="fixed bottom-10 left-1/2 -translate-x-1/2 z-[100] hidden">
+    <div id="toast-notif" class="fixed bottom-10 left-1/2 -translate-x-1/2 z-[100] hidden no-print">
         <div class="bg-slate-900 text-white px-8 py-5 rounded-[2rem] shadow-2xl flex items-center gap-5 border border-white/10 animate-pop">
             <div class="bg-rose-500 p-3 rounded-2xl ring-active">
                 <i data-lucide="bell-ring" class="w-6 h-6"></i>
             </div>
-        <div>
-        <h5 class="font-black text-sm uppercase italic">Ada Orderan Masuk!</h5>
-        <p class="text-[10px] text-slate-400">Silakan cek antrean online kasir.</p>
+            <div>
+                <h5 class="font-black text-sm uppercase italic">Ada Orderan Masuk!</h5>
+                <p class="text-[10px] text-slate-400">Silakan cek antrean online kasir.</p>
+            </div>
+            <button onclick="hideToast(); window.location.href='admin.html';" class="bg-white/10 hover:bg-rose-500 px-4 py-2 rounded-xl text-[10px] font-black uppercase transition-all">Lihat</button>
+        </div>
     </div>
-    <button onclick="window.location.href='admin.html';" class="bg-white/10 hover:bg-rose-500 px-4 py-2 rounded-xl text-[10px] font-black uppercase transition-all">
-        Lihat
-    </button>
-    <div id="modal-struk" class="fixed inset-0 bg-slate-900/95 z-[200] hidden flex items-center justify-center p-4 backdrop-blur-sm">
+
+    <div id="modal-struk" class="fixed inset-0 bg-slate-900/95 z-[200] hidden flex flex-col items-center justify-center p-4 backdrop-blur-sm">
         <div class="bg-white w-full max-w-[350px] p-8 rounded-[2rem] shadow-2xl" id="print-area"></div>
-        <div class="absolute bottom-10 flex gap-4 no-print">
-            <button onclick="window.print()" class="bg-white p-4 rounded-2xl font-bold">Cetak</button>
-            <button onclick="location.reload()" class="bg-rose-500 text-white p-4 rounded-2xl font-bold px-8">Selesai</button>
+        <div class="flex flex-wrap justify-center gap-4 mt-8 no-print">
+            <button onclick="window.print()" class="bg-white text-slate-900 px-6 py-4 rounded-2xl font-black shadow-xl hover:bg-slate-50 flex items-center gap-2">
+                <i data-lucide="printer" class="w-4 h-4"></i> Cetak
+            </button>
+            <button id="btn-wa" class="bg-green-500 text-white px-6 py-4 rounded-2xl font-black shadow-xl shadow-green-500/30 flex items-center gap-2">
+                <i data-lucide="message-circle" class="w-4 h-4"></i> WhatsApp
+            </button>
+            <button onclick="location.reload()" class="bg-rose-500 text-white px-8 py-4 rounded-2xl font-black shadow-xl shadow-rose-500/30">
+                Selesai
+            </button>
         </div>
     </div>
 
@@ -142,14 +152,12 @@
         let currentOnlineId = null;
 
         async function init() {
-            // Load Settings (Disc & PPN)
             const { data: sets } = await _supabase.from('settings').select('*');
             if(sets) {
                 const d = sets.find(s => s.key === 'diskon_global'); if(d) discRate = parseFloat(d.value)/100;
                 const p = sets.find(s => s.key === 'ppn'); if(p) ppnRate = parseFloat(p.value)/100;
             }
             
-            // Load Produk & Bank
             const { data: prod } = await _supabase.from('produk').select('*').order('nama');
             if(prod) renderProduk(prod);
             
@@ -157,7 +165,7 @@
             if(bnk) document.getElementById('select-bank').innerHTML = bnk.map(b => `<option value="${b.id}">${b.nama_metode}</option>`).join('');
 
             setupRealtime();
-            fetchPendingOrders(false); // Ambil data awal tanpa pop-up
+            fetchPendingOrders();
             lucide.createIcons();
         }
 
@@ -173,17 +181,16 @@
             `).join('');
         }
 
-        // --- SISTEM NOTIFIKASI & PANEL ---
         function setupRealtime() {
             _supabase.channel('order_monitor').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'pesanan_pelanggan' }, payload => {
                 showToast();
-                fetchPendingOrders(true);
+                fetchPendingOrders();
             }).on('postgres_changes', { event: '*', schema: 'public', table: 'pesanan_pelanggan' }, () => {
-                fetchPendingOrders(false);
+                fetchPendingOrders();
             }).subscribe();
         }
 
-        async function fetchPendingOrders(withPop) {
+        async function fetchPendingOrders() {
             const { data } = await _supabase.from('pesanan_pelanggan').select('*').eq('status', 'siap').order('created_at', { ascending: false });
             const badge = document.getElementById('badge-count');
             const bell = document.getElementById('icon-bell');
@@ -216,16 +223,12 @@
         function showToast() {
             const toast = document.getElementById('toast-notif');
             toast.classList.remove('hidden');
-            const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3'); // Sound effect
-            audio.play();
+            const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+            audio.play().catch(() => console.log("Interaksi user diperlukan untuk suara"));
         }
 
         function hideToast() { document.getElementById('toast-notif').classList.add('hidden'); }
-
-        function toggleQueue() {
-            document.getElementById('panel-queue').classList.toggle('translate-x-full');
-            hideToast();
-        }
+        function toggleQueue() { document.getElementById('panel-queue').classList.toggle('translate-x-full'); hideToast(); }
 
         async function claimOrder(id) {
             const { data } = await _supabase.from('pesanan_pelanggan').select('*').eq('id', id).single();
@@ -237,7 +240,6 @@
             }
         }
 
-        // --- LOGIKA KASIR ---
         function addToCart(id, nama, harga) {
             const item = cart.find(i => i.id === id);
             if(item) item.qty++; else cart.push({id, nama, harga, qty: 1});
@@ -288,10 +290,60 @@
         function clearCart() { cart = []; currentOnlineId = null; renderCart(); }
 
         async function prosesCheckout() {
-            // Logika checkout sama dengan sebelumnya (Simpan TRX, Potong Stok via RPC, Update Status Pesanan Online)
-            // ... (Kode Checkout & showReceipt)
-            alert("Pembayaran Berhasil! (Implementasi simpan data)");
-            location.reload();
+            const sub = cart.reduce((a, b) => a + (b.harga * b.qty), 0);
+            const disc = sub * discRate;
+            const ppn = (sub - disc) * ppnRate;
+            const total = sub - disc + ppn;
+            const bankText = document.getElementById('select-bank').options[document.getElementById('select-bank').selectedIndex].text;
+
+            try {
+                const { data: trx, error } = await _supabase.from('transaksi').insert([{
+                    total_harga: total, pajak_nominal: ppn, diskon_nominal: disc,
+                    total_qty: cart.reduce((a, b) => a + b.qty, 0), bank_id: document.getElementById('select-bank').value, items: cart
+                }]).select().single();
+
+                if(error) throw error;
+                if(currentOnlineId) await _supabase.from('pesanan_pelanggan').update({ status: 'selesai' }).eq('id', currentOnlineId);
+
+                showReceipt(trx, sub, ppn, disc, total, bankText);
+            } catch (e) { alert("Checkout Gagal: " + e.message); }
+        }
+
+        function showReceipt(trx, sub, ppn, disc, total, bank) {
+            const area = document.getElementById('print-area');
+            const waktu = new Date().toLocaleString('id-ID');
+            area.innerHTML = `
+                <div class="text-center mb-6">
+                    <h2 class="text-2xl font-black italic uppercase">Donuts.inc</h2>
+                    <p class="text-[8px] font-bold">#TRX-${trx.id} | ${waktu}</p>
+                </div>
+                <div class="space-y-1 mb-4 border-b border-dashed pb-3 text-[10px]">
+                    ${trx.items.map(i => `<div class="flex justify-between"><span>${i.qty}x ${i.nama}</span><span>${(i.qty * i.harga).toLocaleString('id-ID')}</span></div>`).join('')}
+                </div>
+                <div class="space-y-1 text-[10px]">
+                    <div class="flex justify-between"><span>Subtotal</span><span>${sub.toLocaleString('id-ID')}</span></div>
+                    ${disc > 0 ? `<div class="flex justify-between text-rose-500"><span>Diskon</span><span>-${disc.toLocaleString('id-ID')}</span></div>` : ''}
+                    <div class="flex justify-between"><span>PPN</span><span>${ppn.toLocaleString('id-ID')}</span></div>
+                    <div class="flex justify-between font-black border-t pt-2 text-sm italic"><span>TOTAL</span><span>Rp ${total.toLocaleString('id-ID')}</span></div>
+                </div>
+                <div class="mt-6 text-center text-[9px] font-black border py-2 rounded-lg">PAID VIA ${bank.toUpperCase()}</div>
+            `;
+            document.getElementById('btn-wa').onclick = () => sendWA(trx, sub, ppn, disc, total, bank, waktu);
+            document.getElementById('modal-struk').classList.remove('hidden');
+        }
+
+        function sendWA(trx, sub, ppn, disc, total, bank, waktu) {
+            let msg = `*NOTA DONUTS.INC*%0A%0A`;
+            trx.items.forEach(i => msg += `${i.qty}x ${i.nama} = ${(i.qty*i.harga).toLocaleString('id-ID')}%0A`);
+            msg += `%0A*TOTAL: Rp ${total.toLocaleString('id-ID')}*%0AStatus: LUNAS via ${bank}`;
+            window.open(`https://wa.me/?text=${msg}`, '_blank');
+        }
+
+        function filterMenu() {
+            const key = document.getElementById('cari-menu').value.toLowerCase();
+            document.querySelectorAll('#produk-list > div').forEach(card => {
+                card.style.display = card.innerText.toLowerCase().includes(key) ? 'block' : 'none';
+            });
         }
 
         setInterval(() => { document.getElementById('real-time-clock').innerText = new Date().toLocaleTimeString('id-ID'); }, 1000);
