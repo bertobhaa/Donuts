@@ -21,7 +21,6 @@
         }
         .struk-font { font-family: 'Courier New', Courier, monospace; }
 
-        /* Animasi notifikasi pesanan baru */
         @keyframes pulse-red {
             0% { transform: scale(1); }
             50% { transform: scale(1.1); box-shadow: 0 0 20px rgba(225, 29, 72, 0.5); }
@@ -35,12 +34,12 @@
     <main class="flex-1 flex flex-col h-full no-print">
         <header class="bg-white p-6 border-b border-slate-200 flex justify-between items-center">
             <div class="flex items-center gap-4">
-                <a href="index.html" class="p-3 bg-slate-50 hover:bg-rose-50 rounded-2xl text-slate-400 hover:text-rose-500 transition-all">
-                    <i data-lucide="layout-grid" class="w-5 h-5"></i>
-                </a>
+                <div class="p-3 bg-rose-500 rounded-2xl text-white">
+                    <i data-lucide="store" class="w-6 h-6"></i>
+                </div>
                 <div>
-                    <h2 class="text-xl font-black italic tracking-tight">Store Front.</h2>
-                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Kasir: Admin Toko</p>
+                    <h2 class="text-xl font-black italic tracking-tight">Donuts.inc POS</h2>
+                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Terminal Kasir Utama</p>
                 </div>
             </div>
             
@@ -49,7 +48,7 @@
                     <i data-lucide="bell-ring" class="w-5 h-5"></i>
                     <span id="queue-count" class="absolute -top-1 -right-1 bg-rose-500 text-white text-[10px] font-black w-5 h-5 flex items-center justify-center rounded-full hidden">0</span>
                 </button>
-                <div id="real-time-clock" class="text-xs font-mono font-bold bg-slate-900 text-white px-5 py-2 rounded-full tracking-widest">00:00:00</div>
+                <div id="real-time-clock" class="text-xs font-mono font-bold bg-slate-900 text-white px-5 py-2 rounded-full tracking-widest shadow-lg">00:00:00</div>
             </div>
         </header>
 
@@ -60,53 +59,57 @@
             </div>
         </div>
 
-        <div id="produk-list" class="flex-1 overflow-y-auto p-8 grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 content-start hide-scrollbar"></div>
+        <div id="produk-list" class="flex-1 overflow-y-auto p-8 grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 content-start hide-scrollbar">
+            </div>
     </main>
 
     <aside class="w-full md:w-[450px] bg-white border-l border-slate-200 flex flex-col h-full shadow-2xl z-10 no-print">
         <div class="p-8 border-b bg-slate-50/30">
             <h3 class="font-black text-xl flex items-center gap-3">
-                <i data-lucide="shopping-cart" class="text-rose-500"></i> Current Order
+                <i data-lucide="shopping-cart" class="text-rose-500"></i> Keranjang Kasir
             </h3>
         </div>
 
-        <div id="cart-list" class="flex-1 overflow-y-auto p-8 space-y-4 hide-scrollbar"></div>
+        <div id="cart-list" class="flex-1 overflow-y-auto p-8 space-y-4 hide-scrollbar">
+            <div class="text-center py-20 opacity-20 italic">Keranjang kosong</div>
+        </div>
 
         <div class="p-8 bg-white border-t border-slate-100 space-y-4 shadow-[0_-20px_50px_rgba(0,0,0,0.04)]">
             <div class="grid grid-cols-2 gap-4">
                 <div>
-                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Payment</label>
-                    <select id="select-bank" class="w-full bg-slate-50 border-none p-3 rounded-xl outline-none font-bold text-xs focus:ring-2 focus:ring-rose-500/20"></select>
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Metode Bayar</label>
+                    <select id="select-bank" class="w-full bg-slate-50 border-none p-3 rounded-xl outline-none font-bold text-xs focus:ring-2 focus:ring-rose-500/20">
+                        </select>
                 </div>
                 <div>
-                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block" id="label-tax-info">Tax (PPN 0%)</label>
-                    <div class="p-3 bg-slate-50 rounded-xl font-bold text-xs text-slate-500 text-center">Otomatis</div>
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Pajak (PPN)</label>
+                    <div id="ppn-info" class="p-3 bg-slate-50 rounded-xl font-bold text-xs text-slate-500 text-center uppercase">0%</div>
                 </div>
             </div>
 
             <div class="space-y-2 pt-4 border-t border-dashed border-slate-200 text-sm font-bold">
                 <div class="flex justify-between text-slate-400"><span>Subtotal</span><span id="subtotal">Rp 0</span></div>
-                <div class="flex justify-between text-slate-400"><span id="ppn-text">PPN (0%)</span><span id="ppn-label">Rp 0</span></div>
-                <div class="flex justify-between text-rose-500"><span>Global Discount</span><span id="diskon-label">- Rp 0</span></div>
+                <div class="flex justify-between text-slate-400"><span id="ppn-text">PPN</span><span id="ppn-label">Rp 0</span></div>
+                <div class="flex justify-between text-rose-500"><span>Diskon Global</span><span id="diskon-label">- Rp 0</span></div>
                 <div class="flex justify-between items-center pt-3">
-                    <span class="font-black text-slate-800 uppercase tracking-tighter">Total Bill</span>
+                    <span class="font-black text-slate-800 uppercase tracking-tighter">Total Akhir</span>
                     <span class="text-3xl font-black text-slate-900" id="total-tagihan">Rp 0</span>
                 </div>
             </div>
 
             <button onclick="prosesCheckout()" id="btn-bayar" class="w-full bg-rose-500 text-white py-5 rounded-[2rem] font-black text-lg hover:bg-rose-600 active:scale-95 transition-all shadow-xl shadow-rose-200 disabled:bg-slate-100 disabled:text-slate-300 disabled:shadow-none" disabled>
-                Complete Payment
+                SELESAIKAN PEMBAYARAN
             </button>
         </div>
     </aside>
 
     <div id="panel-queue" class="fixed right-[450px] top-[80px] bottom-0 w-[350px] bg-white border-l border-slate-100 shadow-2xl z-20 translate-x-full transition-transform duration-500 overflow-hidden flex flex-col no-print">
         <div class="p-6 border-b bg-slate-900 text-white flex justify-between items-center">
-            <h4 class="font-black text-sm uppercase tracking-widest">Antrean QR</h4>
+            <h4 class="font-black text-sm uppercase tracking-widest">Pesanan Siap Bayar</h4>
             <button onclick="toggleQueue()"><i data-lucide="x" class="w-5 h-5"></i></button>
         </div>
         <div id="queue-list" class="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-50 hide-scrollbar">
-            <div class="text-center py-10 opacity-30 text-xs italic">Menunggu pesanan pelanggan...</div>
+            <div class="text-center py-10 opacity-30 text-xs italic">Menunggu validasi admin...</div>
         </div>
     </div>
 
@@ -114,13 +117,10 @@
         <div class="bg-white w-full max-w-[350px] p-8 rounded-[2rem] shadow-2xl struk-font text-[12px] text-slate-800" id="print-area"></div>
         <div class="flex flex-wrap justify-center gap-3 mt-8 no-print">
             <button onclick="window.print()" class="bg-white text-slate-900 px-6 py-4 rounded-2xl font-black shadow-xl hover:bg-slate-50 flex items-center gap-2">
-                <i data-lucide="printer" class="w-4 h-4"></i> Print Receipt
-            </button>
-            <button id="btn-wa" class="bg-emerald-500 text-white px-6 py-4 rounded-2xl font-black shadow-xl shadow-emerald-500/30 flex items-center gap-2 hover:bg-emerald-600 transition-all">
-                <i data-lucide="message-circle" class="w-4 h-4"></i> Send WhatsApp
+                <i data-lucide="printer" class="w-4 h-4"></i> Cetak Struk
             </button>
             <button onclick="location.reload()" class="bg-rose-500 text-white px-6 py-4 rounded-2xl font-black shadow-xl shadow-rose-500/30">
-                New Order
+                Pesanan Baru
             </button>
         </div>
     </div>
@@ -133,9 +133,10 @@
         let cart = [];
         let discRate = 0;
         let ppnRate = 0;
+        let currentOrderPelangganId = null; // Menyimpan ID pesanan dari admin
 
         async function init() {
-            // Load Settings (PPN & Diskon)
+            // 1. Load Settings
             const { data: settings } = await _supabase.from('settings').select('*');
             if (settings) {
                 const disc = settings.find(s => s.key === 'diskon_global');
@@ -143,71 +144,70 @@
                 const ppnSetting = settings.find(s => s.key === 'ppn');
                 if(ppnSetting) {
                     ppnRate = ppnSetting.value / 100;
-                    document.getElementById('label-tax-info').innerText = `Tax (PPN ${ppnSetting.value}%)`;
+                    document.getElementById('ppn-info').innerText = `${ppnSetting.value}%`;
                     document.getElementById('ppn-text').innerText = `PPN (${ppnSetting.value}%)`;
                 }
             }
 
-            // Load Menu Produk
+            // 2. Load Produk
             const { data: produk } = await _supabase.from('produk').select('*').order('nama');
             const pContainer = document.getElementById('produk-list');
             pContainer.innerHTML = produk.map(p => `
                 <div onclick="addToCart(${p.id}, '${p.nama}', ${p.harga})" class="produk-card bg-white p-5 rounded-[2.5rem] border border-slate-100 hover:border-rose-300 hover:shadow-2xl transition-all cursor-pointer group">
                     <div class="w-full aspect-square bg-slate-50 rounded-[2rem] mb-5 overflow-hidden">
-                        <img src="${p.image_url || 'https://images.unsplash.com/photo-1551024601-bec78aea704b?q=80&w=300'}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                        <img src="${p.image_url || 'https://via.placeholder.com/300'}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
                     </div>
                     <h4 class="font-black text-slate-800 text-sm mb-1">${p.nama}</h4>
                     <p class="text-rose-500 font-black text-sm">Rp ${Number(p.harga).toLocaleString('id-ID')}</p>
                 </div>
             `).join('');
 
-            // Load Payment Methods
+            // 3. Load Payment
             const { data: banks } = await _supabase.from('bank_payment').select('*').eq('aktif', true);
             document.getElementById('select-bank').innerHTML = banks.map(b => `<option value="${b.id}">${b.nama_metode}</option>`).join('');
             
-            // AKTIFKAN REALTIME UNTUK PESANAN PELANGGAN
+            // 4. Start Realtime Listener
             setupRealtime();
             fetchPendingOrders();
-            
             lucide.createIcons();
         }
 
-        // --- FITUR REALTIME & QUEUE ---
+        // --- SISTEM ANTREAN DARI ADMIN ---
         function setupRealtime() {
-            _supabase
-                .channel('public:pesanan_pelanggan')
-                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'pesanan_pelanggan' }, payload => {
-                    console.log('Pesanan Masuk:', payload.new);
-                    document.getElementById('btn-queue').classList.add('order-alert');
-                    fetchPendingOrders();
-                })
-                .subscribe();
+            _supabase.channel('kasir_sync').on('postgres_changes', { event: '*', schema: 'public', table: 'pesanan_pelanggan' }, () => {
+                fetchPendingOrders();
+            }).subscribe();
         }
 
         async function fetchPendingOrders() {
-            const { data } = await _supabase.from('pesanan_pelanggan').select('*').eq('status', 'menunggu').order('created_at', { ascending: false });
-            const list = document.getElementById('queue-list');
+            // Ambil pesanan yang statusnya 'siap' (sudah dicek admin)
+            const { data } = await _supabase.from('pesanan_pelanggan').select('*').eq('status', 'siap').order('created_at', { ascending: false });
             const badge = document.getElementById('queue-count');
+            const list = document.getElementById('queue-list');
 
             if (data && data.length > 0) {
                 badge.innerText = data.length;
                 badge.classList.remove('hidden');
+                document.getElementById('btn-queue').classList.add('order-alert');
+                
                 list.innerHTML = data.map(o => `
-                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
+                    <div class="bg-white p-4 rounded-2xl shadow-sm border-2 border-rose-100">
                         <div class="flex justify-between items-start mb-2">
                             <div>
-                                <h5 class="font-black text-rose-500">MEJA: ${o.nomor_meja}</h5>
+                                <h5 class="font-black text-rose-500">MEJA ${o.nomor_meja}</h5>
                                 <p class="text-[10px] font-bold text-slate-400 uppercase">${o.nama_pelanggan}</p>
                             </div>
-                            <span class="text-[9px] font-mono bg-slate-100 px-2 py-1 rounded-full">${new Date(o.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
                         </div>
-                        <p class="text-[10px] text-slate-600 mb-3 border-t border-dashed pt-2">${o.items.map(i => `${i.qty}x ${i.nama}`).join(', ')}</p>
-                        <button onclick="claimOrder(${o.id})" class="w-full bg-slate-900 text-white py-2 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-rose-500 transition-colors">Proses Pesanan</button>
+                        <div class="bg-slate-50 p-2 rounded-xl text-[10px] mb-3">
+                            ${o.items.map(i => `${i.qty}x ${i.nama}`).join(', ')}
+                        </div>
+                        <button onclick="claimOrder(${o.id})" class="w-full bg-slate-900 text-white py-2 rounded-xl text-[10px] font-black uppercase hover:bg-rose-500 transition-colors">Bayar Sekarang</button>
                     </div>
                 `).join('');
             } else {
                 badge.classList.add('hidden');
-                list.innerHTML = `<div class="text-center py-10 opacity-30 text-xs italic">Belum ada pesanan...</div>`;
+                document.getElementById('btn-queue').classList.remove('order-alert');
+                list.innerHTML = `<div class="text-center py-10 opacity-30 text-xs italic">Belum ada pesanan siap bayar...</div>`;
             }
             lucide.createIcons();
         }
@@ -215,24 +215,19 @@
         async function claimOrder(id) {
             const { data: order } = await _supabase.from('pesanan_pelanggan').select('*').eq('id', id).single();
             if (order) {
-                cart = order.items; // Pindahkan isi pesanan pelanggan ke keranjang kasir
+                cart = order.items; 
+                currentOrderPelangganId = id; // Simpan ID untuk update status nanti
                 renderCart();
                 toggleQueue();
-                
-                // Update status pesanan di DB agar tidak muncul lagi di antrean
-                await _supabase.from('pesanan_pelanggan').update({ status: 'diproses' }).eq('id', id);
-                fetchPendingOrders();
-                document.getElementById('btn-queue').classList.remove('order-alert');
+                await _supabase.from('pesanan_pelanggan').update({ status: 'checkout' }).eq('id', id);
             }
         }
 
         function toggleQueue() {
-            const panel = document.getElementById('panel-queue');
-            panel.classList.toggle('translate-x-full');
-            document.getElementById('btn-queue').classList.remove('order-alert');
+            document.getElementById('panel-queue').classList.toggle('translate-x-full');
         }
 
-        // --- SISTEM KERANJANG & CHECKOUT ---
+        // --- KERANJANG & CHECKOUT ---
         function addToCart(id, nama, harga) {
             const item = cart.find(i => i.id === id);
             if(item) item.qty++; else cart.push({id, nama, harga, qty: 1});
@@ -249,21 +244,21 @@
             const container = document.getElementById('cart-list');
             const btn = document.getElementById('btn-bayar');
             if(cart.length === 0) {
-                container.innerHTML = `<div class="text-center py-20 opacity-20 italic">Pesanan kosong</div>`;
+                container.innerHTML = `<div class="text-center py-20 opacity-20 italic">Keranjang kosong</div>`;
                 btn.disabled = true;
                 return;
             }
             btn.disabled = false;
             container.innerHTML = cart.map((item, idx) => `
-                <div class="flex justify-between items-center bg-slate-50 p-5 rounded-3xl border border-slate-100">
+                <div class="flex justify-between items-center bg-slate-50 p-4 rounded-3xl border border-slate-100">
                     <div class="flex-1">
                         <p class="font-black text-sm text-slate-800">${item.nama}</p>
-                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Rp ${item.harga.toLocaleString()}</p>
+                        <p class="text-[10px] text-slate-400 font-bold uppercase">Rp ${item.harga.toLocaleString()}</p>
                     </div>
-                    <div class="flex items-center gap-4 bg-white p-2 rounded-2xl shadow-sm">
-                        <button onclick="updateQty(${idx}, -1)" class="w-8 h-8 flex items-center justify-center text-rose-500 hover:bg-rose-50 rounded-xl transition-all"><i data-lucide="minus" class="w-4 h-4"></i></button>
-                        <span class="font-black text-xs w-4 text-center">${item.qty}</span>
-                        <button onclick="updateQty(${idx}, 1)" class="w-8 h-8 flex items-center justify-center text-blue-500 hover:bg-blue-50 rounded-xl transition-all"><i data-lucide="plus" class="w-4 h-4"></i></button>
+                    <div class="flex items-center gap-3 bg-white p-2 rounded-2xl">
+                        <button onclick="updateQty(${idx}, -1)" class="w-7 h-7 flex items-center justify-center text-rose-500 hover:bg-rose-50 rounded-lg"><i data-lucide="minus" class="w-3 h-3"></i></button>
+                        <span class="font-black text-xs">${item.qty}</span>
+                        <button onclick="updateQty(${idx}, 1)" class="w-7 h-7 flex items-center justify-center text-blue-500 hover:bg-blue-50 rounded-lg"><i data-lucide="plus" class="w-3 h-3"></i></button>
                     </div>
                 </div>
             `).join('');
@@ -281,48 +276,44 @@
         }
 
         async function prosesCheckout() {
-            const btn = document.getElementById('btn-bayar');
             const sub = cart.reduce((a, b) => a + (b.harga * b.qty), 0);
             const ppnNominal = sub * ppnRate;
             const discNominal = sub * discRate;
             const total = sub + ppnNominal - discNominal;
             const bankId = document.getElementById('select-bank').value;
 
-            btn.innerText = "Processing...";
-            btn.disabled = true;
-
             try {
-                const { data: trx, error: errTrx } = await _supabase.from('transaksi').insert([{
-                    total_harga: total, // Simpan total akhir di sini sesuai alur laporan Anda
+                // 1. Simpan Transaksi Utama
+                const { data: trx, error } = await _supabase.from('transaksi').insert([{
+                    total_harga: total,
                     pajak_nominal: ppnNominal,
                     diskon_nominal: discNominal,
                     total_qty: cart.reduce((a, b) => a + b.qty, 0),
                     bank_id: bankId,
-                    detail_item: cart.map(i => `${i.qty}x ${i.nama}`).join(', '),
                     items: cart
                 }]).select().single();
 
-                if(errTrx) throw errTrx;
+                if(error) throw error;
 
-                // Pengurangan Stok RPC
-                for (const item of cart) {
-                    await _supabase.rpc('proses_pengurangan_stok', {
-                        produk_id_input: item.id,
-                        qty_beli: item.qty
-                    });
+                // 2. Jika berasal dari pesanan pelanggan, set status jadi 'selesai'
+                if (currentOrderPelangganId) {
+                    await _supabase.from('pesanan_pelanggan').update({ status: 'selesai' }).eq('id', currentOrderPelangganId);
+                    currentOrderPelangganId = null;
                 }
-                
+
+                // 3. Potong Stok via RPC
+                for (const item of cart) {
+                    await _supabase.rpc('proses_pengurangan_stok', { produk_id_input: item.id, qty_beli: item.qty });
+                }
+
                 showReceipt(trx, sub, ppnNominal, discNominal, total);
                 cart = [];
                 renderCart();
             } catch (e) {
-                alert("Kesalahan: " + e.message);
-                btn.disabled = false;
-                btn.innerText = "Complete Payment";
+                alert("Gagal: " + e.message);
             }
         }
 
-        // --- RECEIPT & CLOCK ---
         function showReceipt(trx, sub, ppn, disc, total) {
             const area = document.getElementById('print-area');
             const bankText = document.getElementById('select-bank').options[document.getElementById('select-bank').selectedIndex].text;
@@ -330,36 +321,20 @@
             area.innerHTML = `
                 <div class="text-center mb-6">
                     <h2 class="text-2xl font-black uppercase italic tracking-tighter">Donuts.</h2>
-                    <p class="text-[10px] font-bold leading-tight mt-1 uppercase">Jl. Dewi Sri No. 99z, Kuta, Bali</p>
-                    <div class="border-b-2 border-slate-900 my-4"></div>
-                    <p class="text-[9px] font-bold">#TRX-${trx.id} | ${new Date().toLocaleString('id-ID')}</p>
+                    <p class="text-[9px] font-bold">#TRX-${trx.id} | ${new Date().toLocaleString()}</p>
                 </div>
-                
-                <div class="space-y-2 mb-6">
-                    ${trx.items.map(i => `
-                        <div class="flex justify-between items-start">
-                            <span class="max-w-[180px]">${i.qty}x ${i.nama}</span>
-                            <span>${(i.qty * i.harga).toLocaleString()}</span>
-                        </div>
-                    `).join('')}
+                <div class="space-y-1 mb-4">
+                    ${trx.items.map(i => `<div class="flex justify-between"><span>${i.qty}x ${i.nama}</span><span>${(i.qty * i.harga).toLocaleString()}</span></div>`).join('')}
                 </div>
-
-                <div class="border-t border-dashed border-slate-400 pt-4 space-y-1">
+                <div class="border-t border-dashed border-slate-400 pt-3 space-y-1">
                     <div class="flex justify-between"><span>Subtotal</span><span>${sub.toLocaleString()}</span></div>
                     <div class="flex justify-between"><span>PPN</span><span>${ppn.toLocaleString()}</span></div>
-                    ${disc > 0 ? `<div class="flex justify-between text-rose-500"><span>Discount</span><span>-${disc.toLocaleString()}</span></div>` : ''}
-                    <div class="flex justify-between text-lg font-black pt-3 border-t-2 border-slate-900 mt-2">
-                        <span>TOTAL</span><span>Rp ${total.toLocaleString()}</span>
-                    </div>
+                    <div class="flex justify-between font-black border-t border-slate-900 pt-2 text-sm"><span>TOTAL</span><span>Rp ${total.toLocaleString()}</span></div>
                 </div>
-
-                <div class="mt-8 text-center">
-                    <div class="inline-block border-2 border-slate-900 px-4 py-1 font-black text-[10px]">PAID VIA ${bankText}</div>
-                    <p class="text-[10px] font-bold mt-6 italic">"Sweetness in every bite!"</p>
-                </div>
+                <div class="mt-6 text-center text-[10px] font-black uppercase">Paid via ${bankText}</div>
             `;
-            
             document.getElementById('modal-struk').classList.remove('hidden');
+            lucide.createIcons();
         }
 
         function filterMenu() {
