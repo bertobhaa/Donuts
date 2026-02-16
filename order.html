@@ -45,7 +45,7 @@
         </div>
     </header>
 
-    <main class="max-w-md mx-auto p-6 pb-48 space-y-8">
+    <main class="max-w-md mx-auto p-6 pb-64 space-y-8">
         <section>
             <div class="relative">
                 <i data-lucide="search" class="absolute left-4 top-3.5 text-slate-400 w-5 h-5"></i>
@@ -53,7 +53,7 @@
             </div>
         </section>
 
-        <div id="promo-banner" class="hidden bg-gradient-to-r from-amber-400 to-rose-500 p-4 rounded-[2rem] text-white">
+        <div id="promo-banner" class="hidden bg-gradient-to-r from-amber-400 to-rose-500 p-4 rounded-[2rem] text-white scale-in">
             <div class="flex items-center gap-4">
                 <div class="bg-white/20 p-3 rounded-2xl"><i data-lucide="ticket-percent"></i></div>
                 <div>
@@ -65,12 +65,11 @@
 
         <section>
             <h2 class="text-lg font-extrabold mb-4 flex items-center gap-2">Pilih Menu <span class="text-sm font-normal text-slate-400">🍩</span></h2>
-            <div id="menu-container" class="grid grid-cols-1 gap-4">
-                </div>
+            <div id="menu-container" class="grid grid-cols-1 gap-4"></div>
         </section>
 
         <section class="space-y-6">
-            <div class="p-6 bg-white rounded-[2rem] shadow-sm space-y-4">
+            <div class="p-6 bg-white rounded-[2rem] shadow-sm space-y-4 border border-slate-100">
                 <h3 class="font-black text-[10px] uppercase text-slate-400 tracking-widest">Opsi Layanan</h3>
                 <div class="grid grid-cols-3 gap-2">
                     <label class="flex flex-col items-center gap-2 p-3 bg-slate-50 rounded-2xl border-2 border-transparent has-[:checked]:border-rose-500 cursor-pointer transition-all">
@@ -82,14 +81,14 @@
                         <span class="text-[10px] font-black">BUNGKUS</span>
                     </label>
                     <label class="flex flex-col items-center gap-2 p-3 bg-slate-50 rounded-2xl border-2 border-transparent has-[:checked]:border-rose-500 cursor-pointer transition-all">
-                        <input type="radio" name="tipe_order" value="Gojek" class="hidden" onclick="toggleAlamat(true)">
+                        <input type="radio" name="tipe_order" value="Delivery" class="hidden" onclick="toggleAlamat(true)">
                         <span class="text-[10px] font-black">ANTAR</span>
                     </label>
                 </div>
-                <textarea id="alamat-lengkap" class="hidden w-full p-4 bg-slate-50 rounded-2xl border-none text-sm outline-none focus:ring-1 focus:ring-rose-200" placeholder="Tulis alamat lengkap..."></textarea>
+                <textarea id="alamat-lengkap" class="hidden w-full p-4 bg-slate-50 rounded-2xl border-none text-sm outline-none focus:ring-1 focus:ring-rose-200" placeholder="Tulis alamat lengkap pengiriman..."></textarea>
             </div>
 
-            <div class="p-6 bg-white rounded-[2rem] shadow-sm space-y-4">
+            <div class="p-6 bg-white rounded-[2rem] shadow-sm space-y-4 border border-slate-100">
                 <h3 class="font-black text-[10px] uppercase text-slate-400 tracking-widest">Pembayaran</h3>
                 <div class="grid grid-cols-2 gap-2">
                     <label class="flex items-center justify-center p-4 bg-slate-50 rounded-2xl border-2 border-transparent has-[:checked]:border-rose-500 cursor-pointer transition-all">
@@ -119,9 +118,12 @@
         </section>
     </main>
 
-    <div id="order-bar" class="fixed bottom-0 inset-x-0 p-6 bg-white/80 backdrop-blur-xl border-t border-slate-100 transform translate-y-full transition-all duration-500 z-40 rounded-t-[2.5rem] shadow-2xl">
-        <div class="max-w-md mx-auto space-y-4">
-            <input type="text" id="nama-pelanggan" placeholder="Nama Pemesan..." class="w-full bg-slate-100 border-none p-4 rounded-2xl text-sm font-bold outline-none focus:ring-2 focus:ring-rose-500/20">
+    <div id="order-bar" class="fixed bottom-0 inset-x-0 p-6 bg-white/90 backdrop-blur-xl border-t border-slate-100 transform translate-y-full transition-all duration-500 z-40 rounded-t-[2.5rem] shadow-2xl">
+        <div class="max-w-md mx-auto space-y-3">
+            <div class="grid grid-cols-2 gap-2">
+                <input type="text" id="nama-pelanggan" placeholder="Nama Anda..." class="w-full bg-slate-100 border-none p-4 rounded-2xl text-sm font-bold outline-none focus:ring-2 focus:ring-rose-500/20">
+                <input type="tel" id="wa-pelanggan" placeholder="No. WhatsApp..." class="w-full bg-slate-100 border-none p-4 rounded-2xl text-sm font-bold outline-none focus:ring-2 focus:ring-rose-500/20">
+            </div>
             <button onclick="prosesCheckout()" id="btn-kirim" class="w-full bg-rose-500 text-white py-5 rounded-[1.5rem] font-black flex justify-between items-center px-8 active:scale-95 transition-all">
                 <span class="tracking-widest uppercase text-xs">Pesan Sekarang</span>
                 <div id="total-text" class="text-right">Rp 0</div>
@@ -131,7 +133,7 @@
 
     <script>
         const SB_URL = "https://bkkpkfvcssdmgnncrrhu.supabase.co";
-        const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJra3BrZnZjc3NkbWdubmNycmh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA3OTQ4OTIsImV4cCI6MjA4NjM3MDg5Mn0.VeE2IZhQmTyKMMQI4Ukh0nt6YHR2zVs_nUnjtPt-GPQ";
+        const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."; // Gunakan Key Anda
         const _supabase = supabase.createClient(SB_URL, SB_KEY);
 
         let cart = [];
@@ -165,7 +167,7 @@
         }
 
         async function ambilProduk() {
-            const { data } = await _supabase.from('produk').select('*').order('nama');
+            const { data } = await _supabase.from('produk').select('*').gt('stok', 0).order('nama');
             if(data) { allProducts = data; renderMenu(data); }
         }
 
@@ -199,97 +201,78 @@
             const totalFinal = subtotal - nominalDiskon;
 
             const totalDisplay = document.getElementById('total-text');
-            if(diskonPersen > 0) {
-                totalDisplay.innerHTML = `
-                    <p class="text-[9px] line-through opacity-50">Rp ${subtotal.toLocaleString()}</p>
-                    <p class="text-lg font-black">Rp ${totalFinal.toLocaleString()}</p>
-                `;
-            } else {
-                totalDisplay.innerHTML = `<p class="text-lg font-black">Rp ${totalFinal.toLocaleString()}</p>`;
-            }
+            totalDisplay.innerHTML = `<p class="text-lg font-black">Rp ${totalFinal.toLocaleString()}</p>`;
 
             document.getElementById('cart-count').innerText = count;
             document.getElementById('cart-count').classList.toggle('hidden', count === 0);
             document.getElementById('order-bar').classList.toggle('translate-y-full', count === 0);
         }
 
-       async function prosesCheckout() {
-    const nama = document.getElementById('nama-pelanggan').value;
-    const tipe = document.querySelector('input[name="tipe_order"]:checked').value;
-    const bayar = document.querySelector('input[name="metode_bayar"]:checked').value;
-    const fileBukti = document.getElementById('bukti-bayar').files[0];
+        async function prosesCheckout() {
+            const nama = document.getElementById('nama-pelanggan').value;
+            const wa = document.getElementById('wa-pelanggan').value;
+            const tipe = document.querySelector('input[name="tipe_order"]:checked').value;
+            const bayar = document.querySelector('input[name="metode_bayar"]:checked').value;
+            const fileBukti = document.getElementById('bukti-bayar').files[0];
 
-    if(!nama) return alert("Siapa nama Anda?");
-    if(bayar === 'Transfer' && !fileBukti) return alert("Mohon upload bukti transfer!");
+            if(!nama || !wa) return alert("Lengkapi Nama dan Nomor WhatsApp!");
+            if(bayar === 'Transfer' && !fileBukti) return alert("Mohon upload bukti transfer!");
 
-    const btn = document.getElementById('btn-kirim');
-    btn.disabled = true; 
-    btn.innerText = "MENGIRIM...";
+            const btn = document.getElementById('btn-kirim');
+            btn.disabled = true; 
+            btn.innerText = "MENGIRIM...";
 
-    let buktiUrl = "";
+            let buktiUrl = "";
 
-    // PERBAIKAN LOGIKA UPLOAD
-    if(bayar === 'Transfer' && fileBukti) {
-        const fileExt = fileBukti.name.split('.').pop(); // Mengambil ekstensi asli file
-        const fName = `${Date.now()}_${nama.replace(/\s+/g, '_')}.${fileExt}`;
-        
-        const { data: upData, error: upError } = await _supabase.storage
-            .from('bukti-transfer')
-            .upload(fName, fileBukti);
+            if(bayar === 'Transfer' && fileBukti) {
+                const fName = `${Date.now()}_${nama.replace(/\s+/g, '_')}.jpg`;
+                const { data: upData, error: upError } = await _supabase.storage.from('bukti-transfer').upload(fName, fileBukti);
+                if(!upError) {
+                    const { data } = _supabase.storage.from('bukti-transfer').getPublicUrl(fName);
+                    buktiUrl = data.publicUrl;
+                }
+            }
 
-        if(upError) {
-            console.error("Gagal Upload ke Storage:", upError.message);
-            alert("Gagal mengunggah gambar: " + upError.message);
-            btn.disabled = false;
-            btn.innerText = "COBA LAGI";
-            return; // Berhenti di sini jika upload gagal
+            const subtotal = cart.reduce((a, b) => a + (b.harga * b.qty), 0);
+            const totalFinal = subtotal - (subtotal * diskonPersen / 100);
+
+            const { data, error } = await _supabase.from('pesanan_pelanggan').insert([{
+                nomor_meja: nomorMeja,
+                nama_pelanggan: nama,
+                nomor_whatsapp: wa, // DATA WA MASUK KE SINI
+                items: cart,
+                total_harga: totalFinal,
+                tipe_order: tipe,
+                metode_bayar: bayar,
+                status: 'menunggu',
+                bukti_bayar_url: buktiUrl
+            }]).select();
+
+            if(!error) {
+                localStorage.setItem('activeOrderId', data[0].id);
+                location.reload();
+            } else {
+                alert("Gagal kirim: " + error.message);
+                btn.disabled = false;
+            }
         }
-
-        if(upData) {
-            const { data } = _supabase.storage.from('bukti-transfer').getPublicUrl(fName);
-            buktiUrl = data.publicUrl;
-            console.log("Gambar berhasil diunggah. URL:", buktiUrl);
-        }
-    }
-
-    const subtotal = cart.reduce((a, b) => a + (b.harga * b.qty), 0);
-    const totalFinal = subtotal - (subtotal * diskonPersen / 100);
-
-    const { data, error: dbError } = await _supabase.from('pesanan_pelanggan').insert([{
-        nomor_meja: nomorMeja,
-        nama_pelanggan: nama,
-        items: cart,
-        total_harga: totalFinal,
-        tipe_order: tipe,
-        metode_bayar: bayar,
-        status: 'menunggu',
-        bukti_bayar_url: buktiUrl
-    }]).select();
-
-    if(!dbError) {
-        localStorage.setItem('activeOrderId', data[0].id);
-        location.reload();
-    } else {
-        console.error("Gagal Simpan Database:", dbError.message);
-        alert("Gagal simpan pesanan: " + dbError.message);
-        btn.disabled = false;
-        btn.innerText = "PESAN SEKARANG";
-    }
-}
 
         async function pantauStatus(orderId) {
             document.getElementById('status-tracker').classList.remove('hidden');
             const { data } = await _supabase.from('pesanan_pelanggan').select('*').eq('id', orderId).maybeSingle();
             
-            if(!data) { localStorage.removeItem('activeOrderId'); return location.reload(); }
+            if(!data || data.status === 'batal') { 
+                localStorage.removeItem('activeOrderId'); 
+                return location.reload(); 
+            }
             updateStatusUI(data.status);
 
             _supabase.channel(`st-${orderId}`)
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'pesanan_pelanggan', filter: `id=eq.${orderId}` }, 
                 payload => {
-                    if(payload.eventType === 'DELETE') {
+                    if(payload.new.status === 'batal') {
                         localStorage.removeItem('activeOrderId');
-                        alert("Pesanan dibatalkan admin.");
+                        alert("Maaf, pesanan Anda dibatalkan.");
                         location.reload();
                     } else {
                         updateStatusUI(payload.new.status);
@@ -300,23 +283,28 @@
         function updateStatusUI(status) {
             const txt = document.getElementById('text-status');
             const btnBatal = document.getElementById('btn-batal-customer');
-            const map = { 'menunggu': 'Menunggu Konfirmasi...', 'siap': '✅ Siap diambil!', 'selesai': '✨ Nikmati Donatmu!' };
-            txt.innerText = map[status] || 'Pesanan Diproses...';
+            const map = { 'menunggu': 'Menunggu Konfirmasi...', 'siap': '✅ Siap diambil!', 'selesai': '✨ Pesanan Selesai!' };
+            txt.innerText = map[status] || 'Sedang Diproses...';
             
             if(status === 'menunggu') btnBatal.classList.remove('hidden');
             else btnBatal.classList.add('hidden');
 
             if(status === 'selesai') {
-                setTimeout(() => { localStorage.removeItem('activeOrderId'); location.reload(); }, 15000);
+                setTimeout(() => { localStorage.removeItem('activeOrderId'); location.reload(); }, 10000);
             }
         }
 
         async function customerCancelOrder() {
-            if(confirm('Batalkan pesanan?')) {
-                await _supabase.from('pesanan_pelanggan').delete().eq('id', activeOrderId).eq('status', 'menunggu');
-                localStorage.removeItem('activeOrderId');
-                location.reload();
-            }
+            if(!confirm('Batalkan pesanan Anda?')) return;
+            
+            // Catat pembatalan oleh customer di kolom dibatalkan_oleh
+            await _supabase.from('pesanan_pelanggan').update({ 
+                status: 'batal', 
+                dibatalkan_oleh: 'customer' 
+            }).eq('id', activeOrderId).eq('status', 'menunggu');
+
+            localStorage.removeItem('activeOrderId');
+            location.reload();
         }
 
         function filterProduk() {
