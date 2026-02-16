@@ -192,7 +192,7 @@
 
         function renderProduk(data) {
             document.getElementById('produk-list').innerHTML = data.map(p => `
-                <div onclick="addToCart(${p.id}, '${p.nama}', ${p.harga})" class="bg-white p-4 rounded-[2rem] border border-slate-100 hover:border-rose-300 hover:shadow-xl transition-all cursor-pointer group scale-in">
+                <div onclick="addToCart(${p.id}, '${p.nama}', ${p.harga})" class="bg-white p-4 rounded-[2rem] border border-slate-100 hover:border-rose-300 hover:shadow-xl transition-all cursor-pointer group">
                     <div class="aspect-square bg-slate-50 rounded-2xl mb-4 overflow-hidden">
                         <img src="${p.image_url || 'https://via.placeholder.com/200'}" class="w-full h-full object-cover group-hover:scale-110 transition-all duration-500">
                     </div>
@@ -326,7 +326,6 @@
             const bankText = document.getElementById('select-bank').options[document.getElementById('select-bank').selectedIndex].text;
 
             try {
-                // 1. Simpan Transaksi
                 const { data: trx, error: tErr } = await _supabase.from('transaksi').insert([{
                     total_harga: total, pajak_nominal: ppn, diskon_nominal: disc,
                     total_qty: cart.reduce((a, b) => a + b.qty, 0), bank_id: bankId, items: cart
@@ -334,7 +333,6 @@
 
                 if(tErr) throw tErr;
 
-                // 2. Jika ini order online, update statusnya
                 if(currentOnlineId) {
                     await _supabase.from('pesanan_pelanggan').update({ status: 'selesai' }).eq('id', currentOnlineId);
                 }
@@ -367,7 +365,7 @@
                 <div class="space-y-1 text-[11px]">
                     <div class="flex justify-between"><span>Subtotal</span><span>${sub.toLocaleString('id-ID')}</span></div>
                     ${disc > 0 ? `<div class="flex justify-between text-rose-500 font-bold"><span>Diskon</span><span>-${disc.toLocaleString('id-ID')}</span></div>` : ''}
-                    <div class="flex justify-between"><span>PPN (${ppnRate*100}%)</span><span>${ppn.toLocaleString('id-ID')}</span></div>
+                    <div class="flex justify-between"><span>PPN</span><span>${ppn.toLocaleString('id-ID')}</span></div>
                     <div class="flex justify-between font-black border-t-2 border-slate-900 pt-2 text-lg italic">
                         <span>TOTAL</span><span>Rp ${total.toLocaleString('id-ID')}</span>
                     </div>
@@ -379,6 +377,7 @@
             `;
             document.getElementById('btn-wa').onclick = () => sendWA(trx, total, bank);
             document.getElementById('modal-struk').classList.remove('hidden');
+            lucide.createIcons();
         }
 
         function sendWA(trx, total, bank) {
