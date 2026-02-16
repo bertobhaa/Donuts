@@ -25,22 +25,18 @@
         </div>
         
         <nav class="flex-1 space-y-4">
+            <a href="#" class="flex items-center gap-4 p-3 bg-rose-500 rounded-2xl transition-all text-white shadow-lg shadow-rose-500/20">
+                <i data-lucide="history"></i>
+                <span class="font-bold text-sm hidden lg:block">Process Order</span>
+            </a>
             <a href="kasir.html" class="flex items-center gap-4 p-3 hover:bg-white/10 rounded-2xl transition-all text-slate-400">
                 <i data-lucide="layout-grid"></i>
                 <span class="font-bold text-sm hidden lg:block">Point of Sale</span>
             </a>
-            <a href="admin.html" class="flex items-center gap-4 p-3 bg-rose-500 rounded-2xl transition-all text-white">
-                <i data-lucide="history"></i>
-                <span class="font-bold text-sm hidden lg:block">Process Order</span>
-            </a>
-            <a href="#" class="flex items-center gap-4 p-3 hover:bg-white/10 rounded-2xl transition-all text-slate-400">
-                <i data-lucide="settings"></i>
-                <span class="font-bold text-sm hidden lg:block">Pengaturan</span>
-            </a>
         </nav>
 
         <div class="pt-6 border-t border-white/10 text-slate-500">
-            <p class="text-[10px] font-black uppercase hidden lg:block">Access Level</p>
+            <p class="text-[10px] font-black uppercase hidden lg:block tracking-widest">Access Level</p>
             <p class="text-xs font-bold text-white hidden lg:block">Administrator</p>
         </div>
     </aside>
@@ -48,8 +44,8 @@
     <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
         <header class="bg-white p-6 border-b flex justify-between items-center shadow-sm">
             <div>
-                <h2 class="text-xl font-black text-slate-900">Admin Monitor</h2>
-                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Antrean Pesanan Masuk</p>
+                <h2 class="text-xl font-black text-slate-900 uppercase italic">Admin Monitor</h2>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Antrean Pesanan Real-time</p>
             </div>
             
             <div id="conn-status" class="flex items-center gap-2 bg-emerald-50 text-emerald-600 px-4 py-2 rounded-xl text-[10px] font-black border border-emerald-100">
@@ -68,7 +64,7 @@
                 </div>
                 <div class="bg-white p-6 rounded-[2rem] border border-slate-200 shadow-sm flex items-center justify-between">
                     <div>
-                        <p class="text-[10px] font-black text-slate-400 uppercase">Siap di Kasir</p>
+                        <p class="text-[10px] font-black text-slate-400 uppercase">Siap Disajikan</p>
                         <h3 id="stat-ready" class="text-3xl font-black text-emerald-500">0</h3>
                     </div>
                     <div class="p-4 bg-emerald-50 rounded-2xl text-emerald-600"><i data-lucide="check-circle-2"></i></div>
@@ -79,13 +75,13 @@
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse">
                         <thead>
-                            <tr class="bg-slate-50/50 border-b border-slate-100">
-                                <th class="p-6 text-[10px] font-black uppercase text-slate-400">Pelanggan</th>
-                                <th class="p-6 text-[10px] font-black uppercase text-slate-400">Order & Items</th>
-                                <th class="p-6 text-[10px] font-black uppercase text-slate-400">Rincian Harga</th>
-                                <th class="p-6 text-[10px] font-black uppercase text-slate-400 text-center">Bukti</th>
-                                <th class="p-6 text-[10px] font-black uppercase text-slate-400">Status</th>
-                                <th class="p-6 text-[10px] font-black uppercase text-slate-400 text-right">Aksi</th>
+                            <tr class="bg-slate-50/50 border-b border-slate-100 uppercase tracking-tighter">
+                                <th class="p-6 text-[10px] font-black text-slate-400">Pelanggan</th>
+                                <th class="p-6 text-[10px] font-black text-slate-400">Order & Items</th>
+                                <th class="p-6 text-[10px] font-black text-slate-400">Total Harga</th>
+                                <th class="p-6 text-[10px] font-black text-slate-400 text-center">Bukti Transfer</th>
+                                <th class="p-6 text-[10px] font-black text-slate-400">Status</th>
+                                <th class="p-6 text-[10px] font-black text-slate-400 text-right">Aksi</th>
                             </tr>
                         </thead>
                         <tbody id="order-table-body" class="divide-y divide-slate-50 text-sm">
@@ -96,18 +92,34 @@
         </main>
     </div>
 
-    <div id="modal-bukti" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-[2.5rem] max-w-md w-full p-8 shadow-2xl">
+    <div id="modal-bukti" class="hidden fixed inset-0 bg-slate-900/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-[3rem] max-w-md w-full p-8 shadow-2xl scale-in">
             <div class="flex justify-between items-center mb-6">
-                <h3 class="font-black text-xl italic uppercase">Bukti Transfer</h3>
-                <button onclick="closeModal()" class="p-2 hover:bg-slate-100 rounded-full"><i data-lucide="x"></i></button>
+                <div>
+                    <h3 class="font-black text-xl italic uppercase">Verifikasi Bukti</h3>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase">Pastikan nominal & nama sesuai</p>
+                </div>
+                <button onclick="closeModal()" class="p-2 bg-slate-100 hover:bg-rose-100 hover:text-rose-500 rounded-full transition-all">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
             </div>
-            <img id="img-preview" src="" class="w-full rounded-3xl border border-slate-200 shadow-inner">
-            <button onclick="closeModal()" class="w-full mt-6 bg-slate-900 text-white py-4 rounded-2xl font-black uppercase">Tutup</button>
+            
+            <div class="aspect-[3/4] bg-slate-100 rounded-[2rem] overflow-hidden border border-slate-200 relative group">
+                <img id="img-preview" src="" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+                <div id="img-loading" class="absolute inset-0 flex items-center justify-center bg-white/80">
+                    <i data-lucide="loader" class="animate-spin text-rose-500"></i>
+                </div>
+            </div>
+
+            <div class="flex gap-3 mt-6">
+                <a id="btn-download" href="" download="bukti-bayar.jpg" class="flex-1 bg-slate-100 text-slate-900 py-4 rounded-2xl font-black text-xs uppercase text-center hover:bg-slate-200 transition-all">Download</a>
+                <button onclick="closeModal()" class="flex-1 bg-slate-900 text-white py-4 rounded-2xl font-black text-xs uppercase hover:bg-black transition-all">Tutup</button>
+            </div>
         </div>
     </div>
 
     <script>
+        // KONFIGURASI SUPABASE
         const SB_URL = "https://bkkpkfvcssdmgnncrrhu.supabase.co";
         const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJra3BrZnZjc3NkbWdubmNycmh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA3OTQ4OTIsImV4cCI6MjA4NjM3MDg5Mn0.VeE2IZhQmTyKMMQI4Ukh0nt6YHR2zVs_nUnjtPt-GPQ";
         const _supabase = supabase.createClient(SB_URL, SB_KEY);
@@ -133,53 +145,35 @@
         function renderTable(orders) {
             const tbody = document.getElementById('order-table-body');
             if (orders.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" class="p-20 text-center text-slate-400 font-bold italic">Belum ada pesanan masuk.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="6" class="p-24 text-center text-slate-300 font-bold italic">Menunggu pesanan baru...</td></tr>`;
                 return;
             }
 
-            tbody.innerHTML = orders.map(o => {
-                // Kalkulasi harga untuk tampilan admin
-                const hargaNormal = o.items.reduce((acc, item) => acc + (item.harga * item.qty), 0);
-                const hargaNet = o.total_harga;
-                const nominalDiskon = hargaNormal - hargaNet;
-
-                return `
-                <tr class="hover:bg-slate-50/50 transition-colors">
+            tbody.innerHTML = orders.map(o => `
+                <tr class="hover:bg-slate-50/50 transition-colors row-animate">
                     <td class="p-6">
-                        <div class="font-black text-slate-900">${o.nama_pelanggan}</div>
-                        <div class="text-[10px] font-bold text-rose-500 uppercase tracking-tighter">MEJA ${o.nomor_meja}</div>
+                        <div class="font-black text-slate-900 text-base leading-tight">${o.nama_pelanggan}</div>
+                        <div class="text-[10px] font-black text-rose-500 uppercase">MEJA ${o.nomor_meja}</div>
                     </td>
                     <td class="p-6">
-                        <div class="text-[10px] font-black uppercase text-indigo-600 mb-1">${o.tipe_order} • ${o.metode_bayar}</div>
-                        <div class="text-[11px] font-bold text-slate-500">
+                        <div class="text-[10px] font-black uppercase text-indigo-600 mb-1 leading-none">${o.tipe_order} • ${o.metode_bayar}</div>
+                        <div class="text-[11px] font-bold text-slate-500 space-y-0.5">
                             ${o.items.map(i => `<div>${i.qty}x ${i.nama}</div>`).join('')}
                         </div>
                     </td>
-                    <td class="p-6 min-w-[150px]">
-                        <div class="space-y-1">
-                            <div class="flex justify-between text-[10px] font-bold text-slate-400 uppercase">
-                                <span>Normal:</span>
-                                <span>Rp ${hargaNormal.toLocaleString()}</span>
-                            </div>
-                            <div class="flex justify-between text-[10px] font-bold text-rose-500 uppercase">
-                                <span>Diskon:</span>
-                                <span>- Rp ${nominalDiskon.toLocaleString()}</span>
-                            </div>
-                            <div class="flex justify-between text-xs font-black text-slate-900 border-t border-slate-100 pt-1 uppercase">
-                                <span>Total Net:</span>
-                                <span>Rp ${hargaNet.toLocaleString()}</span>
-                            </div>
-                        </div>
+                    <td class="p-6 font-black text-slate-900">
+                        Rp ${o.total_harga.toLocaleString()}
                     </td>
                     <td class="p-6 text-center">
                         ${o.bukti_bayar_url ? `
-                            <button onclick="openModal('${o.bukti_bayar_url}')" class="p-2 bg-blue-50 text-blue-600 rounded-xl border border-blue-100 hover:bg-blue-600 hover:text-white transition-all">
-                                <i data-lucide="eye" class="w-4 h-4"></i>
+                            <button onclick="openModal('${o.bukti_bayar_url}')" class="group relative p-3 bg-blue-50 text-blue-600 rounded-2xl border border-blue-100 hover:bg-blue-600 hover:text-white transition-all shadow-sm">
+                                <i data-lucide="image" class="w-5 h-5"></i>
+                                <span class="absolute -top-2 -right-2 w-3 h-3 bg-blue-500 rounded-full border-2 border-white"></span>
                             </button>
-                        ` : '<i data-lucide="minus" class="w-4 h-4 mx-auto text-slate-200"></i>'}
+                        ` : '<span class="text-slate-200 italic text-[10px]">Tunai</span>'}
                     </td>
                     <td class="p-6">
-                        <span class="px-3 py-1 rounded-full text-[9px] font-black uppercase border
+                        <span class="px-3 py-1.5 rounded-xl text-[9px] font-black uppercase border tracking-widest
                             ${o.status === 'menunggu' ? 'bg-amber-50 text-amber-600 border-amber-200' : 'bg-emerald-50 text-emerald-600 border-emerald-200'}">
                             ${o.status}
                         </span>
@@ -187,13 +181,15 @@
                     <td class="p-6">
                         <div class="flex justify-end gap-2">
                             ${o.status === 'menunggu' ? `
-                                <button onclick="updateStatus(${o.id}, 'siap')" class="bg-emerald-500 text-white px-4 py-2 rounded-xl font-black text-[10px] hover:bg-emerald-600 transition-all uppercase">Validasi</button>
-                            ` : `<span class="text-[9px] font-bold text-slate-400 italic">Valid</span>`}
-                            <button onclick="cancelOrder(${o.id})" class="p-2 text-slate-300 hover:text-rose-500 transition-colors"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                                <button onclick="updateStatus(${o.id}, 'siap')" class="bg-emerald-500 text-white px-5 py-2.5 rounded-xl font-black text-[10px] hover:bg-emerald-600 transition-all uppercase shadow-md shadow-emerald-500/10">Validasi</button>
+                            ` : `
+                                <button onclick="updateStatus(${o.id}, 'selesai')" class="bg-slate-900 text-white px-5 py-2.5 rounded-xl font-black text-[10px] hover:bg-black transition-all uppercase shadow-md shadow-slate-900/10">Selesaikan</button>
+                            `}
+                            <button onclick="cancelOrder(${o.id})" class="p-2.5 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                         </div>
                     </td>
                 </tr>
-            `}).join('');
+            `).join('');
             lucide.createIcons();
         }
 
@@ -203,23 +199,43 @@
         }
 
         async function cancelOrder(id) {
-            if(confirm('Hapus pesanan?')) {
+            if(confirm('Hapus pesanan ini dari antrean?')) {
                 await _supabase.from('pesanan_pelanggan').delete().eq('id', id);
                 fetchOrders();
             }
         }
 
+        // FUNGSI MODAL BUKTI BAYAR
         function openModal(url) {
-            document.getElementById('img-preview').src = url;
-            document.getElementById('modal-bukti').classList.remove('hidden');
+            const modal = document.getElementById('modal-bukti');
+            const img = document.getElementById('img-preview');
+            const loader = document.getElementById('img-loading');
+            const btnDownload = document.getElementById('btn-download');
+            
+            loader.classList.remove('hidden');
+            img.src = url;
+            btnDownload.href = url;
+            modal.classList.remove('hidden');
+
+            img.onload = () => loader.classList.add('hidden');
+            img.onerror = () => {
+                alert("Gambar bukti bayar gagal dimuat. Pastikan URL valid.");
+                closeModal();
+            }
         }
 
         function closeModal() {
             document.getElementById('modal-bukti').classList.add('hidden');
+            document.getElementById('img-preview').src = "";
         }
 
-        _supabase.channel('admin_room').on('postgres_changes', { event: '*', schema: 'public', table: 'pesanan_pelanggan' }, () => fetchOrders()).subscribe();
+        // REAL-TIME LISTENER
+        _supabase.channel('admin_updates')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'pesanan_pelanggan' }, () => {
+                fetchOrders();
+            }).subscribe();
 
+        // INIT
         fetchOrders();
         lucide.createIcons();
     </script>
