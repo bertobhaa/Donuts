@@ -10,45 +10,82 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
-        body { font-family: 'Plus Jakarta Sans', sans-serif; }
-        .modal-active { overflow: hidden; }
-        .status-pulse { position: relative; }
-        .status-pulse::after {
-            content: '';
-            position: absolute;
-            top: 0; right: 0;
-            width: 8px; height: 8px;
-            background: #f43f5e;
-            border-radius: 50%;
-            border: 2px solid white;
-        }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; overflow: hidden; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        
+        @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
+        .row-animate { animation: fadeIn 0.4s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-800">
+<body class="bg-slate-100 flex h-screen text-slate-800">
 
-    <div class="min-h-screen flex flex-col">
-        <header class="bg-white border-b border-slate-200 p-6 sticky top-0 z-10 shadow-sm">
-            <div class="max-w-7xl mx-auto flex justify-between items-center">
-                <div>
-                    <h1 class="text-2xl font-black text-slate-900 italic tracking-tighter">ADMIN MONITOR.</h1>
-                    <p class="text-slate-500 text-xs font-bold uppercase tracking-widest">Manajemen Pesanan & Validasi Pembayaran</p>
-                </div>
-                <div id="conn-status" class="flex items-center gap-2 bg-emerald-50 text-emerald-600 px-4 py-2 rounded-xl text-[10px] font-black border border-emerald-100">
-                    <span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span> LIVE SERVER
-                </div>
+    <aside class="w-20 lg:w-64 bg-slate-900 h-full flex flex-col p-6 text-white transition-all">
+        <div class="mb-10 flex items-center gap-3">
+            <div class="p-2 bg-rose-500 rounded-xl"><i data-lucide="donut" class="w-6 h-6"></i></div>
+            <span class="font-black text-xl italic tracking-tighter hidden lg:block">Donuts.inc</span>
+        </div>
+        
+        <nav class="flex-1 space-y-4">
+            <a href="kasir.html" class="flex items-center gap-4 p-3 hover:bg-white/10 rounded-2xl transition-all text-slate-400">
+                <i data-lucide="layout-grid"></i>
+                <span class="font-bold text-sm hidden lg:block">Point of Sale</span>
+            </a>
+            <a href="admin.html" class="flex items-center gap-4 p-3 bg-rose-500 rounded-2xl transition-all text-white">
+                <i data-lucide="history"></i>
+                <span class="font-bold text-sm hidden lg:block">Process Order</span>
+            </a>
+            <a href="#" class="flex items-center gap-4 p-3 hover:bg-white/10 rounded-2xl transition-all text-slate-400">
+                <i data-lucide="settings"></i>
+                <span class="font-bold text-sm hidden lg:block">Pengaturan</span>
+            </a>
+        </nav>
+
+        <div class="pt-6 border-t border-white/10 text-slate-500">
+            <p class="text-[10px] font-black uppercase hidden lg:block">Access Level</p>
+            <p class="text-xs font-bold text-white hidden lg:block">Administrator</p>
+        </div>
+    </aside>
+
+    <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
+        <header class="bg-white p-6 border-b flex justify-between items-center shadow-sm">
+            <div>
+                <h2 class="text-xl font-black text-slate-900">Admin Monitor</h2>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Antrean Pesanan Masuk</p>
+            </div>
+            
+            <div id="conn-status" class="flex items-center gap-2 bg-emerald-50 text-emerald-600 px-4 py-2 rounded-xl text-[10px] font-black border border-emerald-100">
+                <span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span> LIVE SERVER
             </div>
         </header>
 
-        <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-8">
-            <div class="bg-white rounded-[2rem] shadow-sm border border-slate-200 overflow-hidden">
+        <main class="flex-1 overflow-y-auto p-8 hide-scrollbar">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <div class="bg-white p-6 rounded-[2rem] border border-slate-200 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-[10px] font-black text-slate-400 uppercase">Menunggu Validasi</p>
+                        <h3 id="stat-pending" class="text-3xl font-black text-amber-500">0</h3>
+                    </div>
+                    <div class="p-4 bg-amber-50 rounded-2xl text-amber-500"><i data-lucide="clock"></i></div>
+                </div>
+                <div class="bg-white p-6 rounded-[2rem] border border-slate-200 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-[10px] font-black text-slate-400 uppercase">Siap di Kasir</p>
+                        <h3 id="stat-ready" class="text-3xl font-black text-emerald-500">0</h3>
+                    </div>
+                    <div class="p-4 bg-emerald-50 rounded-2xl text-emerald-600"><i data-lucide="check-circle-2"></i></div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-[2.5rem] shadow-sm border border-slate-200 overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse">
                         <thead>
                             <tr class="bg-slate-50/50 border-b border-slate-100">
-                                <th class="p-6 text-[10px] font-black uppercase text-slate-400">Info Pelanggan</th>
-                                <th class="p-6 text-[10px] font-black uppercase text-slate-400">Metode & Layanan</th>
-                                <th class="p-6 text-[10px] font-black uppercase text-slate-400">Detail Pesanan</th>
-                                <th class="p-6 text-[10px] font-black uppercase text-slate-400 text-center">Bukti Transfer</th>
+                                <th class="p-6 text-[10px] font-black uppercase text-slate-400">Pelanggan</th>
+                                <th class="p-6 text-[10px] font-black uppercase text-slate-400">Order & Payment</th>
+                                <th class="p-6 text-[10px] font-black uppercase text-slate-400">Pesanan</th>
+                                <th class="p-6 text-[10px] font-black uppercase text-slate-400 text-center">Bukti</th>
                                 <th class="p-6 text-[10px] font-black uppercase text-slate-400">Status</th>
                                 <th class="p-6 text-[10px] font-black uppercase text-slate-400 text-right">Aksi</th>
                             </tr>
@@ -64,13 +101,13 @@
     <div id="modal-bukti" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-[2.5rem] max-w-md w-full p-8 shadow-2xl">
             <div class="flex justify-between items-center mb-6">
-                <h3 class="font-black text-xl">Validasi Transfer</h3>
-                <button onclick="closeModal()" class="text-slate-400 hover:text-rose-500 transition-colors"><i data-lucide="x"></i></button>
+                <h3 class="font-black text-xl italic uppercase">Detail Transfer</h3>
+                <button onclick="closeModal()" class="p-2 hover:bg-slate-100 rounded-full transition-all"><i data-lucide="x"></i></button>
             </div>
             <div class="aspect-[3/4] bg-slate-100 rounded-3xl overflow-hidden border border-slate-200">
-                <img id="img-preview" src="" class="w-full h-full object-contain bg-slate-200">
+                <img id="img-preview" src="" class="w-full h-full object-contain">
             </div>
-            <button onclick="closeModal()" class="w-full mt-6 bg-slate-900 text-white py-4 rounded-2xl font-black hover:bg-black transition-all">TUTUP DETAIL</button>
+            <button onclick="closeModal()" class="w-full mt-6 bg-slate-900 text-white py-4 rounded-2xl font-black hover:bg-black transition-all">TUTUP</button>
         </div>
     </div>
 
@@ -80,20 +117,27 @@
         const _supabase = supabase.createClient(SB_URL, SB_KEY);
 
         async function fetchOrders() {
-            // Kita tidak mengambil status 'selesai' karena sudah beres di kasir
             const { data, error } = await _supabase
                 .from('pesanan_pelanggan')
                 .select('*')
                 .neq('status', 'selesai')
                 .order('created_at', { ascending: false });
 
-            if (!error) renderTable(data);
+            if (!error) {
+                renderTable(data);
+                updateStats(data);
+            }
+        }
+
+        function updateStats(data) {
+            document.getElementById('stat-pending').innerText = data.filter(o => o.status === 'menunggu').length;
+            document.getElementById('stat-ready').innerText = data.filter(o => o.status === 'siap').length;
         }
 
         function renderTable(orders) {
             const tbody = document.getElementById('order-table-body');
             if (orders.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" class="p-20 text-center text-slate-400 font-bold italic border-none">Belum ada pesanan masuk.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="6" class="p-20 text-center text-slate-400 font-bold italic">Belum ada pesanan masuk.</td></tr>`;
                 return;
             }
 
@@ -101,52 +145,36 @@
                 <tr class="hover:bg-slate-50/50 transition-colors">
                     <td class="p-6">
                         <div class="font-black text-slate-900">${o.nama_pelanggan}</div>
-                        <div class="text-[10px] font-bold text-rose-500 uppercase tracking-tighter">MEJA ${o.nomor_meja}</div>
+                        <div class="text-[10px] font-bold text-rose-500 uppercase">MEJA ${o.nomor_meja}</div>
                     </td>
                     <td class="p-6">
-                        <div class="flex flex-col gap-1.5">
-                            <span class="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg bg-indigo-50 text-indigo-600 text-[10px] font-black w-fit border border-indigo-100 uppercase">
-                                <i data-lucide="utensils" class="w-3 h-3"></i>
-                                ${o.tipe_order || 'Dine In'}
-                            </span>
-                            <span class="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg bg-slate-100 text-slate-600 text-[10px] font-black w-fit border border-slate-200 uppercase">
-                                <i data-lucide="credit-card" class="w-3 h-3"></i>
-                                ${o.metode_bayar || 'QRIS/Transfer'}
-                            </span>
+                        <div class="flex flex-col gap-1 text-[10px] font-black uppercase">
+                            <span class="text-indigo-600">${o.tipe_order || 'Dine In'}</span>
+                            <span class="text-slate-400">${o.metode_bayar || 'Transfer'}</span>
                         </div>
                     </td>
-                    <td class="p-6">
-                        <div class="text-[11px] font-bold text-slate-600 leading-relaxed">
-                            ${o.items.map(i => `<div>• ${i.qty}x ${i.nama}</div>`).join('')}
-                        </div>
+                    <td class="p-6 text-[11px] font-bold text-slate-500">
+                        ${o.items.map(i => `<div>${i.qty}x ${i.nama}</div>`).join('')}
                     </td>
                     <td class="p-6 text-center">
                         ${o.bukti_bayar_url ? `
-                            <button onclick="openModal('${o.bukti_bayar_url}')" class="group relative inline-flex items-center gap-2 bg-blue-50 text-blue-600 px-4 py-2 rounded-xl text-[10px] font-black border border-blue-100 hover:bg-blue-600 hover:text-white transition-all">
-                                <i data-lucide="image" class="w-3 h-3"></i> CEK BUKTI
+                            <button onclick="openModal('${o.bukti_bayar_url}')" class="p-2 bg-blue-50 text-blue-600 rounded-xl border border-blue-100 hover:bg-blue-600 hover:text-white transition-all">
+                                <i data-lucide="eye" class="w-4 h-4"></i>
                             </button>
-                        ` : '<span class="text-[9px] font-bold text-slate-300 italic uppercase">Tanpa Bukti</span>'}
+                        ` : '<i data-lucide="minus" class="w-4 h-4 mx-auto text-slate-200"></i>'}
                     </td>
                     <td class="p-6">
-                        <span class="px-3 py-1 rounded-full text-[9px] font-black uppercase border tracking-widest
-                            ${o.status === 'menunggu' ? 'bg-amber-50 text-amber-600 border-amber-200' : 
-                              o.status === 'siap' ? 'bg-emerald-50 text-emerald-600 border-emerald-200 animate-pulse' : 
-                              'bg-blue-50 text-blue-600 border-blue-200'}">
+                        <span class="px-3 py-1 rounded-full text-[9px] font-black uppercase border
+                            ${o.status === 'menunggu' ? 'bg-amber-50 text-amber-600 border-amber-200' : 'bg-emerald-50 text-emerald-600 border-emerald-200'}">
                             ${o.status}
                         </span>
                     </td>
                     <td class="p-6">
                         <div class="flex justify-end gap-2">
                             ${o.status === 'menunggu' ? `
-                                <button onclick="updateStatus(${o.id}, 'siap')" class="flex items-center gap-2 px-4 py-2 bg-emerald-500 text-white rounded-xl font-black text-[10px] hover:bg-emerald-600 transition-all shadow-lg shadow-emerald-100 uppercase">
-                                    <i data-lucide="check-circle" class="w-4 h-4"></i> ACC & SIAP
-                                </button>
-                            ` : `
-                                <span class="text-[10px] font-bold text-slate-400 italic">Diteruskan ke Kasir</span>
-                            `}
-                            <button onclick="cancelOrder(${o.id})" class="p-2 text-slate-300 hover:text-rose-500 transition-colors">
-                                <i data-lucide="trash-2" class="w-4 h-4"></i>
-                            </button>
+                                <button onclick="updateStatus(${o.id}, 'siap')" class="bg-emerald-500 text-white px-4 py-2 rounded-xl font-black text-[10px] hover:bg-emerald-600 transition-all uppercase">Validasi</button>
+                            ` : `<span class="text-[9px] font-bold text-slate-400">Sent to POS</span>`}
+                            <button onclick="cancelOrder(${o.id})" class="p-2 text-slate-300 hover:text-rose-500 transition-colors"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                         </div>
                     </td>
                 </tr>
@@ -160,32 +188,25 @@
         }
 
         async function cancelOrder(id) {
-            if(confirm('Batalkan pesanan ini?')) {
-                const { error } = await _supabase.from('pesanan_pelanggan').delete().eq('id', id);
-                if (!error) fetchOrders();
+            if(confirm('Hapus pesanan?')) {
+                await _supabase.from('pesanan_pelanggan').delete().eq('id', id);
+                fetchOrders();
             }
         }
 
         function openModal(url) {
             document.getElementById('img-preview').src = url;
             document.getElementById('modal-bukti').classList.remove('hidden');
-            document.body.classList.add('modal-active');
         }
 
         function closeModal() {
             document.getElementById('modal-bukti').classList.add('hidden');
-            document.body.classList.remove('modal-active');
         }
 
-        // --- REALTIME SYNC ---
-        _supabase.channel('admin_room').on('postgres_changes', { event: '*', schema: 'public', table: 'pesanan_pelanggan' }, (payload) => {
-            fetchOrders();
-            if (payload.eventType === 'INSERT') {
-                new Audio('https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3').play().catch(()=>{});
-            }
-        }).subscribe();
+        _supabase.channel('admin_room').on('postgres_changes', { event: '*', schema: 'public', table: 'pesanan_pelanggan' }, () => fetchOrders()).subscribe();
 
         fetchOrders();
+        lucide.createIcons();
     </script>
 </body>
 </html>
