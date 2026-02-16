@@ -264,11 +264,25 @@
             }
         }
 
-        function addToCart(id, nama, harga) {
-            const item = cart.find(i => i.id === id);
-            if(item) item.qty++; else cart.push({id, nama, harga, qty: 1});
-            renderCart();
-        }
+     async function addToCart(id, nama, harga) {
+    // Ambil data stok terbaru dari Supabase
+    const { data: p } = await _supabase.from('produk').select('stok').eq('id', id).single();
+    
+    const itemInCart = cart.find(i => i.id === id);
+    const currentQty = itemInCart ? itemInCart.qty : 0;
+
+    if (p.stok <= currentQty) {
+        alert("Stok tidak mencukupi!");
+        return;
+    }
+
+    if(itemInCart) {
+        itemInCart.qty++;
+    } else {
+        cart.push({id, nama, harga, qty: 1});
+    }
+    renderCart();
+}
 
         function renderCart() {
             const list = document.getElementById('cart-list');
@@ -313,38 +327,72 @@
         function updateQty(i, v) { cart[i].qty += v; if(cart[i].qty < 1) cart.splice(i,1); renderCart(); }
         function clearCart() { if(confirm("Hapus keranjang?")) { cart = []; currentOnlineId = null; renderCart(); } }
 
-        async function prosesCheckout() {
-            const btn = document.getElementById('btn-bayar');
-            btn.disabled = true;
-            btn.innerText = "MEMPROSES...";
+      async function prosesCheckout() {
+    const btn = document.getElementById('btn-bayar');
+    btn.disabled = true;
+    btn.innerText = "MEMPROSES...";
 
-            const sub = cart.reduce((a, b) => a + (b.harga * b.qty), 0);
-            const disc = sub * discRate;
-            const ppn = (sub - disc) * ppnRate;
-            const total = sub - disc + ppn;
-            const bankId = document.getElementById('select-bank').value;
-            const bankText = document.getElementById('select-bank').options[document.getElementById('select-bank').selectedIndex].text;
+    const sub = cart.reduce((a, b) => a + (b.harga * b.qty), 0);
+    const disc = sub * discRate;
+    const ppn = (sub - disc) * ppnRate;
+    const total = sub - disc + ppn;
+    const bankId = document.getElementById('select-bank').value;
+    const bankText = document.getElementById('select-bank').options[document.getElementById('select-bank').selectedIndex].text;
 
-            try {
-                const { data: trx, error: tErr } = await _supabase.from('transaksi').insert([{
-                    total_harga: total, pajak_nominal: ppn, diskon_nominal: disc,
-                    total_qty: cart.reduce((a, b) => a + b.qty, 0), bank_id: bankId, items: cart
-                }]).select().single();
+    try {
+        // --- LOGIKA PENGURANGAN STOK ---
+        for (const item of cart) {
+            // Ambil stok saat ini terlebih dahulu
+            const { data: pData } = await _supabase
+                .from('produk')
+                .select('stok')
+                .eq('id', item.id)
+                .single();
 
-                if(tErr) throw tErr;
-
-                if(currentOnlineId) {
-                    await _supabase.from('pesanan_pelanggan').update({ status: 'selesai' }).eq('id', currentOnlineId);
-                }
-
-                showReceipt(trx, sub, ppn, disc, total, bankText);
-            } catch (e) { 
-                alert("Gagal bayar: " + e.message);
-                btn.disabled = false;
-                btn.innerText = "BAYAR SEKARANG";
+            if (pData) {
+                const stokBaru = pData.stok - item.qty;
+                
+                // Update stok ke database
+                const { error: upErr } = await _supabase
+                    .from('produk')
+                    .update({ stok: stokBaru })
+                    .eq('id', item.id);
+                
+                if (upErr) throw new Error(`Gagal update stok untuk ${item.nama}`);
             }
         }
+        // --------------------------------
 
+        // 1. Simpan Transaksi
+        const { data: trx, error: tErr } = await _supabase.from('transaksi').insert([{
+            total_harga: total, 
+            pajak_nominal: ppn, 
+            diskon_nominal: disc,
+            total_qty: cart.reduce((a, b) => a + b.qty, 0), 
+            bank_id: bankId, 
+            items: cart
+        }]).select().single();
+
+        if(tErr) throw tErr;
+
+        // 2. Jika ini order online, update statusnya
+        if(currentOnlineId) {
+            await _supabase.from('pesanan_pelanggan').update({ status: 'selesai' }).eq('id', currentOnlineId);
+        }
+
+        showReceipt(trx, sub, ppn, disc, total, bankText);
+        
+        // Opsional: Refresh list produk agar tampilan stok di UI (jika ada) terupdate
+        const { data: freshProd } = await _supabase.from('produk').select('*').order('nama');
+        renderProduk(freshProd);
+
+    } catch (e) { 
+        alert("Gagal memproses transaksi: " + e.message);
+        console.error(e);
+        btn.disabled = false;
+        btn.innerText = "BAYAR SEKARANG";
+    }
+}
         function showReceipt(trx, sub, ppn, disc, total, bank) {
             const area = document.getElementById('print-area');
             const waktu = new Date().toLocaleString('id-ID');
