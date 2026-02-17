@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Backup - Donuts.Inc</title>
+    <title>Owner Dashboard - Donuts.Inc</title>
     <link rel="icon" href="data:,">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
@@ -11,46 +11,83 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .nav-active { background: #f8fafc; color: #0f172a; border-right: 4px solid #f59e0b; }
     </style>
 </head>
-<body class="bg-slate-100 text-slate-900">
+<body class="bg-slate-50 text-slate-900">
 
-    <div id="loginOverlay" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[100] flex items-center justify-center p-4">
+    <div id="loginOverlay" class="fixed inset-0 bg-slate-900/90 backdrop-blur-md z-[100] flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-sm rounded-[2.5rem] p-8 shadow-2xl text-center">
             <div class="bg-amber-100 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6 rotate-3">
                 <i data-lucide="lock" class="text-amber-600 w-8 h-8"></i>
             </div>
             <h2 class="text-2xl font-black mb-2">Owner Access</h2>
             <input type="password" id="pinInput" maxlength="6" placeholder="••••••" 
-                class="w-full text-center text-3xl tracking-[1em] font-black py-4 border-2 border-slate-100 rounded-2xl focus:border-amber-500 focus:outline-none mb-4">
-            <button onclick="checkLogin()" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-bold hover:bg-slate-800 transition-all">Buka Brankas Data</button>
-            <p id="loginError" class="text-red-500 text-xs mt-4 font-bold hidden">PIN SALAH</p>
+                class="w-full text-center text-3xl tracking-[1em] font-black py-4 border-2 border-slate-100 rounded-2xl focus:border-amber-500 focus:outline-none mb-4 transition-all">
+            <button onclick="checkLogin()" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-bold hover:bg-slate-800 transition-all active:scale-95">Buka Brankas Data</button>
+            <p id="loginError" class="text-red-500 text-xs mt-4 font-bold hidden">PIN SALAH!</p>
         </div>
     </div>
 
-    <div id="mainDashboard" class="hidden min-h-screen flex flex-col items-center justify-center p-6 text-center">
-        <div class="max-w-xl w-full bg-white rounded-[3rem] p-10 shadow-xl border border-slate-200">
-            <div class="bg-emerald-100 w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-6">
-                <i data-lucide="database-backup" class="text-emerald-600 w-10 h-10"></i>
-            </div>
-            
-            <h1 class="text-3xl font-black mb-2">Full Database Backup</h1>
-            <p class="text-slate-500 mb-8 leading-relaxed">Satu file <span class="font-bold text-slate-800">donutsinc.sql</span> untuk mengamankan seluruh struktur dan isi data toko Anda.</p>
-
-            <div id="statusBox" class="hidden mb-6 p-4 bg-emerald-50 rounded-2xl border border-emerald-100">
-                <div class="flex items-center justify-center gap-3 text-emerald-700 font-bold text-sm">
-                    <div class="animate-spin h-4 w-4 border-2 border-emerald-600 border-t-transparent rounded-full"></div>
-                    Menyusun data: <span id="currentTable">...</span>
+    <div id="mainDashboard" class="hidden min-h-screen flex">
+        
+        <aside class="w-64 bg-white border-r border-slate-200 flex flex-col fixed h-full shadow-sm">
+            <div class="p-8 flex items-center gap-3">
+                <div class="bg-amber-500 p-2 rounded-lg shadow-lg shadow-amber-200">
+                    <i data-lucide="donut" class="text-white w-6 h-6"></i>
                 </div>
+                <span class="font-black text-xl tracking-tighter">DONUTS.INC</span>
             </div>
 
-            <button onclick="generateFullBackup()" id="btnDownload" class="w-full bg-emerald-600 text-white py-5 rounded-2xl font-black text-lg shadow-lg shadow-emerald-200 hover:bg-emerald-700 hover:-translate-y-1 transition-all flex items-center justify-center gap-3">
-                <i data-lucide="file-down"></i>
-                Download donutsinc.sql
-            </button>
+            <nav class="flex-1 px-4 space-y-2">
+                <button onclick="showPage('scheme')" id="nav-scheme" class="w-full flex items-center gap-3 px-4 py-4 rounded-xl font-extrabold text-slate-500 hover:bg-slate-50 transition-all nav-active">
+                    <i data-lucide="file-code" class="w-5 h-5"></i> Backup Struktur
+                </button>
+                <button onclick="showPage('data')" id="nav-data" class="w-full flex items-center gap-3 px-4 py-4 rounded-xl font-extrabold text-slate-500 hover:bg-slate-50 transition-all">
+                    <i data-lucide="database" class="w-5 h-5"></i> Backup Data Isi
+                </button>
+            </nav>
 
-            <button onclick="location.reload()" class="mt-8 text-slate-400 font-bold text-sm hover:text-red-500 transition-colors">Keluar Sistem</button>
-        </div>
+            <div class="p-6 border-t border-slate-100">
+                <button onclick="location.reload()" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-red-500 hover:bg-red-50 transition-all">
+                    <i data-lucide="log-out" class="w-5 h-5"></i> Logout
+                </button>
+            </div>
+        </aside>
+
+        <main class="flex-1 ml-64 p-10 flex flex-col items-center justify-center">
+            
+            <div id="page-scheme" class="w-full max-w-2xl bg-white rounded-[3rem] p-12 shadow-sm border border-slate-200 text-center">
+                <div class="bg-blue-100 w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                    <i data-lucide="layout" class="text-blue-600 w-10 h-10"></i>
+                </div>
+                <h2 class="text-3xl font-black mb-2">Backup Struktur</h2>
+                <p class="text-slate-500 mb-8">Hanya mengunduh skema tabel (CREATE TABLE) tanpa isi data.</p>
+                <button onclick="downloadSchemeOnly()" class="w-full bg-blue-600 text-white py-5 rounded-2xl font-black text-lg shadow-lg shadow-blue-100 hover:bg-blue-700 transition-all flex items-center justify-center gap-3">
+                    <i data-lucide="file-type"></i> Unduh donutsinc_scheme.sql
+                </button>
+            </div>
+
+            <div id="page-data" class="hidden w-full max-w-2xl bg-white rounded-[3rem] p-12 shadow-sm border border-slate-200 text-center">
+                <div class="bg-emerald-100 w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                    <i data-lucide="database-backup" class="text-emerald-600 w-10 h-10"></i>
+                </div>
+                <h2 class="text-3xl font-black mb-2">Full Data Backup</h2>
+                <p class="text-slate-500 mb-8">Mengunduh seluruh isi data transaksi dan produk dalam satu file SQL.</p>
+                
+                <div id="statusBox" class="hidden mb-6 p-4 bg-emerald-50 rounded-2xl border border-emerald-100">
+                    <div class="flex items-center justify-center gap-3 text-emerald-700 font-bold text-sm">
+                        <div class="animate-spin h-4 w-4 border-2 border-emerald-600 border-t-transparent rounded-full"></div>
+                        Menyusun data: <span id="currentTable" class="uppercase">...</span>
+                    </div>
+                </div>
+
+                <button onclick="generateFullDataBackup()" id="btnData" class="w-full bg-emerald-600 text-white py-5 rounded-2xl font-black text-lg shadow-lg shadow-emerald-100 hover:bg-emerald-700 transition-all flex items-center justify-center gap-3">
+                    <i data-lucide="download"></i> Unduh donutsinc_data.sql
+                </button>
+            </div>
+
+        </main>
     </div>
 
     <script>
@@ -65,59 +102,83 @@
                 lucide.createIcons();
             } else {
                 document.getElementById('loginError').classList.remove('hidden');
+                document.getElementById('pinInput').value = "";
             }
         }
 
-        async function generateFullBackup() {
-            const btn = document.getElementById('btnDownload');
+        function showPage(page) {
+            document.getElementById('page-scheme').classList.add('hidden');
+            document.getElementById('page-data').classList.add('hidden');
+            document.getElementById('nav-scheme').classList.remove('nav-active');
+            document.getElementById('nav-data').classList.remove('nav-active');
+
+            document.getElementById('page-' + page).classList.remove('hidden');
+            document.getElementById('nav-' + page).classList.add('nav-active');
+        }
+
+        const SCHEME_SQL = `-- BACKUP STRUKTUR DONUTS.INC
+DROP TABLE IF EXISTS resep, riwayat_pembelian, riwayat_penyesuaian, transaksi, pesanan_pelanggan, produk, bahan, bank_payment, settings, profil CASCADE;
+
+CREATE TABLE produk (id int4 PRIMARY KEY GENERATED ALWAYS AS IDENTITY, nama text NOT NULL, harga numeric NOT NULL, stok int4, image_url text);
+CREATE TABLE bahan (id int4 PRIMARY KEY GENERATED ALWAYS AS IDENTITY, nama_bahan text, stok_gram int4, satuan text, harga_beli_per_gram numeric);
+CREATE TABLE transaksi (id int4 PRIMARY KEY GENERATED ALWAYS AS IDENTITY, created_at timestamptz DEFAULT now(), total_harga numeric, total_qty int4, detail_item text, bank_id int4, pajak_nominal numeric, diskon_nominal numeric, items jsonb);
+CREATE TABLE bank_payment (id int4 PRIMARY KEY GENERATED ALWAYS AS IDENTITY, nama_metode text, nomor_rekening text, aktif bool);
+CREATE TABLE settings (id int4 PRIMARY KEY GENERATED ALWAYS AS IDENTITY, key text, value numeric);
+CREATE TABLE resep (id int4 PRIMARY KEY GENERATED ALWAYS AS IDENTITY, produk_id int4, bahan_id int4, jumlah_dibutuhkan int4);
+CREATE TABLE profil (id uuid PRIMARY KEY, nama_lengkap text, role text, updated_at timestamptz, email text);
+CREATE TABLE pesanan_pelanggan (id int8 PRIMARY KEY GENERATED ALWAYS AS IDENTITY, created_at timestamptz DEFAULT now(), nomor_meja text, nama_pelanggan text, items jsonb, total_harga numeric, status text, tipe_order text, metode_bayar text, alamat_kirim text, bukti_bayar_url text, nomor_whatsapp text, dibatalkan_oleh text);
+CREATE TABLE riwayat_penyesuaian (id int8 PRIMARY KEY GENERATED ALWAYS AS IDENTITY, created_at timestamptz DEFAULT now(), bahan_id int4, stok_sebelumnya numeric, stok_fisik numeric, selisih numeric, keterangan text);
+CREATE TABLE riwayat_pembelian (id int8 PRIMARY KEY GENERATED ALWAYS AS IDENTITY, created_at timestamptz DEFAULT now(), bahan_id int4, jumlah numeric, total_harga numeric, supplier text, catatan text);`;
+
+        function downloadSchemeOnly() {
+            const blob = new Blob([SCHEME_SQL], { type: 'text/sql' });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = "donutsinc_scheme.sql";
+            link.click();
+            alert("Berhasil mengunduh Struktur Database.");
+        }
+
+        async function generateFullDataBackup() {
+            const btn = document.getElementById('btnData');
             const statusBox = document.getElementById('statusBox');
             const currentTable = document.getElementById('currentTable');
             
             btn.disabled = true;
             statusBox.classList.remove('hidden');
 
-            let sqlContent = `-- DONUTS.INC FULL DATABASE DUMP\n-- Tanggal: ${new Date().toLocaleString('id-ID')}\n\n`;
-            sqlContent += `SET statement_timeout = 0;\nSET client_encoding = 'UTF8';\n\n`;
-
+            let sqlData = `-- DONUTS.INC DATA ONLY BACKUP\n-- Tanggal: ${new Date().toLocaleString('id-ID')}\n\n`;
             const tables = ['produk', 'bahan', 'transaksi', 'bank_payment', 'settings', 'resep', 'profil', 'pesanan_pelanggan', 'riwayat_penyesuaian', 'riwayat_pembelian'];
 
             try {
                 for (const table of tables) {
                     currentTable.innerText = table;
-                    
-                    // 1. Ambil Data
                     const { data, error } = await _supabase.from(table).select('*');
-                    
-                    if (error) continue;
+                    if (error || !data || data.length === 0) continue;
 
-                    sqlContent += `-- Data untuk tabel: ${table}\n`;
-                    
-                    if (data && data.length > 0) {
-                        data.forEach(row => {
-                            const keys = Object.keys(row);
-                            const values = keys.map(k => {
-                                let v = row[k];
-                                if (v === null) return 'NULL';
-                                if (typeof v === 'string') return `'${v.replace(/'/g, "''")}'`;
-                                if (typeof v === 'object') return `'${JSON.stringify(v).replace(/'/g, "''")}'`;
-                                return v;
-                            });
-                            sqlContent += `INSERT INTO ${table} (${keys.join(', ')}) VALUES (${values.join(', ')});\n`;
+                    sqlData += `-- Data untuk: ${table}\n`;
+                    data.forEach(row => {
+                        const keys = Object.keys(row);
+                        const values = keys.map(k => {
+                            let v = row[k];
+                            if (v === null) return 'NULL';
+                            if (typeof v === 'string') return `'${v.replace(/'/g, "''")}'`;
+                            if (typeof v === 'object') return `'${JSON.stringify(v).replace(/'/g, "''")}'`;
+                            return v;
                         });
-                    }
-                    sqlContent += `\n`;
+                        sqlData += `INSERT INTO ${table} (${keys.join(', ')}) VALUES (${values.join(', ')});\n`;
+                    });
+                    sqlData += `\n`;
                 }
 
-                // 2. Download File Tunggal
-                const blob = new Blob([sqlContent], { type: 'text/sql' });
+                const blob = new Blob([sqlData], { type: 'text/sql' });
                 const link = document.createElement("a");
                 link.href = URL.createObjectURL(blob);
-                link.download = "donutsinc.sql";
+                link.download = "donutsinc_data.sql";
                 link.click();
-
-                alert("Backup Lengkap Berhasil Diunduh!");
+                alert("Backup Data Isi Berhasil Diunduh!");
             } catch (e) {
-                alert("Error: " + e.message);
+                alert("Terjadi kesalahan: " + e.message);
             } finally {
                 btn.disabled = false;
                 statusBox.classList.add('hidden');
