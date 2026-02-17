@@ -176,11 +176,10 @@
         let activeOrderId = null;
         let nomorMeja = "CO";
         let customerData = { nama: "", wa: "" };
+        const ADMIN_WA = "6281239739396"; // Nomor admin WhatsApp
 
         async function init() {
-            // Cek Session Pelanggan
             checkCustomerSession();
-
             const params = new URLSearchParams(window.location.search);
             nomorMeja = params.get('Customer') || "CO";
             document.getElementById('info-meja').innerText = `Meja: ${nomorMeja}`;
@@ -193,7 +192,6 @@
             lucide.createIcons();
         }
 
-        // --- LOGIKA REGISTRASI ---
         function checkCustomerSession() {
             const saved = sessionStorage.getItem('customerInfo');
             if (saved) {
@@ -206,14 +204,9 @@
         function saveCustomerData() {
             const nama = document.getElementById('reg-nama').value.trim();
             const wa = document.getElementById('reg-wa').value.trim();
-
-            if (nama.length < 3 || wa.length < 9) {
-                return alert("Mohon isi Nama & WhatsApp dengan benar!");
-            }
-
+            if (nama.length < 3 || wa.length < 9) return alert("Mohon isi Nama & WhatsApp dengan benar!");
             customerData = { nama, wa };
             sessionStorage.setItem('customerInfo', JSON.stringify(customerData));
-            
             document.getElementById('welcome-modal').classList.add('hidden');
             syncDisplayData();
         }
@@ -230,7 +223,6 @@
             }
         }
 
-        // --- LOGIKA PRODUK & KERANJANG ---
         async function ambilSettings() {
             const { data } = await _supabase.from('settings').select('*').eq('key', 'diskon_global').maybeSingle();
             if(data) {
@@ -276,12 +268,10 @@
             const count = cart.reduce((a, b) => a + b.qty, 0);
             const nominalDiskon = (subtotal * diskonPersen) / 100;
             const totalFinal = subtotal - nominalDiskon;
-
             document.getElementById('total-qty').innerText = count;
             document.getElementById('subtotal-text').innerText = `Rp ${subtotal.toLocaleString()}`;
             document.getElementById('diskon-text').innerText = `- Rp ${nominalDiskon.toLocaleString()}`;
             document.getElementById('total-text').innerText = `Rp ${totalFinal.toLocaleString()}`;
-
             document.getElementById('cart-count').innerText = count;
             document.getElementById('cart-count').classList.toggle('hidden', count === 0);
             document.getElementById('order-bar').classList.toggle('translate-y-full', count === 0);
@@ -313,7 +303,8 @@
             }
 
             const subtotal = cart.reduce((a, b) => a + (b.harga * b.qty), 0);
-            const totalFinal = subtotal - (subtotal * diskonPersen / 100);
+            const nominalDiskon = (subtotal * diskonPersen) / 100;
+            const totalFinal = subtotal - nominalDiskon;
 
             const { data, error } = await _supabase.from('pesanan_pelanggan').insert([{
                 nomor_meja: nomorMeja,
@@ -329,8 +320,31 @@
             }]).select();
 
             if(!error) {
-                localStorage.setItem('activeOrderId', data[0].id);
-                location.reload();
+                const orderId = data[0].id;
+                localStorage.setItem('activeOrderId', orderId);
+                
+                // --- LOGIKA WHATSAPP ADMIN ---
+                let teksWA = `*HALO ADMIN, ADA PESANAN BARU!*%0A`;
+                teksWA += `---------------------------%0A`;
+                teksWA += `*ID Pesanan:* #${orderId}%0A`;
+                teksWA += `*Nama:* ${nama}%0A`;
+                teksWA += `*WhatsApp:* ${wa}%0A`;
+                teksWA += `*Layanan:* ${tipe}%0A`;
+                if(tipe === 'Delivery') teksWA += `*Alamat:* ${alamat}%0A`;
+                teksWA += `*Bayar:* ${bayar}%0A`;
+                teksWA += `---------------------------%0A`;
+                teksWA += `*Pesanan:*%0A`;
+                cart.forEach(item => {
+                    teksWA += `- ${item.nama} (x${item.qty})%0A`;
+                });
+                teksWA += `---------------------------%0A`;
+                teksWA += `*TOTAL: Rp ${totalFinal.toLocaleString()}*%0A%0A`;
+                teksWA += `_Mohon segera diproses ya admin, Terima kasih!_`;
+
+                // Redirect ke WhatsApp
+                const urlWA = `https://wa.me/${ADMIN_WA}?text=${teksWA}`;
+                window.location.href = urlWA;
+                
             } else {
                 alert("Gagal kirim: " + error.message);
                 btn.disabled = false;
@@ -338,7 +352,6 @@
             }
         }
 
-        // --- MONITORING STATUS SAMA SEPERTI SEBELUMNYA ---
         async function pantauStatus(orderId) {
             document.getElementById('status-tracker').classList.remove('hidden');
             const { data } = await _supabase.from('pesanan_pelanggan').select('*').eq('id', orderId).maybeSingle();
