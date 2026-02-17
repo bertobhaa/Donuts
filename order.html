@@ -83,7 +83,7 @@
             </div>
         </div>
 
-        <section>
+        <section id="menu-section">
             <h2 class="text-lg font-extrabold mb-4 flex items-center gap-2">Pilih Menu <span class="text-sm font-normal text-slate-400">🍩</span></h2>
             <div id="menu-container" class="grid grid-cols-1 gap-4"></div>
         </section>
@@ -176,7 +176,7 @@
         let activeOrderId = null;
         let nomorMeja = "CO";
         let customerData = { nama: "", wa: "" };
-        const ADMIN_WA = "6281239739396"; // Nomor admin WhatsApp
+        const ADMIN_WA = "6281239739396";
 
         async function init() {
             checkCustomerSession();
@@ -277,7 +277,7 @@
             document.getElementById('order-bar').classList.toggle('translate-y-full', count === 0);
         }
 
-      async function prosesCheckout() {
+        async function prosesCheckout() {
             const { nama, wa } = customerData;
             const tipe = document.querySelector('input[name="tipe_order"]:checked').value;
             const bayar = document.querySelector('input[name="metode_bayar"]:checked').value;
@@ -289,8 +289,7 @@
 
             const btn = document.getElementById('btn-kirim');
             btn.disabled = true; 
-            btn.innerHTML = `<i data-lucide="loader" class="w-4 h-4 animate-spin"></i> MEMPROSES...`;
-            lucide.createIcons();
+            btn.innerHTML = `MEMPROSES...`;
 
             let buktiUrl = "";
             if(bayar === 'Transfer' && fileBukti) {
@@ -319,60 +318,44 @@
                 bukti_bayar_url: buktiUrl
             }]).select();
 
-           if(!error) {
+            if(!error) {
                 const orderId = data[0].id;
                 localStorage.setItem('activeOrderId', orderId);
                 
-                // --- LOGIKA WHATSAPP STABIL ---
                 let teksWA = `*KONFIRMASI PESANAN - DONUTS.INC*%0A`;
                 teksWA += `------------------------------------------%0A`;
                 teksWA += `*ID Pesanan :* #${orderId}%0A`;
                 teksWA += `*Nama :* ${nama}%0A`;
                 teksWA += `*Layanan :* ${tipe}%0A`;
-                
-                if(tipe === 'Delivery') {
-                    teksWA += `*Alamat :* ${alamat}%0A`;
-                }
-
+                if(tipe === 'Delivery') teksWA += `*Alamat :* ${alamat}%0A`;
                 teksWA += `*Pembayaran :* ${bayar}%0A`;
                 teksWA += `------------------------------------------%0A`;
                 teksWA += `*Daftar Pesanan:*%0A`;
-                
-                cart.forEach(item => {
-                    teksWA += `%E2%80%A2 ${item.nama} (x${item.qty})%0A`; // Menggunakan encode untuk bullet point
-                });
-
+                cart.forEach(item => { teksWA += `%E2%80%A2 ${item.nama} (x${item.qty})%0A`; });
                 teksWA += `------------------------------------------%0A`;
                 teksWA += `*Subtotal :* Rp ${subtotal.toLocaleString('id-ID')}%0A`;
-                
-                if(nominalDiskon > 0) {
-                    teksWA += `*Diskon (${diskonPersen}%) :* -Rp ${nominalDiskon.toLocaleString('id-ID')}%0A`;
-                }
-                
+                if(nominalDiskon > 0) teksWA += `*Diskon (${diskonPersen}%) :* -Rp ${nominalDiskon.toLocaleString('id-ID')}%0A`;
                 teksWA += `*TOTAL TAGIHAN : Rp ${totalFinal.toLocaleString('id-ID')}*%0A`;
                 teksWA += `------------------------------------------%0A`;
                 teksWA += `_Halo admin, saya baru saja memesan. Mohon segera dicek ya!_`;
 
-                // Gunakan wa.me dengan window.open agar lebih kompatibel
-                const urlWA = `https://wa.me/${ADMIN_WA}?text=${teksWA}`;
-                
-                // Beri jeda sedikit agar user bisa melihat status sukses sebelum dialihkan
-                alert("Pesanan Tersimpan! Klik OK untuk kirim detail ke WhatsApp.");
-                window.open(urlWA, '_blank');
-                location.reload(); // Reload untuk memantau status di status-tracker
-                
+                alert("Pesanan Berhasil! Klik OK untuk konfirmasi via WhatsApp.");
+                window.open(`https://wa.me/${ADMIN_WA}?text=${teksWA}`, '_blank');
+                location.reload();
             } else {
-                alert("Gagal kirim ke database: " + error.message);
+                alert("Gagal: " + error.message);
                 btn.disabled = false;
                 btn.innerText = "Konfirmasi Pesanan";
             }
+        }
+
         async function pantauStatus(orderId) {
             document.getElementById('status-tracker').classList.remove('hidden');
             const { data } = await _supabase.from('pesanan_pelanggan').select('*').eq('id', orderId).maybeSingle();
             if(!data || data.status === 'batal') { localStorage.removeItem('activeOrderId'); return location.reload(); }
             updateStatusUI(data.status);
             _supabase.channel(`st-${orderId}`).on('postgres_changes', { event: '*', schema: 'public', table: 'pesanan_pelanggan', filter: `id=eq.${orderId}` }, payload => {
-                if(payload.new.status === 'batal') { localStorage.removeItem('activeOrderId'); alert("Maaf, pesanan Anda dibatalkan."); location.reload(); }
+                if(payload.new.status === 'batal') { localStorage.removeItem('activeOrderId'); alert("Pesanan dibatalkan."); location.reload(); }
                 else { updateStatusUI(payload.new.status); }
             }).subscribe();
         }
@@ -380,15 +363,15 @@
         function updateStatusUI(status) {
             const txt = document.getElementById('text-status');
             const btnBatal = document.getElementById('btn-batal-customer');
-            const map = { 'menunggu': 'Menunggu Konfirmasi...', 'siap': '✅ Siap diambil!', 'selesai': '✨ Pesanan Selesai!' };
+            const map = { 'menunggu': 'Menunggu Konfirmasi...', 'siap': '✅ Siap diambil!', 'selesai': '✨ Selesai!' };
             txt.innerText = map[status] || 'Sedang Diproses...';
             if(status === 'menunggu') btnBatal.classList.remove('hidden'); else btnBatal.classList.add('hidden');
             if(status === 'selesai') { setTimeout(() => { localStorage.removeItem('activeOrderId'); location.reload(); }, 10000); }
         }
 
         async function customerCancelOrder() {
-            if(!confirm('Batalkan pesanan Anda?')) return;
-            await _supabase.from('pesanan_pelanggan').update({ status: 'batal', dibatalkan_oleh: 'customer' }).eq('id', activeOrderId).eq('status', 'menunggu');
+            if(!confirm('Batalkan pesanan?')) return;
+            await _supabase.from('pesanan_pelanggan').update({ status: 'batal' }).eq('id', activeOrderId);
             localStorage.removeItem('activeOrderId');
             location.reload();
         }
