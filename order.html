@@ -319,18 +319,17 @@
                 bukti_bayar_url: buktiUrl
             }]).select();
 
-            if(!error) {
+           if(!error) {
                 const orderId = data[0].id;
                 localStorage.setItem('activeOrderId', orderId);
                 
-                // --- LOGIKA WHATSAPP DENGAN DETAIL LENGKAP ---
+                // --- LOGIKA WHATSAPP STABIL ---
                 let teksWA = `*KONFIRMASI PESANAN - DONUTS.INC*%0A`;
                 teksWA += `------------------------------------------%0A`;
                 teksWA += `*ID Pesanan :* #${orderId}%0A`;
                 teksWA += `*Nama :* ${nama}%0A`;
                 teksWA += `*Layanan :* ${tipe}%0A`;
                 
-                // Tambahkan alamat jika memilih Delivery
                 if(tipe === 'Delivery') {
                     teksWA += `*Alamat :* ${alamat}%0A`;
                 }
@@ -340,13 +339,12 @@
                 teksWA += `*Daftar Pesanan:*%0A`;
                 
                 cart.forEach(item => {
-                    teksWA += `• ${item.nama} (x${item.qty})%0A`;
+                    teksWA += `%E2%80%A2 ${item.nama} (x${item.qty})%0A`; // Menggunakan encode untuk bullet point
                 });
 
                 teksWA += `------------------------------------------%0A`;
                 teksWA += `*Subtotal :* Rp ${subtotal.toLocaleString('id-ID')}%0A`;
                 
-                // Tampilkan diskon jika ada
                 if(nominalDiskon > 0) {
                     teksWA += `*Diskon (${diskonPersen}%) :* -Rp ${nominalDiskon.toLocaleString('id-ID')}%0A`;
                 }
@@ -355,16 +353,19 @@
                 teksWA += `------------------------------------------%0A`;
                 teksWA += `_Halo admin, saya baru saja memesan. Mohon segera dicek ya!_`;
 
-                // Redirect ke WhatsApp
+                // Gunakan wa.me dengan window.open agar lebih kompatibel
                 const urlWA = `https://wa.me/${ADMIN_WA}?text=${teksWA}`;
-                window.location.href = urlWA;
+                
+                // Beri jeda sedikit agar user bisa melihat status sukses sebelum dialihkan
+                alert("Pesanan Tersimpan! Klik OK untuk kirim detail ke WhatsApp.");
+                window.open(urlWA, '_blank');
+                location.reload(); // Reload untuk memantau status di status-tracker
                 
             } else {
-                alert("Gagal kirim: " + error.message);
+                alert("Gagal kirim ke database: " + error.message);
                 btn.disabled = false;
                 btn.innerText = "Konfirmasi Pesanan";
             }
-        }
         async function pantauStatus(orderId) {
             document.getElementById('status-tracker').classList.remove('hidden');
             const { data } = await _supabase.from('pesanan_pelanggan').select('*').eq('id', orderId).maybeSingle();
