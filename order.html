@@ -277,78 +277,96 @@
             document.getElementById('order-bar').classList.toggle('translate-y-full', count === 0);
         }
 
-        async function prosesCheckout() {
-            const { nama, wa } = customerData;
-            const tipe = document.querySelector('input[name="tipe_order"]:checked').value;
-            const bayar = document.querySelector('input[name="metode_bayar"]:checked').value;
-            const fileBukti = document.getElementById('bukti-bayar').files[0];
-            const alamat = document.getElementById('alamat-lengkap').value;
+       async function prosesCheckout() {
+    const { nama, wa } = customerData;
+    const tipe = document.querySelector('input[name="tipe_order"]:checked').value;
+    const bayar = document.querySelector('input[name="metode_bayar"]:checked').value;
+    const fileBukti = document.getElementById('bukti-bayar').files[0];
+    const alamat = document.getElementById('alamat-lengkap').value;
 
-            if(tipe === 'Delivery' && !alamat) return alert("Mohon isi alamat pengiriman!");
-            if(bayar === 'Transfer' && !fileBukti) return alert("Mohon upload bukti transfer!");
+    // Validasi
+    if(tipe === 'Delivery' && !alamat) return alert("Mohon isi alamat pengiriman!");
+    if(bayar === 'Transfer' && !fileBukti) return alert("Mohon upload bukti transfer!");
 
-            const btn = document.getElementById('btn-kirim');
-            btn.disabled = true; 
-            btn.innerHTML = `MEMPROSES...`;
+    const btn = document.getElementById('btn-kirim');
+    btn.disabled = true; 
+    btn.innerHTML = `MEMPROSES...`;
 
-            let buktiUrl = "";
-            if(bayar === 'Transfer' && fileBukti) {
-                const fName = `${Date.now()}_${nama.replace(/\s+/g, '_')}.jpg`;
-                const { data: upData, error: upError } = await _supabase.storage.from('bukti-transfer').upload(fName, fileBukti);
-                if(!upError) {
-                    const { data } = _supabase.storage.from('bukti-transfer').getPublicUrl(fName);
-                    buktiUrl = data.publicUrl;
-                }
-            }
+    // 1. Upload Bukti jika Transfer
+    let buktiUrl = "";
+    if(bayar === 'Transfer' && fileBukti) {
+        const fName = `${Date.now()}_${nama.replace(/\s+/g, '_')}.jpg`;
+        const { data: upData, error: upError } = await _supabase.storage.from('bukti-transfer').upload(fName, fileBukti);
+        if(!upError) {
+            const { data } = _supabase.storage.from('bukti-transfer').getPublicUrl(fName);
+            buktiUrl = data.publicUrl;
+        }
+    }
 
-            const subtotal = cart.reduce((a, b) => a + (b.harga * b.qty), 0);
-            const nominalDiskon = (subtotal * diskonPersen) / 100;
-            const totalFinal = subtotal - nominalDiskon;
+    // 2. Hitung Total
+    const subtotal = cart.reduce((a, b) => a + (b.harga * b.qty), 0);
+    const nominalDiskon = (subtotal * diskonPersen) / 100;
+    const totalFinal = subtotal - nominalDiskon;
 
-            const { data, error } = await _supabase.from('pesanan_pelanggan').insert([{
-                nomor_meja: nomorMeja,
-                nama_pelanggan: nama,
-                nomor_whatsapp: wa,
-                items: cart,
-                total_harga: totalFinal,
-                tipe_order: tipe,
-                alamat_kirim: alamat,
-                metode_bayar: bayar,
-                status: 'menunggu',
-                bukti_bayar_url: buktiUrl
-            }]).select();
+    // 3. Simpan ke Tabel pesanan_pelanggan (Sesuai Gambar Anda)
+    const { data, error } = await _supabase.from('pesanan_pelanggan').insert([{
+        nomor_meja: nomorMeja,
+        nama_pelanggan: nama,
+        nomor_whatsapp: wa,
+        items: cart, // Masuk ke kolom jsonb
+        total_harga: totalFinal,
+        status: 'menunggu',
+        tipe_order: tipe,
+        metode_bayar: bayar,
+        alamat_kirim: alamat,
+        bukti_bayar_url: buktiUrl
+    }]).select();
 
-            if(!error) {
-                const orderId = data[0].id;
-                localStorage.setItem('activeOrderId', orderId);
-                
-                let teksWA = `*KONFIRMASI PESANAN - DONUTS.INC*%0A`;
-                teksWA += `------------------------------------------%0A`;
-                teksWA += `*ID Pesanan :* #${orderId}%0A`;
-                teksWA += `*Nama :* ${nama}%0A`;
-                teksWA += `*Layanan :* ${tipe}%0A`;
-                if(tipe === 'Delivery') teksWA += `*Alamat :* ${alamat}%0A`;
-                teksWA += `*Pembayaran :* ${bayar}%0A`;
-                teksWA += `------------------------------------------%0A`;
-                teksWA += `*Daftar Pesanan:*%0A`;
-                cart.forEach(item => { teksWA += `%E2%80%A2 ${item.nama} (x${item.qty})%0A`; });
-                teksWA += `------------------------------------------%0A`;
-                teksWA += `*Subtotal :* Rp ${subtotal.toLocaleString('id-ID')}%0A`;
-                if(nominalDiskon > 0) teksWA += `*Diskon (${diskonPersen}%) :* -Rp ${nominalDiskon.toLocaleString('id-ID')}%0A`;
-                teksWA += `*TOTAL TAGIHAN : Rp ${totalFinal.toLocaleString('id-ID')}*%0A`;
-                teksWA += `------------------------------------------%0A`;
-                teksWA += `_Halo admin, saya baru saja memesan. Mohon segera dicek ya!_`;
-
-                alert("Pesanan Berhasil! Klik OK untuk konfirmasi via WhatsApp.");
-                window.open(`https://wa.me/${ADMIN_WA}?text=${teksWA}`, '_blank');
-                location.reload();
-            } else {
-                alert("Gagal: " + error.message);
-                btn.disabled = false;
-                btn.innerText = "Konfirmasi Pesanan";
-            }
+    if(!error) {
+        const orderId = data[0].id;
+        localStorage.setItem('activeOrderId', orderId);
+        
+        // --- KONSTRUKSI PESAN WHATSAPP AMAN ---
+        let teksWA = `*KONFIRMASI PESANAN - DONUTS.INC*%0A`;
+        teksWA += `------------------------------------------%0A`;
+        teksWA += `*ID Pesanan :* %23${orderId}%0A`; // Gunakan %23 sebagai ganti #
+        teksWA += `*Nama :* ${encodeURIComponent(nama)}%0A`;
+        teksWA += `*Layanan :* ${tipe}%0A`;
+        
+        if(tipe === 'Delivery') {
+            teksWA += `*Alamat :* ${encodeURIComponent(alamat)}%0A`;
         }
 
+        teksWA += `*Pembayaran :* ${bayar}%0A`;
+        teksWA += `------------------------------------------%0A`;
+        teksWA += `*Daftar Pesanan:*%0A`;
+        
+        cart.forEach(item => {
+            teksWA += `%E2%80%A2 ${encodeURIComponent(item.nama)} (x${item.qty})%0A`;
+        });
+
+        teksWA += `------------------------------------------%0A`;
+        teksWA += `*Subtotal :* Rp ${subtotal.toLocaleString('id-ID')}%0A`;
+        
+        if(nominalDiskon > 0) {
+            teksWA += `*Diskon (${diskonPersen}%) :* -Rp ${nominalDiskon.toLocaleString('id-ID')}%0A`;
+        }
+        
+        teksWA += `*TOTAL TAGIHAN : Rp ${totalFinal.toLocaleString('id-ID')}*%0A`;
+        teksWA += `------------------------------------------%0A`;
+        teksWA += `_Halo admin, saya baru saja memesan. Mohon segera dicek ya!_`;
+
+        // Redirect menggunakan URL yang sudah aman
+        alert("Pesanan Berhasil Disimpan!");
+        window.open(`https://wa.me/${ADMIN_WA}?text=${teksWA}`, '_blank');
+        location.reload();
+        
+    } else {
+        alert("Gagal simpan ke database: " + error.message);
+        btn.disabled = false;
+        btn.innerText = "Konfirmasi Pesanan";
+    }
+}
         async function pantauStatus(orderId) {
             document.getElementById('status-tracker').classList.remove('hidden');
             const { data } = await _supabase.from('pesanan_pelanggan').select('*').eq('id', orderId).maybeSingle();
