@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Backup Data Isi - Donuts.Inc</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-slate-50 flex items-center justify-center min-h-screen p-6">
+
+    <div class="max-w-md w-full bg-white rounded-[2.5rem] p-8 shadow-xl text-center space-y-6">
+        <div class="bg-blue-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto">
+            <i data-lucide="file-json" class="text-blue-600 w-10 h-10"></i>
+        </div>
+        
+        <div>
+            <h2 class="text-2xl font-black text-slate-900">Backup Isi Data</h2>
+            <p class="text-slate-500 text-sm mt-2">Mengunduh seluruh isi transaksi, stok, dan pengaturan dalam format JSON.</p>
+        </div>
+
+        <div id="status" class="hidden animate-pulse text-blue-600 font-bold text-sm">
+            Sedang mengumpulkan data...
+        </div>
+
+        <div class="space-y-3">
+            <button onclick="downloadAllData()" id="btnDownload" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black shadow-lg shadow-blue-200 hover:bg-blue-700 transition-all flex items-center justify-center gap-3">
+                <i data-lucide="download-cloud" class="w-5 h-5"></i>
+                Unduh Semua Data
+            </button>
+            <p class="text-[10px] text-slate-400 uppercase font-bold tracking-widest">Format: .json (Full Data)</p>
+        </div>
+        
+        <div class="text-[11px] text-slate-400">
+            Catatan: File ini berisi data sensitif pelanggan dan transaksi. Simpanlah di tempat yang aman.
+        </div>
+    </div>
+
+    <script>
+        // --- KONFIGURASI SUPABASE ---
+        // Ganti dengan URL dan API Key milikmu
+        const SB_URL = "bkkpkfvcssdmgnncrrhu"; 
+        const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJra3BrZnZjc3NkbWdubmNycmh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA3OTQ4OTIsImV4cCI6MjA4NjM3MDg5Mn0.VeE2IZhQmTyKMMQI4Ukh0nt6YHR2zVs_nUnjtPt-GPQ";
+        const _supabase = supabase.createClient(SB_URL, SB_KEY);
+
+        async function downloadAllData() {
+            const btn = document.getElementById('btnDownload');
+            const status = document.getElementById('status');
+            
+            btn.disabled = true;
+            status.classList.remove('hidden');
+
+            // Daftar semua tabel yang ingin di-backup isinya
+            const tables = [
+                'produk', 'bahan', 'transaksi', 'bank_payment', 
+                'settings', 'resep', 'profil', 'pesanan_pelanggan', 
+                'riwayat_penyesuaian', 'riwayat_pembelian'
+            ];
+
+            let backupStorage = {
+                backup_date: new Date().toISOString(),
+                project: "Donuts.Inc",
+                data: {}
+            };
+
+            try {
+                for (const table of tables) {
+                    const { data, error } = await _supabase.from(table).select('*');
+                    if (error) {
+                        console.error(`Gagal ambil tabel ${table}:`, error);
+                        backupStorage.data[table] = "Gagal mengambil data";
+                    } else {
+                        backupStorage.data[table] = data;
+                    }
+                }
+
+                // Proses Download
+                const dataStr = JSON.stringify(backupStorage, null, 2);
+                const blob = new Blob([dataStr], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement("a");
+                
+                const fileName = `DATA_FULL_DONUTSINC_${new Date().toISOString().split('T')[0]}.json`;
+                
+                link.href = url;
+                link.download = fileName;
+                link.click();
+
+                alert("Backup data selesai! File .json berhasil disimpan.");
+            } catch (err) {
+                alert("Terjadi kesalahan sistem: " + err.message);
+            } finally {
+                btn.disabled = false;
+                status.classList.add('hidden');
+            }
+        }
+
+        lucide.createIcons();
+    </script>
+</body>
+</html>
